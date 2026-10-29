@@ -138,8 +138,15 @@
     const seen=new Set(), rows=[];
     (q.data||[]).forEach(r=>{if(r.server_id&&!seen.has(r.server_id)){seen.add(r.server_id);rows.push(r);}});
     if(!rows.length){select.innerHTML='<option value="">승인된 서버가 없습니다.</option>';serverId="";$("#managed-server-info").textContent="이용권 신청 후 승인을 받으면 서버를 관리할 수 있어요.";return;}
-    select.innerHTML='<option value="">관리할 서버 선택</option>'+rows.map(r=>'<option value="'+escapeHtml(r.server_id)+'">'+escapeHtml(r.server_name||"Discord 서버")+'</option>').join("");
-    if(serverId&&seen.has(serverId))select.value=serverId;else{select.value=rows[0].server_id;serverId=select.value;}
+    const inventory=await sb.from("discord_guilds").select("server_id,server_name,icon_url,bot_present,synced_at").in("server_id",rows.map(r=>String(r.server_id)));
+    const inventoryReady=!inventory.error;
+    const guildMap=new Map((inventory.data||[]).map(g=>[String(g.server_id),g]));
+    rows.forEach(r=>{const g=guildMap.get(String(r.server_id));r.botGuild=g||null;if(g?.server_name)r.server_name=g.server_name;});
+    select.innerHTML='<option value="">관리할 서버 선택</option>'+rows.map(r=>'<option value="'+escapeHtml(r.server_id)+'"'+(inventoryReady&&!r.botGuild?' disabled':'')+'>'+escapeHtml(r.server_name||"Discord 서버")+(inventoryReady&&!r.botGuild?' · 봇 미참여':'')+'</option>').join("");
+    const selectable=rows.filter(r=>!inventoryReady||r.botGuild);
+    if(serverId&&selectable.some(r=>String(r.server_id)===String(serverId)))select.value=serverId;
+    else{serverId=selectable.length?String(selectable[0].server_id):"";select.value=serverId;}
+    if(!serverId){$("#managed-server-info").textContent=inventoryReady?"승인된 서버에서 봇을 찾지 못했어요. 봇을 초대한 뒤 새로고침해 주세요.":"서버 자동 인식 테이블을 사용할 수 없어요. Supabase 설정을 확인해 주세요.";return;}
     if(await ensureServer())await loadServerData();
   }
   async function management(active) {
