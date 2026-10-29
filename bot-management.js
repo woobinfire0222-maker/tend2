@@ -36,7 +36,7 @@
     return true;
   }
   async function init(options) {
-    ctx=options; sb=ctx.sb; user=ctx.user; notify=ctx.notify; escapeHtml=ctx.escapeHtml; discordIds=ctx.discordIds;
+    ctx=options; sb=ctx.sb; user=ctx.user; notify=ctx.notify; escapeHtml=ctx.escapeHtml; discordIds=ctx.discordIds; ctx.shell("bot","봇 관리","서버별 검열·공지·자동화 설정을 관리하세요.");
     $$("[data-bot-tab]").forEach(b=>b.addEventListener("click",()=>{const key=b.dataset.botTab;$$("[data-bot-tab]").forEach(x=>x.classList.toggle("active",x===b));$$("[data-bot-panel]").forEach(p=>p.classList.toggle("active",p.dataset.botPanel===key));}));
     $("#moderation-action").addEventListener("change",()=>$("#timeout-field").classList.toggle("hidden",$("#moderation-action").value!=="timeout"));
     $("#announcement-mention").addEventListener("change",()=>$("#announcement-role-field").classList.toggle("hidden",$("#announcement-mention").value!=="role"));
