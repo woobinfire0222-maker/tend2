@@ -54,12 +54,26 @@ Deno.serve(async (request) => {
         .order("is_default", { ascending: false }).order("created_at", { ascending: true }).limit(1).maybeSingle();
       if (error) return json({ error: "Unable to load announcement channels." }, 500);
       channelId = String(channel?.channel_id || "");
+      if (!channelId) {
+        const { data: discovered, error: discoveredError } = await db.from("discord_channels")
+          .select("channel_id").eq("server_id", serverId).eq("can_send", true)
+          .order("channel_name", { ascending: true }).limit(1).maybeSingle();
+        if (discoveredError) return json({ error: "Unable to load automatically detected Discord channels." }, 500);
+        channelId = String(discovered?.channel_id || "");
+      }
     }
     if (!/^\d{5,30}$/.test(channelId)) return json({ error: "Choose or register an announcement channel first." }, 400);
     const { data: allowedChannel, error: channelCheckError } = await db.from("announcement_channels")
       .select("channel_id").eq("server_id", serverId).eq("channel_id", channelId).eq("enabled", true).maybeSingle();
     if (channelCheckError) return json({ error: "Unable to verify the announcement channel." }, 500);
-    if (!allowedChannel) return json({ error: "Register this channel in TEND before sending announcements." }, 403);
+    let canUseDiscoveredChannel = false;
+    if (!allowedChannel) {
+      const { data: discovered, error: discoveredError } = await db.from("discord_channels")
+        .select("channel_id,can_send").eq("server_id", serverId).eq("channel_id", channelId).maybeSingle();
+      if (discoveredError) return json({ error: "Unable to verify the automatically detected channel." }, 500);
+      canUseDiscoveredChannel = !!discovered && discovered.can_send === true;
+    }
+    if (!allowedChannel && !canUseDiscoveredChannel) return json({ error: "This channel is not registered or the bot cannot send messages there." }, 403);
 
     const title = String(body.title || "").trim().slice(0, 256);
     const content = String(body.content || "").trim();
