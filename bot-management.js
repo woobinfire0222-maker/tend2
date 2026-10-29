@@ -23,7 +23,7 @@
   async function ensureServer() {
     const id = sid();
     if (!id) { notify("관리할 서버를 선택해 주세요."); return false; }
-    const p = await sb.from("purchase_requests").select("server_name,server_id,status").eq("user_id",user.id).eq("server_id",id).in("status",["approved","completed"]).maybeSingle();
+    const p = await sb.from("purchase_requests").select("server_name,server_id,status").eq("user_id",user.id).eq("server_id",id).in("status",["approved","completed"]).limit(1).maybeSingle();
     if (p.error || !p.data) { notify("승인된 이용권 신청에 등록된 서버만 관리할 수 있어요."); return false; }
     const existing = await sb.from("managed_servers").select("server_id").eq("server_id",id).maybeSingle();
     if (existing.error) { notify("서버 설정을 읽지 못했어요. 관리용 SQL을 적용했는지 확인해 주세요."); return false; }
