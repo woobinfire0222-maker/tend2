@@ -51,3 +51,6 @@
 @media(max-width:760px){.dashboard-welcome{align-items:flex-start;flex-direction:column;padding:22px}.dashboard-welcome .btn{width:100%}.bank-row,.payment-summary{align-items:flex-start;flex-direction:column}.quick-links a{align-items:flex-start;flex-direction:column;gap:5px}.quick-links span{text-align:left}}
 
 .reason-text{display:block;margin-top:5px;color:#b42318;font-size:11px;line-height:1.5}.review-reason{min-width:170px;width:100%;padding:9px 10px;border:1px solid #e1e5ec;border-radius:8px;font:inherit;font-size:12px;outline:none}.review-reason:focus{border-color:#356df3;box-shadow:0 0 0 3px #356df31b}
+
+/* account card */
+.account-card{margin-bottom:18px}.account-line{display:flex;align-items:center;gap:12px}.account-line>div:last-child{display:grid;gap:4px}.account-line strong{font-size:14px}.account-line small{font-size:11px;color:#858b97}
