@@ -12,7 +12,7 @@
 <body data-page="bot">
 <div class="layout">
 <aside class="sidebar">
-<a class="brand" href="./index.html"><span class="brandmark">T</span>TEND</a>
+<a class="brand" href="./index.html" aria-label="TEND 메인 메뉴로 이동"><span class="brandmark">T</span>TEND</a>
 <div data-side-nav></div>
 <div class="sidebar-bottom">
 <div class="profile-chip"><div class="avatar" data-profile-initial>T</div><div class="profile-text"><strong data-profile-name>불러오는 중</strong><small>Discord 계정</small></div></div>
@@ -22,7 +22,7 @@
 <main class="main">
 <header class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="btn btn-light mobile-menu" data-mobile-menu>☰</button><span class="crumb">Workspace / <b data-page-title>봇 관리</b></span></div><div class="topbar-actions"><span class="crumb" data-top-user></span></div></header>
 <section class="page-head"><div><h1 class="page-title" data-page-title>봇 관리</h1><p class="page-subtitle" data-page-subtitle>서버별 검열·공지·자동화 설정을 관리하세요.</p></div><span id="bot-status" class="badge amber">서버 선택 필요</span></section>
-<div class="notice warning">이 화면은 설정을 Supabase에 저장하고 봇 작업을 요청합니다. 실제 Discord 동작과 소유자 DM은 별도 서버에서 봇 프로그램이 실행 중이어야 합니다.</div>
+
 <section class="card bot-server-card" style="margin-top:16px">
 <div class="card-head"><div><div class="card-title">관리 대상 서버</div><p class="page-subtitle">승인된 이용권 신청에 등록된 서버만 선택할 수 있습니다.</p></div><button class="btn btn-light" id="reload-bot-data" type="button">새로고침</button></div>
 <div class="inline-form"><select id="managed-server-select" class="control" aria-label="관리 대상 서버"><option value="">승인된 서버 불러오는 중…</option></select><button class="btn btn-blue" id="start-management" type="button">관리 시작</button><button class="btn btn-light" id="stop-management" type="button">관리 종료</button></div>
@@ -115,7 +115,7 @@
 </section>
 <section class="bot-panel" data-bot-panel="jobs">
 <div class="grid two-col">
-<article class="card"><div class="card-head"><div class="card-title">봇 상태</div><span id="bot-health" class="badge amber">응답 대기</span></div><div class="setting-row"><div><strong>마지막 응답</strong><small>봇이 Supabase에 상태를 기록한 시각</small></div><span id="bot-last-seen" class="card-note">—</span></div><p class="page-subtitle">이 상태는 봇 프로그램이 직접 갱신해야 정확합니다.</p></article>
+<article class="card"><div class="card-head"><div class="card-title">봇 상태</div><span id="bot-health" class="badge amber">응답 대기</span></div><div class="setting-row"><div><strong>마지막 응답</strong><small>봇의 마지막 응답 시간</small></div><span id="bot-last-seen" class="card-note">—</span></div><p class="page-subtitle">이 상태는 봇 프로그램이 직접 갱신해야 정확합니다.</p></article>
 <article class="card"><div class="card-head"><div class="card-title">작업 처리 상태</div></div><div class="setting-row"><div><strong>대기 중</strong><small>봇에서 처리해야 하는 작업</small></div><strong id="jobs-pending">—</strong></div><div class="setting-row"><div><strong>실패</strong><small>확인이 필요한 작업</small></div><strong id="jobs-failed">—</strong></div><button class="btn btn-light" id="refresh-jobs" type="button">작업 기록 새로고침</button></article>
 </div>
 <article class="card" style="margin-top:16px"><div class="card-head"><div class="card-title">최근 작업</div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>등록 시각</th><th>작업</th><th>상태</th><th>결과</th></tr></thead><tbody id="bot-jobs-list"><tr><td colspan="4" class="empty">서버를 선택하세요.</td></tr></tbody></table></div></article>
