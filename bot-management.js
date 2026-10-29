@@ -144,12 +144,17 @@
   }
   async function management(active) {
     if(!await ensureServer())return;
+    const current=await sb.from("managed_servers").select("bot_connected,last_seen_at").eq("server_id",sid()).maybeSingle();
+    if(failed(current.error,"봇 연결 상태를 확인하지 못했어요."))return;
+    const recent=!!current.data?.last_seen_at&&(Date.now()-new Date(current.data.last_seen_at).getTime()<120000);
+    if(active&&(!current.data?.bot_connected||!recent)){
+      notify("봇 프로그램이 연결되지 않았어요. 봇을 온라인으로 실행한 뒤 다시 시도해 주세요.");
+      return;
+    }
     const upd=await sb.from("managed_servers").update({is_active:active,updated_at:new Date().toISOString(),...(active?{started_at:new Date().toISOString()}:{})}).eq("server_id",sid());
-    if(failed(upd.error,"관리 상태를 저장하지 못했어요."))return;
-    const job=await enqueueJob(active?"management_start":"management_stop",{requested_by:user.id});
-    if(failed(job.error,"상태는 저장했지만 작업 요청을 등록하지 못했어요. 잠시 후 다시 시도해 주세요.")){await loadServerData();return;}
-    notify(active?"관리 시작 요청을 등록했어요.":"관리 종료 요청을 등록했어요.");
-    await loadServerData();await loadJobs();
+    if(failed(upd.error,"관리 상태를 변경하지 못했어요."))return;
+    notify(active?"관리를 시작했어요.":"관리를 종료했어요.");
+    await loadServerData();
   }
   async function loadServerData() {
     const id=sid();
