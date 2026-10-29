@@ -72,7 +72,7 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
 <div class="feature-grid">
 <article class="feature"><div class="feature-icon">↻</div><h3>운영 업무 정리</h3><p>반복되는 관리 요청을 모아 운영진이 확인하기 쉽게 정리해요.</p></article>
 <article class="feature"><div class="feature-icon">⌕</div><h3>요청 상태 확인</h3><p>신청한 이용권의 처리 상태를 계정과 연결해 확인할 수 있어요.</p></article>
-<article class="feature"><div class="feature-icon">▤</div><h3>관리 기록</h3><p>이용권 신청과 처리 상태를 데이터베이스에 기록해요.</p></article>
+<article class="feature"><div class="feature-icon">▤</div><h3>관리 기록</h3><p>이용권 신청과 처리 상태를 한곳에서 확인해요.</p></article>
 <article class="feature"><div class="feature-icon">↗</div><h3>공지 및 운영 지원</h3><p>운영 지원 기능은 실제 연결된 범위 안에서 순차적으로 제공돼요.</p></article>
 <article class="feature"><div class="feature-icon">◎</div><h3>계정 연결</h3><p>Discord 계정으로 로그인하고 본인 신청 내역을 확인해요.</p></article>
 <article class="feature"><div class="feature-icon">◷</div><h3>기간제 이용권</h3><p>자동 구독이 아닌 1일·7일·30일 이용권 신청 방식이에요.</p></article>
@@ -89,7 +89,7 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
 <section class="content" id="faq" style="padding-top:20px"><div class="wrap"><div class="section-head"><div class="kicker">FAQ</div><h2>궁금한 점이 있나요?</h2><p>이용 전에 자주 궁금해하는 내용을 모았어요.</p></div><div class="faq-list">
 <div class="faq"><button aria-expanded="false">Discord 로그인이 안 돼요.<span>＋</span></button><p>잠시 후 다시 시도해 주세요. 계속 문제가 생기면 고객 지원으로 문의해 주세요.</p></div>
 <div class="faq"><button aria-expanded="false">신청하면 바로 결제되나요?<span>＋</span></button><p>아니요. 현재는 신청 정보만 저장돼요. 결제 대행 서비스가 연결되어 있지 않으므로 실제 결제나 이용권 활성화가 완료된 것으로 표시하지 않아요.</p></div>
-<div class="faq"><button aria-expanded="false">신청 내역은 누가 볼 수 있나요?<span>＋</span></button><p>일반 사용자는 본인 신청 내역만 볼 수 있어요. 관리자 조회는 서버에서 부여한 app_metadata 권한과 데이터베이스 정책으로 제한돼요.</p></div>
+<div class="faq"><button aria-expanded="false">신청 내역은 누가 볼 수 있나요?<span>＋</span></button><p>일반 사용자는 본인 신청 내역만 볼 수 있으며, 관리자만 전체 신청을 확인하고 처리할 수 있어요.</p></div>
 <div class="faq"><button aria-expanded="false">Discord 봇이 이미 연결되어 있나요?<span>＋</span></button><p>이 페이지는 로그인과 이용권 신청을 처리해요. Discord 봇의 실제 서버 관리 동작은 별도의 봇 서비스와 연결해야 하며, 연결되지 않은 기능을 작동한다고 표시하지 않아요.</p></div>
 </div></div></section>
 <section class="cta"><div class="wrap"><div class="cta-box"><h2>서버 운영, 조금 더 편하게.</h2><p>Discord 계정으로 로그인하고 필요한 이용권을 신청해 보세요.</p><button class="btn btn-dark" id="ctaLogin">Discord로 시작하기 <span>→</span></button></div></div></section>
@@ -124,7 +124,7 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
       const label=currentUser.user_metadata?.full_name||currentUser.user_metadata?.name||currentUser.user_metadata?.preferred_username||currentUser.email||'로그인됨';
       userChip.hidden=false;userChip.textContent=label;loginBtn.textContent='로그아웃';loginBtn.className='btn btn-light';
       document.querySelectorAll('[data-auth-action="purchase"]').forEach(b=>b.textContent='이용권 신청하기');
-      if(isOwnerName(currentUser)||currentUser.app_metadata?.role==='admin'){adminPanel.classList.add('show');if(currentUser.app_metadata?.role==='admin')await loadAdmin();else adminContent.innerHTML='<p style="padding:22px;color:#747985;line-height:1.8">관리자 탭은 표시됐지만 데이터 권한이 아직 설정되지 않았어요. Supabase SQL Editor에서 Discord 계정 UUID를 확인하고 app_metadata.role=admin을 부여한 뒤 로그아웃 후 다시 로그인해 주세요.</p>'}
+      if(isOwnerName(currentUser)||currentUser.app_metadata?.role==='admin'){adminPanel.classList.add('show');if(currentUser.app_metadata?.role==='admin')await loadAdmin();else adminContent.innerHTML='<p style="padding:22px;color:#747985;line-height:1.8">관리자 전용 기능입니다. 관리자 권한이 확인되면 이용할 수 있어요.</p>'}
       else {adminPanel.classList.remove('show')}
     }else{
       userChip.hidden=true;loginBtn.textContent='Discord로 시작하기 ↗';loginBtn.className='btn btn-dark';adminPanel.classList.remove('show')
@@ -146,7 +146,7 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
     const submit=document.getElementById('submitPurchase');submit.disabled=true;submit.textContent='저장 중…';
     const {error}=await client.from('purchase_requests').insert({user_id:currentUser.id,plan:planSelect.value,server_name:name,server_id:id||null,status:'pending',payment_status:'unpaid'});
     submit.disabled=false;submit.textContent='신청 접수하기';
-    if(error){console.error(error);notify(error.code==='42P01'?'데이터베이스 설정이 아직 필요해요.':'신청을 저장하지 못했어요. 데이터베이스 정책을 확인해 주세요.');return}
+    if(error){console.error(error);notify('신청을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.');return}
     closeModal();serverName.value='';serverId.value='';notify('신청 접수 완료. 토스뱅크 1908-3953-4245로 입금 후 관리자 확인을 기다려 주세요.')
   });
   async function loadAdmin(){
@@ -161,7 +161,7 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
       vals.forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});
       const td=document.createElement('td'),select=document.createElement('select');select.className='status-select';
       [['pending','확인 대기'],['approved','승인'],['rejected','거절'],['completed','완료']].forEach(([value,label])=>{const o=document.createElement('option');o.value=value;o.textContent=label;select.append(o)});
-      select.value=row.status;select.addEventListener('change',async()=>{select.disabled=true;const {error}=await client.from('purchase_requests').update({status:select.value}).eq('id',row.id);select.disabled=false;if(error){notify('상태 변경 실패: 정책을 확인해 주세요.');select.value=row.status}else{row.status=select.value;notify('신청 상태를 변경했어요.')}});td.append(select);tr.append(td);tbody.append(tr)});
+      select.value=row.status;select.addEventListener('change',async()=>{select.disabled=true;const {error}=await client.from('purchase_requests').update({status:select.value}).eq('id',row.id);select.disabled=false;if(error){notify('상태를 변경하지 못했어요. 잠시 후 다시 시도해 주세요.');select.value=row.status}else{row.status=select.value;notify('신청 상태를 변경했어요.')}});td.append(select);tr.append(td);tbody.append(tr)});
     table.append(tbody);adminContent.replaceChildren(table)
   }
   if(client){client.auth.onAuthStateChange(()=>{setTimeout(()=>updateSession(),0)})}
