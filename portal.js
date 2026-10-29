@@ -98,7 +98,7 @@ async function loadServers(){shell("servers","서버 관리","내 계정으로 �
 async function loadAdmin(){
 shell("admin","관리자 대시보드","신청을 승인하거나 거절하고, 처리 사유를 남길 수 있습니다.");
 if(!isAdmin(user)){const t=$("#admin-requests");if(t)t.innerHTML='<tr><td colspan="8" class="empty">이 계정은 관리자 계정이 아닙니다.</td></tr>';notify("관리자 계정만 이용할 수 있어요.");return}
-const [total,pending,unpaid,active]=await Promise.all([count("purchase_requests",{}),count("purchase_requests",{status:"pending"}),count("purchase_requests",{payment_status:"unpaid"}),count("purchase_requests",{status:"completed"})]);
+let totals;try{totals=await withTimeout(Promise.all([count("purchase_requests",{}),count("purchase_requests",{status:"pending"}),count("purchase_requests",{payment_status:"unpaid"}),count("purchase_requests",{status:"completed"})]));}catch(e){console.error("admin counts timeout:",e);totals=[null,null,null,null]}const [total,pending,unpaid,active]=totals;
 $("#admin-total").textContent=total??"—";$("#admin-pending").textContent=pending??"—";$("#admin-unpaid").textContent=unpaid??"—";$("#admin-active").textContent=active??"—";
 const {data,error}=await sb.from("purchase_requests").select("id,user_id,plan,server_name,server_id,status,payment_status,rejection_reason,created_at").order("created_at",{ascending:false}).limit(100);
 const table=$("#admin-requests");
