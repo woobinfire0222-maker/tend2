@@ -51,7 +51,7 @@ alter table public.bot_commands enable row level security;
 
 drop policy if exists "purchase_requests_select_own_or_admin" on public.purchase_requests;
 create policy "purchase_requests_select_own_or_admin" on public.purchase_requests for select to authenticated
-using (auth.uid() = user_id or (auth.jwt()->'app_metadata'->>'role' = 'admin' and coalesce(auth.jwt()->'user_metadata'->>'preferred_username', auth.jwt()->'user_metadata'->>'user_name', auth.jwt()->'user_metadata'->>'username') = 'pengin_hi22'));
+using (auth.uid() = user_id or (auth.jwt()->'app_metadata'->>'role' = 'admin' and (lower(coalesce(auth.jwt()->'user_metadata'->>'preferred_username','')) = 'pengin_hi22' or lower(coalesce(auth.jwt()->'user_metadata'->>'user_name','')) = 'pengin_hi22' or lower(coalesce(auth.jwt()->'user_metadata'->>'username','')) = 'pengin_hi22')));
 
 drop policy if exists "purchase_requests_insert_own" on public.purchase_requests;
 create policy "purchase_requests_insert_own" on public.purchase_requests for insert to authenticated
@@ -59,12 +59,12 @@ with check (auth.uid() = user_id and status = 'pending' and payment_status = 'un
 
 drop policy if exists "purchase_requests_update_admin" on public.purchase_requests;
 create policy "purchase_requests_update_admin" on public.purchase_requests for update to authenticated
-using (auth.jwt()->'app_metadata'->>'role' = 'admin' and coalesce(auth.jwt()->'user_metadata'->>'preferred_username', auth.jwt()->'user_metadata'->>'user_name', auth.jwt()->'user_metadata'->>'username') = 'pengin_hi22')
-with check (auth.jwt()->'app_metadata'->>'role' = 'admin' and coalesce(auth.jwt()->'user_metadata'->>'preferred_username', auth.jwt()->'user_metadata'->>'user_name', auth.jwt()->'user_metadata'->>'username') = 'pengin_hi22');
+using (auth.jwt()->'app_metadata'->>'role' = 'admin' and (lower(coalesce(auth.jwt()->'user_metadata'->>'preferred_username','')) = 'pengin_hi22' or lower(coalesce(auth.jwt()->'user_metadata'->>'user_name','')) = 'pengin_hi22' or lower(coalesce(auth.jwt()->'user_metadata'->>'username','')) = 'pengin_hi22'))
+with check (auth.jwt()->'app_metadata'->>'role' = 'admin' and (lower(coalesce(auth.jwt()->'user_metadata'->>'preferred_username','')) = 'pengin_hi22' or lower(coalesce(auth.jwt()->'user_metadata'->>'user_name','')) = 'pengin_hi22' or lower(coalesce(auth.jwt()->'user_metadata'->>'username','')) = 'pengin_hi22'));
 
 drop policy if exists "bot_settings_select_own_or_admin" on public.bot_settings;
 create policy "bot_settings_select_own_or_admin" on public.bot_settings for select to authenticated
-using (auth.uid() = user_id or (auth.jwt()->'app_metadata'->>'role' = 'admin' and coalesce(auth.jwt()->'user_metadata'->>'preferred_username', auth.jwt()->'user_metadata'->>'user_name', auth.jwt()->'user_metadata'->>'username') = 'pengin_hi22'));
+using (auth.uid() = user_id or (auth.jwt()->'app_metadata'->>'role' = 'admin' and (lower(coalesce(auth.jwt()->'user_metadata'->>'preferred_username','')) = 'pengin_hi22' or lower(coalesce(auth.jwt()->'user_metadata'->>'user_name','')) = 'pengin_hi22' or lower(coalesce(auth.jwt()->'user_metadata'->>'username','')) = 'pengin_hi22')));
 
 drop policy if exists "bot_settings_insert_own" on public.bot_settings;
 create policy "bot_settings_insert_own" on public.bot_settings for insert to authenticated
@@ -75,11 +75,17 @@ using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 drop policy if exists "bot_commands_select_own" on public.bot_commands;
 create policy "bot_commands_select_own" on public.bot_commands for select to authenticated
-using (auth.uid() = user_id or (auth.jwt()->'app_metadata'->>'role' = 'admin' and coalesce(auth.jwt()->'user_metadata'->>'preferred_username', auth.jwt()->'user_metadata'->>'user_name', auth.jwt()->'user_metadata'->>'username') = 'pengin_hi22'));
+using (auth.uid() = user_id or (auth.jwt()->'app_metadata'->>'role' = 'admin' and (lower(coalesce(auth.jwt()->'user_metadata'->>'preferred_username','')) = 'pengin_hi22' or lower(coalesce(auth.jwt()->'user_metadata'->>'user_name','')) = 'pengin_hi22' or lower(coalesce(auth.jwt()->'user_metadata'->>'username','')) = 'pengin_hi22')));
 drop policy if exists "bot_commands_insert_own" on public.bot_commands;
 create policy "bot_commands_insert_own" on public.bot_commands for insert to authenticated
 with check (auth.uid() = user_id and status = 'queued');
 
+-- ADMIN BOOTSTRAP:
+-- 1) Run: select id, raw_user_meta_data from auth.users; find the verified Discord account pengin_hi22.
+-- 2) Copy that account's UUID, then run the following with that UUID substituted:
+-- update auth.users set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb where id = 'PASTE_VERIFIED_AUTH_USER_UUID_HERE';
+-- 3) Sign out and sign in again so the refreshed JWT contains app_metadata.role=admin.
+-- Do not grant admin using a client-side username check alone; verify the Discord account UUID first.
 -- Bot worker uses SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in its server environment only.
 -- It polls queued bot_commands, performs Discord actions, and updates status/result.
 -- It also updates bot_settings.bot_connected and last_seen_at as a heartbeat.
