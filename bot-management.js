@@ -127,9 +127,12 @@
   }
   async function saveAnnouncement(e) {
     e.preventDefault();if(!await ensureServer())return;
-    const title=$("#announcement-title").value.trim(),content=$("#announcement-content").value.trim(),channel=$("#announcement-channel").value||null,image=$("#announcement-image").value.trim()||null,mention=$("#announcement-mention").value;
+    const title=$("#announcement-title").value.trim(),content=$("#announcement-content").value.trim(),channel=$("#announcement-channel").value||null,mention=$("#announcement-mention").value;
+    let image=$("#announcement-image").value.trim()||null;
+    const file=$("#announcement-image-file").files[0]||null;
     if(!content){notify("공지 내용을 입력해 주세요.");return;}
     if(image&&!/^https?:\/\//i.test(image)){notify("이미지 주소는 http 또는 https URL이어야 해요.");return;}
+    if(file){if(!file.type.startsWith("image/")||file.size>8*1024*1024){notify("이미지는 8MB 이하의 이미지 파일만 첨부할 수 있어요.");return;}const path=sid()+"/"+Date.now()+"-"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");const upload=await sb.storage.from("announcement-images").upload(path,file,{upsert:false,contentType:file.type});if(upload.error){notify("이미지 업로드에 실패했어요. Storage 설정 SQL을 적용했는지 확인해 주세요.");return;}image=sb.storage.from("announcement-images").getPublicUrl(path).data.publicUrl;}
     let roles=[];
     if(mention==="role"){roles=$("#announcement-role-ids").value.split(",").map(x=>x.trim()).filter(Boolean);if(!roles.length||roles.some(x=>!/^\d{5,30}$/.test(x))){notify("역할 ID를 숫자로 입력해 주세요. 여러 개는 쉼표로 구분합니다.");return;}}
     const q=await sb.from("announcements").insert({server_id:sid(),channel_id:channel,title,content,image_url:image,status:"queued",created_by:user.id}).select("id").single();
