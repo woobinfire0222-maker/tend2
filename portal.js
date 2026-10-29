@@ -5,6 +5,7 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let user=null,profileName="사용자";
 const toast=$("#toast");
 function notify(s){if(!toast)return;toast.textContent=s;toast.classList.add("show");clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.classList.remove("show"),3000)}
+function withTimeout(promise, ms=12000){return Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout")),ms))])}
 function discordNames(u){const m=u?.user_metadata||{};const names=[m.user_name,m.preferred_username,m.username,m.custom_claims?.global_name,m.global_name,m.full_name,m.name,m.nickname,...(u?.identities||[]).flatMap(i=>{const d=i?.identity_data||{};return[d.user_name,d.preferred_username,d.username,d.global_name,d.name]})];return names.filter(Boolean).map(v=>String(v).trim().toLowerCase())}
 function uname(u){const m=u?.user_metadata||{};const values=[m.global_name,m.user_name,m.preferred_username,m.username,m.custom_claims?.global_name,m.full_name,m.name,m.nickname,...(u?.identities||[]).flatMap(i=>{const d=i?.identity_data||{};return[d.global_name,d.user_name,d.preferred_username,d.username,d.name]})];return values.filter(Boolean).map(v=>String(v).trim()).find(Boolean)||""}
 function discordUserId(u){const m=u?.user_metadata||{},a=u?.app_metadata||{};const values=[m.provider_id,m.user_id,m.discord_id,...(u?.identities||[]).flatMap(i=>{const d=i?.identity_data||{};return[d.user_id,d.provider_id,d.id,d.sub,i.id]}),m.sub,a.provider_id];return values.filter(Boolean).map(String).find(v=>/^\d{17,20}$/.test(v))||""}
@@ -22,9 +23,9 @@ async function count(table,filters){let q=sb.from(table).select("id",{count:"exa
 function statusBadge(s){const map={pending:["확인 대기","amber"],approved:["승인됨","blue"],rejected:["거절됨","red"],completed:["완료","green"],paid:["입금 확인","green"],active:["활성","green"],inactive:["중지","red"]};const x=map[s]||[s||"확인 필요",""];return '<span class="badge '+x[1]+'">'+x[0]+"</span>"}
 async function loadDashboard(){
 shell("dashboard","대시보드","TEND 이용 현황과 최근 신청을 확인하세요.");
-const counts=await Promise.all([count("purchase_requests",{user_id:user.id}),count("purchase_requests",{user_id:user.id,status:"pending"}),count("purchase_requests",{user_id:user.id,status:"approved"}),count("purchase_requests",{user_id:user.id,status:"completed"})]);
+let counts;try{counts=await withTimeout(Promise.all([count("purchase_requests",{user_id:user.id}),count("purchase_requests",{user_id:user.id,status:"pending"}),count("purchase_requests",{user_id:user.id,status:"approved"}),count("purchase_requests",{user_id:user.id,status:"completed"})]));}catch(e){console.error("dashboard counts timeout:",e);counts=[null,null,null,null];notify("데이터를 불러오는 데 시간이 오래 걸려요. 새로고침해 주세요.");}
 ["#stat-all","#stat-pending","#stat-approved","#stat-completed"].forEach((sel,i)=>{const el=$(sel);if(el)el.textContent=counts[i]===null?"오류":String(counts[i])});
-const {data,error}=await sb.from("purchase_requests").select("id,plan,server_name,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(5);
+let recent;try{recent=await withTimeout(sb.from("purchase_requests").select("id,plan,server_name,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(5));}catch(e){console.error("recent requests timeout:",e);recent={data:null,error:{message:"요청 시간이 초과됐어요."}}}const {data,error}=recent;
 const tbody=$("#recent-requests");
 if(error){console.error("purchase_requests load error:",error);if(tbody)tbody.innerHTML='<tr><td colspan="4">신청 내역 오류: '+escapeHtml(error.message||error.code||"알 수 없는 오류")+'</td></tr>';}
 else if(!data?.length){if(tbody)tbody.innerHTML='<tr><td colspan="4" class="empty">아직 신청 내역이 없어요.</td></tr>';}
@@ -35,11 +36,11 @@ await loadDashboardServerStatus();
 async function loadDashboardServerStatus(){
 const box=$("#dashboard-server-status");if(!box)return;
 box.innerHTML='<div class="empty">서버 상태를 확인하는 중…</div>';
-const req=await sb.from("purchase_requests").select("server_id,server_name,status,plan").eq("user_id",user.id).in("status",["approved","completed"]).not("server_id","is",null).order("created_at",{ascending:false});
+let req;try{req=await withTimeout(sb.from("purchase_requests").select("server_id,server_name,status,plan").eq("user_id",user.id).in("status",["approved","completed"]).not("server_id","is",null).order("created_at",{ascending:false}));}catch(e){console.error("dashboard server requests timeout:",e);box.innerHTML='<div class="empty">서버 정보를 불러오지 못했어요. 새로고침해 주세요.</div>';return;}
 if(req.error){console.error("dashboard server requests error:",req.error);box.innerHTML='<div class="empty">이용권 조회 오류: '+escapeHtml(req.error.message||req.error.code||"알 수 없는 오류")+'</div>';return;}
 const unique=[];const seen=new Set();(req.data||[]).forEach(r=>{if(r.server_id&&!seen.has(r.server_id)){seen.add(r.server_id);unique.push(r)}});
 if(!unique.length){box.innerHTML='<div class="empty">아직 승인된 서버가 없어요. 이용권 신청 후 승인을 받아 주세요.</div>';return;}
-const live=await sb.from("managed_servers").select("server_id,server_name,is_active,bot_connected,last_seen_at,updated_at").in("server_id",unique.map(r=>r.server_id));
+let live;try{live=await withTimeout(sb.from("managed_servers").select("server_id,server_name,is_active,bot_connected,last_seen_at,updated_at").in("server_id",unique.map(r=>r.server_id)));}catch(e){console.error("managed servers timeout:",e);box.innerHTML='<div class="empty">봇 상태를 불러오지 못했어요. 새로고침해 주세요.</div>';return;}
 if(live.error){console.error("managed_servers load error:",live.error);box.innerHTML='<div class="empty">봇 상태 조회 오류: '+escapeHtml(live.error.message||live.error.code||"알 수 없는 오류")+'</div>';return;}
 const byId=new Map((live.data||[]).map(r=>[r.server_id,r]));
 box.innerHTML='<div class="stack-list">'+unique.map(r=>{const s=byId.get(r.server_id);const recent=s?.last_seen_at&&(Date.now()-new Date(s.last_seen_at).getTime()<120000);const connected=!!s?.bot_connected&&!!recent;const state=connected?'<span class="badge green">봇 온라인</span>':'<span class="badge amber">연결 확인 필요</span>';const management=s?.is_active?'<span class="badge blue">관리 시작</span>':'<span class="badge">관리 중지</span>';const seenAt=s?.last_seen_at?new Date(s.last_seen_at).toLocaleString("ko-KR"):"접속 기록 없음";return '<div class="stack-row"><div><strong>'+escapeHtml(s?.server_name||r.server_name||"Discord 서버")+'</strong><small>마지막 응답: '+escapeHtml(seenAt)+'</small></div><div class="stack-actions">'+state+management+'</div></div>'}).join("")+'</div>';
@@ -118,5 +119,5 @@ else{notify("신청 처리 결과를 저장했어요.");loadAdmin()}
 function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 $$("[data-copy-account]").forEach(b=>b.addEventListener("click",async()=>{const account="1908-3953-4245";try{await navigator.clipboard.writeText(account);notify("계좌번호를 복사했어요.");}catch{const input=document.createElement("textarea");input.value=account;document.body.appendChild(input);input.select();const ok=document.execCommand("copy");input.remove();notify(ok?"계좌번호를 복사했어요.":"계좌번호를 직접 선택해 복사해 주세요.");}}));
 async function init(){const page=document.body.dataset.page;if(page==="login"){try{user=await getSession()}catch{}if(user){goto("dashboard");return}$("#discord-login")?.addEventListener("click",login);$("#login-back")?.addEventListener("click",()=>location.href="./index.html");return}if(!await requireUser())return;if(page==="dashboard")await loadDashboard();else if(page==="requests")await loadRequests();else if(page==="bot")await loadBot();else if(page==="servers")await loadServers();else if(page==="admin")await loadAdmin();if(sb)sb.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT")location.href="./login.html"})}
-init();
+withTimeout(init(),15000).catch(e=>{console.error("TEND init failed:",e);const toast=document.querySelector("#toast");if(toast){toast.textContent="화면을 불러오지 못했어요. 새로고침 후 다시 시도해 주세요.";toast.classList.add("show");}document.querySelectorAll(".empty").forEach(el=>{if(/불러오는 중|확인하는 중/.test(el.textContent))el.textContent="불러오지 못했어요. 새로고침 후 다시 시도해 주세요.";});});
 })();
