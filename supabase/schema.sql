@@ -9,6 +9,7 @@ create table if not exists public.purchase_requests (
   server_id text,
   status text not null default 'pending',
   payment_status text not null default 'unpaid',
+  rejection_reason text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -18,6 +19,7 @@ alter table public.purchase_requests add column if not exists server_name text n
 alter table public.purchase_requests add column if not exists server_id text;
 alter table public.purchase_requests add column if not exists status text not null default 'pending';
 alter table public.purchase_requests add column if not exists payment_status text not null default 'unpaid';
+alter table public.purchase_requests add column if not exists rejection_reason text not null default '';
 alter table public.purchase_requests add column if not exists created_at timestamptz not null default now();
 alter table public.purchase_requests add column if not exists updated_at timestamptz not null default now();
 
@@ -122,10 +124,24 @@ create policy bot_commands_insert_own
 on public.bot_commands for insert to authenticated
 with check (auth.uid() = user_id and status = 'queued');
 
--- Admin access must be granted only to your own verified account UUID.
--- To inspect accounts, run separately: select id, raw_user_meta_data from auth.users;
--- After confirming your Discord account, replace UUID below and run this separately:
--- update auth.users
--- set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb
--- where id = 'PASTE_YOUR_VERIFIED_UUID_HERE';
--- Then sign out and sign back in.
+
+-- Grant administrator role by the configured Discord user ID.
+-- This does not require manually looking up a Supabase UUID.
+update auth.users u
+set raw_app_meta_data = coalesce(u.raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb
+where
+  u.raw_user_meta_data->>'sub' = '1318120987480424498'
+  or u.raw_user_meta_data->>'provider_id' = '1318120987480424498'
+  or u.raw_user_meta_data->>'id' = '1318120987480424498'
+  or u.raw_user_meta_data->>'user_id' = '1318120987480424498'
+  or exists (
+    select 1 from auth.identities i
+    where i.user_id = u.id and (
+      i.identity_data->>'sub' = '1318120987480424498'
+      or i.identity_data->>'provider_id' = '1318120987480424498'
+      or i.identity_data->>'id' = '1318120987480424498'
+      or i.identity_data->>'user_id' = '1318120987480424498'
+    )
+  );
+
+-- Sign out and sign back in after running this file to refresh the session role.
