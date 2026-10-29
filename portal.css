@@ -83,3 +83,11 @@
 
 /* TEND command library */
 .command-library{display:grid;gap:28px}.command-group{min-width:0}.command-group-title{display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:800;color:#303541;margin:0 0 12px}.command-group-title span{font-size:11px;font-weight:700;color:#8a909c;background:#f3f5f8;border-radius:999px;padding:5px 9px}.command-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.command-card{display:flex;flex-direction:column;align-items:flex-start;min-width:0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;transition:border-color .16s,box-shadow .16s}.command-card:hover{border-color:#cbd7ff;box-shadow:0 6px 20px #25345a0a}.command-card-top{display:flex;align-items:center;gap:8px;margin-bottom:12px}.command-mark{display:grid;place-items:center;width:25px;height:25px;border-radius:8px;background:#edf2ff;color:var(--blue);font-size:15px;font-weight:800}.command-code{font-size:12px;font-weight:800;color:#356df3;background:#f3f6ff;border-radius:6px;padding:5px 7px}.command-card>strong{font-size:13px;color:#282d37}.command-card p{font-size:11px;color:#7e8592;line-height:1.65;margin:7px 0 15px;flex:1}.command-card .btn{width:100%;justify-content:center;margin-top:auto}.command-card .btn span{margin-left:auto}.command-group+.command-group{border-top:1px solid #eff1f5;padding-top:22px}@media(max-width:1100px){.command-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.command-card-grid{grid-template-columns:1fr}.command-card{padding:14px}}
+
+
+/* Friendly section explanations */
+.section-intro{background:#fff;border:1px solid var(--line);border-radius:13px;padding:16px 18px;margin:0 0 16px;display:flex;align-items:flex-start;gap:12px}
+.section-intro:before{content:"i";flex:0 0 22px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--soft);color:var(--blue);font-size:12px;font-weight:850}
+.section-intro strong{display:block;font-size:13px;font-weight:800;line-height:1.5}
+.section-intro p{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.75}
+@media(max-width:560px){.section-intro{padding:14px;gap:9px}}
