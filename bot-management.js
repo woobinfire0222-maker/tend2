@@ -24,9 +24,9 @@
     const id = sid();
     if (!id) { notify("관리할 서버를 선택해 주세요."); return false; }
     const p = await sb.from("purchase_requests").select("server_name,server_id,status").eq("user_id",user.id).eq("server_id",id).in("status",["approved","completed"]).limit(1).maybeSingle();
-    if (p.error || !p.data) { notify("승인된 이용권 신청에 등록된 서버만 관리할 수 있어요."); return false; }
+    if (p.error) { console.error("server ownership query error:",p.error); notify("서버 권한 확인 오류: "+(p.error.message||p.error.code||"알 수 없는 오류")); return false; } if (!p.data) { notify("승인된 이용권 신청에 등록된 서버만 관리할 수 있어요."); return false; }
     const existing = await sb.from("managed_servers").select("server_id").eq("server_id",id).maybeSingle();
-    if (existing.error) { notify("서버 설정을 읽지 못했어요. 관리용 SQL을 적용했는지 확인해 주세요."); return false; }
+    if (existing.error) { console.error("managed server query error:",existing.error); notify("서버 설정 조회 오류: "+(existing.error.message||existing.error.code||"알 수 없는 오류")); return false; }
     if (!existing.data) {
       const ownerId = (discordIds(user)[0] || user.id);
       const ins = await sb.from("managed_servers").insert({server_id:id,server_name:p.data.server_name || "Discord 서버",owner_id:ownerId,is_active:false});
@@ -56,7 +56,7 @@
     const select=$("#managed-server-select");
     select.innerHTML='<option value="">승인된 서버 불러오는 중…</option>';
     const q=await sb.from("purchase_requests").select("server_id,server_name,status,created_at").eq("user_id",user.id).in("status",["approved","completed"]).not("server_id","is",null).order("created_at",{ascending:false});
-    if(q.error){select.innerHTML='<option value="">서버 목록 오류</option>';notify("승인된 서버 목록을 불러오지 못했어요.");return;}
+    if(q.error){console.error("approved server query error:",q.error);select.innerHTML='<option value="">서버 목록 오류</option>';notify("서버 목록 오류: "+(q.error.message||q.error.code||"알 수 없는 오류"));return;}
     const seen=new Set(), rows=[];
     (q.data||[]).forEach(r=>{if(r.server_id&&!seen.has(r.server_id)){seen.add(r.server_id);rows.push(r);}});
     if(!rows.length){select.innerHTML='<option value="">승인된 서버가 없습니다.</option>';serverId="";$("#managed-server-info").textContent="서버 ID를 포함해 이용권을 신청하고 관리자 승인을 받아야 합니다.";return;}
