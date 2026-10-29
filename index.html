@@ -121,7 +121,6 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
     if(error){notify('로그인 상태를 불러오지 못했어요.');return}
     currentUser=data.session?.user||null;
     if(currentUser){
-      location.replace(baseUrl+"dashboard.html");return;
       const label=currentUser.user_metadata?.full_name||currentUser.user_metadata?.name||currentUser.user_metadata?.preferred_username||currentUser.email||'로그인됨';
       userChip.hidden=false;userChip.textContent=label;loginBtn.textContent='로그아웃';loginBtn.className='btn btn-light';
       document.querySelectorAll('[data-auth-action="purchase"]').forEach(b=>b.textContent='이용권 신청하기');
