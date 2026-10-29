@@ -65,7 +65,7 @@
 <div class="field"><label for="announcement-title">제목</label><input id="announcement-title" maxlength="200" placeholder="공지 제목"></div>
 <div class="field"><label for="announcement-content">내용</label><textarea id="announcement-content" rows="5" required maxlength="4000" placeholder="서버에 전달할 공지 내용을 입력하세요."></textarea></div>
 <div class="field"><label for="announcement-channel">발송 채널</label><select id="announcement-channel"><option value="">기본 채널 / 자동 선택</option></select></div>
-<div class="field"><label for="announcement-image">이미지 URL (선택)</label><input id="announcement-image" type="url" maxlength="1000" placeholder="https://…"></div>
+<div class="field"><label for="announcement-image-file">공지 이미지 첨부 (선택)</label><input id="announcement-image-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp"><small>PNG, JPG, GIF, WEBP · 최대 8MB</small></div><div class="field"><label for="announcement-image">이미지 URL (선택)</label><input id="announcement-image" type="url" maxlength="1000" placeholder="https://…"></div>
 <div class="field"><label for="announcement-mention">멘션</label><select id="announcement-mention"><option value="none">멘션 없음</option><option value="everyone">@everyone</option><option value="here">@here</option><option value="role">역할 멘션</option></select></div>
 <div class="field hidden" id="announcement-role-field"><label for="announcement-role-ids">역할 ID (여러 개는 쉼표로 구분)</label><input id="announcement-role-ids" maxlength="1000" placeholder="역할 ID, 역할 ID"></div>
 <button class="btn btn-blue" type="submit">공지 발송 요청</button>
