@@ -63,9 +63,21 @@
   }
   async function loadServers() {
     const select=$("#managed-server-select");
-    select.innerHTML='<option value="">승인된 서버 불러오는 중…</option>';
-    const q=await sb.from("purchase_requests").select("server_id,server_name,status,created_at").eq("user_id",user.id).in("status",["approved","completed"]).not("server_id","is",null).order("created_at",{ascending:false});
-    if(q.error){console.error("approved server query error:",q.error);select.innerHTML='<option value="">서버 목록 오류</option>';notify("서버 목록 오류: "+(q.error.message||q.error.code||"알 수 없는 오류"));return;}
+    select.innerHTML='<option value="">서버 목록 불러오는 중…</option>';
+    let q;
+    try {
+      q=await Promise.race([
+        sb.from("purchase_requests").select("server_id,server_name,status,created_at").eq("user_id",user.id).in("status",["approved","completed"]).not("server_id","is",null).order("created_at",{ascending:false}),
+        new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout")),12000))
+      ]);
+    } catch(e) {
+      console.error("approved server list request failed:",e);
+      select.innerHTML='<option value="">서버 목록을 불러오지 못했어요</option>';
+      $("#managed-server-info").textContent="서버 목록을 불러오지 못했어요. 새로고침을 눌러 다시 시도해 주세요.";
+      notify("서버 목록을 불러오지 못했어요. 다시 시도해 주세요.");
+      return;
+    }
+    if(q.error){console.error("approved server query error:",q.error);select.innerHTML='<option value="">서버 목록을 불러오지 못했어요</option>';$("#managed-server-info").textContent="서버 목록을 불러오지 못했어요. 다시 시도해 주세요.";notify("서버 목록을 불러오지 못했어요. 다시 시도해 주세요.");return;}
     const seen=new Set(), rows=[];
     (q.data||[]).forEach(r=>{if(r.server_id&&!seen.has(r.server_id)){seen.add(r.server_id);rows.push(r);}});
     if(!rows.length){select.innerHTML='<option value="">승인된 서버가 없습니다.</option>';serverId="";$("#managed-server-info").textContent="이용권 신청 후 승인을 받으면 서버를 관리할 수 있어요.";return;}
