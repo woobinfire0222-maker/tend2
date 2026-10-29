@@ -484,3 +484,48 @@ grant select, insert, update, delete on public.server_automations to authenticat
 grant select, insert, update, delete on public.server_backups to authenticated;
 
 -- The bot uses a server-side service key. Never expose that key in browser code.
+
+
+-- Public announcement images: uploads are restricted to the owner of an approved server.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('announcement-images', 'announcement-images', true, 8388608, array['image/png','image/jpeg','image/gif','image/webp'])
+on conflict (id) do update
+set public = excluded.public,
+    file_size_limit = excluded.file_size_limit,
+    allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists tend_announcement_image_upload on storage.objects;
+create policy tend_announcement_image_upload
+on storage.objects for insert to authenticated
+with check (
+  bucket_id = 'announcement-images'
+  and public.user_owns_server((storage.foldername(name))[1])
+);
+
+drop policy if exists tend_announcement_image_delete on storage.objects;
+create policy tend_announcement_image_delete
+on storage.objects for delete to authenticated
+using (
+  bucket_id = 'announcement-images'
+  and public.user_owns_server((storage.foldername(name))[1])
+);
+
+-- Server-side bot worker permissions. Keep the service key on the bot host only.
+grant select, insert, update, delete on public.managed_servers to service_role;
+grant select, insert, update, delete on public.server_feature_settings to service_role;
+grant select, insert, update, delete on public.moderation_rules to service_role;
+grant select, insert, update, delete on public.moderation_actions to service_role;
+grant select, insert, update, delete on public.announcement_channels to service_role;
+grant select, insert, update, delete on public.announcements to service_role;
+grant select, insert, update, delete on public.announcement_mentions to service_role;
+grant select, insert, update, delete on public.announcement_deliveries to service_role;
+grant select, insert, update, delete on public.server_blacklists to service_role;
+grant select, insert, update, delete on public.user_blacklists to service_role;
+grant select, insert, update, delete on public.server_audit_logs to service_role;
+grant select, insert, update, delete on public.bot_jobs to service_role;
+grant select, insert, update, delete on public.tickets to service_role;
+grant select, insert, update, delete on public.polls to service_role;
+grant select, insert, update, delete on public.poll_votes to service_role;
+grant select, insert, update, delete on public.server_warnings to service_role;
+grant select, insert, update, delete on public.server_automations to service_role;
+grant select, insert, update, delete on public.server_backups to service_role;
