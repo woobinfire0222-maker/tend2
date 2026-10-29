@@ -113,7 +113,7 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
   const baseUrl=location.origin+location.pathname.replace(/[^/]*$/,'');
   function openModal(plan){if(plan)planSelect.value=plan;modal.classList.add('show');serverName.focus()}
   function closeModal(){modal.classList.remove('show')}
-  async function login(){if(!client){notify('로그인 서비스를 사용할 수 없어요. 잠시 후 다시 시도해 주세요.');return}const {error}=await client.auth.signInWithOAuth({provider:'discord',options:{redirectTo:baseUrl}});if(error)notify('Discord 로그인 실패: '+error.message)}
+  async function login(){if(!client){notify('로그인 서비스를 사용할 수 없어요. 잠시 후 다시 시도해 주세요.');return}const {error}=await client.auth.signInWithOAuth({provider:'discord',options:{redirectTo:baseUrl+'login.html'}});if(error)notify('Discord 로그인 실패: '+error.message)}
   function isOwnerName(user){const m=user?.user_metadata||{};const names=[m.user_name,m.preferred_username,m.username,m.custom_claims?.global_name,m.global_name,m.full_name,m.name,m.nickname,...(user?.identities||[]).flatMap(identity=>{const d=identity?.identity_data||{};return[d.user_name,d.preferred_username,d.username,d.global_name,d.name]})].filter(Boolean).map(value=>String(value).trim().toLowerCase());return names.includes('pengin_hi22')}
   async function updateSession(){
     if(!client){loginBtn.textContent='로그인 설정 확인';loginBtn.disabled=true;return}
@@ -121,6 +121,7 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
     if(error){notify('로그인 상태를 불러오지 못했어요.');return}
     currentUser=data.session?.user||null;
     if(currentUser){
+      location.replace(baseUrl+"dashboard.html");return;
       const label=currentUser.user_metadata?.full_name||currentUser.user_metadata?.name||currentUser.user_metadata?.preferred_username||currentUser.email||'로그인됨';
       userChip.hidden=false;userChip.textContent=label;loginBtn.textContent='로그아웃';loginBtn.className='btn btn-light';
       document.querySelectorAll('[data-auth-action="purchase"]').forEach(b=>b.textContent='이용권 신청하기');
@@ -144,7 +145,7 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
     if(!name){notify('Discord 서버 이름을 입력해 주세요.');return}
     if(id&&!/^\d{5,30}$/.test(id)){notify('서버 ID는 숫자만 입력해 주세요.');return}
     const submit=document.getElementById('submitPurchase');submit.disabled=true;submit.textContent='저장 중…';
-    const {error}=await client.from('purchase_requests').insert({user_id:currentUser.id,plan:planSelect.value,server_name:name,server_id:id||null,status:'pending'});
+    const {error}=await client.from('purchase_requests').insert({user_id:currentUser.id,plan:planSelect.value,server_name:name,server_id:id||null,status:'pending',payment_status:'unpaid'});
     submit.disabled=false;submit.textContent='신청 접수하기';
     if(error){console.error(error);notify(error.code==='42P01'?'데이터베이스 설정이 아직 필요해요.':'신청을 저장하지 못했어요. 데이터베이스 정책을 확인해 주세요.');return}
     closeModal();serverName.value='';serverId.value='';notify('신청 접수 완료. 토스뱅크 1908-3953-4245로 입금 후 관리자 확인을 기다려 주세요.')
