@@ -1,1 +1,128 @@
-<!doctype html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f7f8fa"><title>봇 관리 · TEND</title><link rel="stylesheet" href="./portal.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script></head><body data-page="bot"><div class="layout"><aside class="sidebar"><a class="brand" href="./index.html"><span class="brandmark">T</span>TEND</a><div data-side-nav></div><div class="sidebar-bottom"><div class="profile-chip"><div class="avatar" data-profile-initial>T</div><div class="profile-text"><strong data-profile-name>불러오는 중</strong><small>Discord 계정</small></div></div><button class="btn btn-light" data-logout style="width:100%">로그아웃</button></div></aside><main class="main"><header class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="btn btn-light mobile-menu" data-mobile-menu>☰</button><span class="crumb">Workspace / <b data-page-title>봇 관리</b></span></div><div class="topbar-actions"><span class="crumb" data-top-user></span></div></header><section class="page-head"><div><h1 class="page-title" data-page-title>봇 관리</h1><p class="page-subtitle" data-page-subtitle>서버 운영에 필요한 기능을 설정하세요.</p></div><span id="bot-status" class="badge amber">연결 확인 중</span></section><div class="notice">봇 연결 기능은 준비 중입니다. 설정은 저장할 수 있지만, 실제 Discord 서버에서 작동하려면 서비스 연결이 완료되어야 합니다.</div><section class="grid two-col" style="margin-top:16px"><article class="card"><div class="card-head"><div class="card-title">서버 연결</div><span class="badge blue">서비스</span></div><form id="bot-form" class="form-grid"><div class="field"><label for="bot-server-id">Discord 서버 ID</label><input id="bot-server-id" maxlength="30" inputmode="numeric" placeholder="서버 ID를 입력하세요"><small>봇이 해당 서버에 초대되어 있어야 합니다.</small></div><div class="setting-row"><div><strong>환영 메시지</strong><small>새 멤버 환영 기능을 사용하도록 요청합니다.</small></div><input class="switch" type="checkbox" id="welcome_enabled"></div><div class="field"><label for="welcome-message">환영 메시지 내용</label><textarea id="welcome-message" rows="3" maxlength="1800" placeholder="서버에 오신 것을 환영합니다!"></textarea></div><div class="setting-row"><div><strong>관리 로그</strong><small>봇 프로그램이 지원하는 로그 기능을 활성화합니다.</small></div><input class="switch" type="checkbox" id="log_enabled"></div><div class="field"><label for="log-channel">로그 채널 ID</label><input id="log-channel" maxlength="30" inputmode="numeric" placeholder="선택한 채널 ID"></div><div class="setting-row"><div><strong>자동 관리</strong><small>봇 프로그램에 자동 관리 기능 활성화를 요청합니다.</small></div><input class="switch" type="checkbox" id="auto_moderation_enabled"></div><div class="field"><label for="moderation-level">관리 강도</label><select id="moderation-level"><option value="light">낮음</option><option value="standard">보통</option><option value="strict">엄격</option></select></div><button id="save-bot" class="btn btn-blue" type="submit">설정 저장하기 →</button></form></article><article class="card"><div class="card-head"><div class="card-title">봇 상태</div><span class="card-note">연결 상태</span></div><div class="setting-row"><div><strong>연결 상태</strong><small>연결 상태를 표시합니다.</small></div><span id="bot-health" class="badge amber">아직 보고 없음</span></div><div class="setting-row"><div><strong>마지막 응답</strong><small>마지막 연결 확인 시간</small></div><span id="bot-last-seen" class="card-note">—</span></div><div class="notice warning" style="margin-top:18px">일부 기능은 연결 준비 중이며, 연결이 완료되면 사용할 수 있습니다.</div></article></section><section class="card" style="margin-top:16px"><div class="card-head"><div class="card-title">봇 명령 요청</div><span class="card-note">명령 요청</span></div><p class="page-subtitle" style="margin:0 0 18px">요청할 작업을 선택해 등록할 수 있습니다.</p><form id="bot-command-form" class="inline-form"><select id="bot-command-type" class="control" required><option value="sync">서버 정보 동기화</option><option value="post_announcement">공지 전송</option><option value="refresh_roles">역할 정보 갱신</option></select><input id="bot-command-payload" class="control" placeholder="공지 내용 등 추가 정보 (선택)" maxlength="1500"><button class="btn btn-dark" id="send-bot-command">요청 등록</button></form><div class="table-wrap" style="margin-top:18px"><table class="data-table"><thead><tr><th>등록일</th><th>요청</th><th>상태</th><th>결과</th></tr></thead><tbody id="bot-command-list"><tr><td colspan="4" class="empty">불러오는 중…</td></tr></tbody></table></div></section></main></div><div id="toast" class="toast" role="status"></div><script src="./portal.js"></script></body></html>
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f7f8fa">
+<title>봇 관리 · TEND</title>
+<link rel="stylesheet" href="./portal.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+</head>
+<body data-page="bot">
+<div class="layout">
+<aside class="sidebar">
+<a class="brand" href="./index.html"><span class="brandmark">T</span>TEND</a>
+<div data-side-nav></div>
+<div class="sidebar-bottom">
+<div class="profile-chip"><div class="avatar" data-profile-initial>T</div><div class="profile-text"><strong data-profile-name>불러오는 중</strong><small>Discord 계정</small></div></div>
+<button class="btn btn-light" data-logout style="width:100%">로그아웃</button>
+</div>
+</aside>
+<main class="main">
+<header class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="btn btn-light mobile-menu" data-mobile-menu>☰</button><span class="crumb">Workspace / <b data-page-title>봇 관리</b></span></div><div class="topbar-actions"><span class="crumb" data-top-user></span></div></header>
+<section class="page-head"><div><h1 class="page-title" data-page-title>봇 관리</h1><p class="page-subtitle" data-page-subtitle>서버별 검열·공지·자동화 설정을 관리하세요.</p></div><span id="bot-status" class="badge amber">서버 선택 필요</span></section>
+<div class="notice warning">이 화면은 설정을 Supabase에 저장하고 봇 작업을 요청합니다. 실제 Discord 동작과 소유자 DM은 별도 서버에서 봇 프로그램이 실행 중이어야 합니다.</div>
+<section class="card bot-server-card" style="margin-top:16px">
+<div class="card-head"><div><div class="card-title">관리 대상 서버</div><p class="page-subtitle">승인된 이용권 신청에 등록된 서버만 선택할 수 있습니다.</p></div><button class="btn btn-light" id="reload-bot-data" type="button">새로고침</button></div>
+<div class="inline-form"><select id="managed-server-select" class="control" aria-label="관리 대상 서버"><option value="">승인된 서버 불러오는 중…</option></select><button class="btn btn-blue" id="start-management" type="button">관리 시작</button><button class="btn btn-light" id="stop-management" type="button">관리 종료</button></div>
+<div id="managed-server-info" class="card-note" style="margin-top:12px">서버를 선택하면 해당 서버의 설정을 불러옵니다.</div>
+</section>
+<div class="bot-tabs" role="tablist" aria-label="봇 관리 기능">
+<button class="bot-tab active" data-bot-tab="moderation" type="button">채팅 검열</button>
+<button class="bot-tab" data-bot-tab="announcements" type="button">서버 공지</button>
+<button class="bot-tab" data-bot-tab="blacklist" type="button">자동 서버 차단</button>
+<button class="bot-tab" data-bot-tab="features" type="button">추가 기능 14개</button>
+<button class="bot-tab" data-bot-tab="jobs" type="button">작업 기록</button>
+</div>
+<section class="bot-panel active" data-bot-panel="moderation">
+<div class="grid two-col">
+<article class="card">
+<div class="card-head"><div class="card-title">금지 단어 추가</div><span class="badge blue">검열 규칙</span></div>
+<form id="moderation-form" class="form-grid">
+<div class="field"><label for="moderation-word">금지 단어</label><input id="moderation-word" required maxlength="100" placeholder="등록할 단어"></div>
+<div class="field"><label for="moderation-match">검열 방식</label><select id="moderation-match"><option value="exact">단어 완전 일치</option><option value="contains">단어 포함</option></select></div>
+<div class="field"><label for="moderation-action">위반 시 조치</label><select id="moderation-action"><option value="delete">메시지 삭제</option><option value="timeout">타임아웃</option><option value="ban">영구 차단</option></select></div>
+<div class="field hidden" id="timeout-field"><label for="moderation-timeout">타임아웃 시간 (초)</label><input id="moderation-timeout" type="number" min="1" max="2419200" value="300"></div>
+<button class="btn btn-blue" type="submit" id="save-moderation-rule">금지 단어 추가</button>
+</form>
+</article>
+<article class="card">
+<div class="card-head"><div class="card-title">검열 규칙 안내</div><span class="badge">서버별 설정</span></div>
+<div class="setting-row"><div><strong>완전 일치</strong><small>구분된 단어가 규칙과 일치할 때 적용</small></div></div>
+<div class="setting-row"><div><strong>단어 포함</strong><small>메시지 안에 지정한 문자열이 포함될 때 적용</small></div></div>
+<div class="setting-row"><div><strong>타임아웃</strong><small>Discord에서 허용하는 범위 내 초 단위로 설정</small></div></div>
+<p class="page-subtitle">규칙이 여러 개 일치하는 경우 실제 제재 우선순위는 봇 프로그램 설정에 따릅니다. 봇이 온라인이어야 검열이 실행됩니다.</p>
+</article>
+</div>
+<article class="card" style="margin-top:16px"><div class="card-head"><div class="card-title">등록된 금지 단어</div><span class="card-note" id="moderation-count">0개</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>단어</th><th>검열 방식</th><th>조치</th><th>시간</th><th>상태</th><th>관리</th></tr></thead><tbody id="moderation-rules-list"><tr><td colspan="6" class="empty">서버를 선택하세요.</td></tr></tbody></table></div></article>
+</section>
+<section class="bot-panel" data-bot-panel="announcements">
+<div class="grid two-col">
+<article class="card">
+<div class="card-head"><div class="card-title">공지 작성</div><span class="badge blue">새 공지</span></div>
+<form id="announcement-form" class="form-grid">
+<div class="field"><label for="announcement-title">제목</label><input id="announcement-title" maxlength="200" placeholder="공지 제목"></div>
+<div class="field"><label for="announcement-content">내용</label><textarea id="announcement-content" rows="5" required maxlength="4000" placeholder="서버에 전달할 공지 내용을 입력하세요."></textarea></div>
+<div class="field"><label for="announcement-channel">발송 채널</label><select id="announcement-channel"><option value="">기본 채널 / 자동 선택</option></select></div>
+<div class="field"><label for="announcement-image">이미지 URL (선택)</label><input id="announcement-image" type="url" maxlength="1000" placeholder="https://…"></div>
+<div class="field"><label for="announcement-mention">멘션</label><select id="announcement-mention"><option value="none">멘션 없음</option><option value="everyone">@everyone</option><option value="here">@here</option><option value="role">역할 멘션</option></select></div>
+<div class="field hidden" id="announcement-role-field"><label for="announcement-role-ids">역할 ID (여러 개는 쉼표로 구분)</label><input id="announcement-role-ids" maxlength="1000" placeholder="역할 ID, 역할 ID"></div>
+<button class="btn btn-blue" type="submit">공지 발송 요청</button>
+<p class="card-note">공지 요청은 DB에 대기 작업으로 등록됩니다. 봇이 실행 중일 때 Discord로 전송됩니다.</p>
+</form>
+</article>
+<article class="card">
+<div class="card-head"><div class="card-title">공지 채널 관리</div><span class="card-note">채널 ID로 등록</span></div>
+<form id="announcement-channel-form" class="form-grid">
+<div class="field"><label for="announcement-channel-id">Discord 채널 ID</label><input id="announcement-channel-id" required maxlength="30" inputmode="numeric" placeholder="텍스트 채널 ID"></div>
+<div class="field"><label for="announcement-channel-name">표시 이름 (선택)</label><input id="announcement-channel-name" maxlength="100" placeholder="예: 공지사항"></div>
+<label class="check-line"><input type="checkbox" id="announcement-channel-default"> 기본 공지 채널로 지정</label>
+<button class="btn btn-light" type="submit">채널 추가</button>
+</form>
+<div id="announcement-channels-list" class="stack-list" style="margin-top:14px"><div class="empty">채널 목록을 불러오는 중…</div></div>
+</article>
+</div>
+<article class="card" style="margin-top:16px"><div class="card-head"><div class="card-title">공지 내역</div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>작성 시각</th><th>제목</th><th>상태</th><th>채널</th><th>관리</th></tr></thead><tbody id="announcements-list"><tr><td colspan="5" class="empty">서버를 선택하세요.</td></tr></tbody></table></div></article>
+</section>
+<section class="bot-panel" data-bot-panel="blacklist">
+<div class="grid two-col">
+<article class="card">
+<div class="card-head"><div class="card-title">블랙리스트 서버</div><span class="badge">서버 ID 기반</span></div>
+<form id="blacklist-server-form" class="form-grid">
+<div class="field"><label for="blacklist-server-id">차단 대상 서버 ID</label><input id="blacklist-server-id" required maxlength="30" inputmode="numeric" placeholder="Discord 서버 ID"></div>
+<div class="field"><label for="blacklist-server-invite">초대 링크 (선택)</label><input id="blacklist-server-invite" type="url" maxlength="500" placeholder="https://discord.gg/…"></div>
+<div class="field"><label for="blacklist-server-reason">차단 사유</label><textarea id="blacklist-server-reason" rows="2" maxlength="500">등록된 블랙리스트 서버의 구성원입니다.</textarea></div>
+<button class="btn btn-blue" type="submit">블랙리스트 서버 추가</button>
+</form>
+<div id="blacklist-servers-list" class="stack-list" style="margin-top:14px"></div>
+</article>
+<article class="card">
+<div class="card-head"><div class="card-title">특정 사용자 차단</div><span class="badge">사용자 ID 권장</span></div>
+<form id="blacklist-user-form" class="form-grid">
+<div class="field"><label for="blacklist-user-id">Discord 사용자 ID</label><input id="blacklist-user-id" maxlength="30" inputmode="numeric" placeholder="가능하면 사용자 ID 입력"></div>
+<div class="field"><label for="blacklist-user-name">닉네임 (보조 식별)</label><input id="blacklist-user-name" maxlength="100" placeholder="중복 닉네임일 수 있어요."></div>
+<div class="field"><label for="blacklist-user-reason">차단 사유</label><textarea id="blacklist-user-reason" rows="2" maxlength="500">서버 운영 정책에 따라 입장이 제한되었습니다.</textarea></div>
+<button class="btn btn-blue" type="submit">차단 목록에 추가</button>
+</form>
+<div id="blacklist-users-list" class="stack-list" style="margin-top:14px"></div>
+</article>
+</div>
+<div class="notice warning" style="margin-top:16px">외부 서버의 구성원 여부는 봇이 해당 서버 정보를 확인할 수 있을 때만 판별할 수 있습니다. 닉네임만 등록하면 중복이나 변경으로 인해 정확히 식별하지 못할 수 있습니다.</div>
+</section>
+<section class="bot-panel" data-bot-panel="features">
+<div class="card"><div class="card-head"><div class="card-title">서버 자동화 기능</div><span class="card-note">기능별 ON/OFF</span></div><p class="page-subtitle" style="margin-top:-5px;margin-bottom:18px">기능을 켜고 끄거나 설정을 열 수 있습니다. 세부 설정은 각 기능을 선택해 저장합니다.</p><div id="feature-settings-list" class="feature-settings-grid"><div class="empty">서버를 선택하세요.</div></div></div>
+</section>
+<section class="bot-panel" data-bot-panel="jobs">
+<div class="grid two-col">
+<article class="card"><div class="card-head"><div class="card-title">봇 상태</div><span id="bot-health" class="badge amber">응답 대기</span></div><div class="setting-row"><div><strong>마지막 응답</strong><small>봇이 Supabase에 상태를 기록한 시각</small></div><span id="bot-last-seen" class="card-note">—</span></div><p class="page-subtitle">이 상태는 봇 프로그램이 직접 갱신해야 정확합니다.</p></article>
+<article class="card"><div class="card-head"><div class="card-title">작업 처리 상태</div></div><div class="setting-row"><div><strong>대기 중</strong><small>봇에서 처리해야 하는 작업</small></div><strong id="jobs-pending">—</strong></div><div class="setting-row"><div><strong>실패</strong><small>확인이 필요한 작업</small></div><strong id="jobs-failed">—</strong></div><button class="btn btn-light" id="refresh-jobs" type="button">작업 기록 새로고침</button></article>
+</div>
+<article class="card" style="margin-top:16px"><div class="card-head"><div class="card-title">최근 작업</div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>등록 시각</th><th>작업</th><th>상태</th><th>결과</th></tr></thead><tbody id="bot-jobs-list"><tr><td colspan="4" class="empty">서버를 선택하세요.</td></tr></tbody></table></div></article>
+</section>
+</main>
+</div>
+<div id="toast" class="toast" role="status"></div>
+<script src="./portal.js"></script>
+</body>
+</html>
