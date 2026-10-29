@@ -19,14 +19,23 @@
     ["server_backup","서버 백업","지원되는 역할·채널 구조 설정 내보내기"]
   ];
   const sid = () => serverId || ($("#managed-server-select") && $("#managed-server-select").value) || "";
-  const failed = (e, message) => { if (!e) return false; console.error(e); notify(message + (e.message ? " (" + e.message + ")" : "")); return true; };
+  const failed = (e, message) => { if (!e) return false; console.error(e); notify(message); return true; };
+  const isMissingJobsTable = e => !!e && (e.code === "PGRST205" || e.code === "42P01" || /public\.bot_jobs|bot_jobs.*schema cache|relation .*bot_jobs.*does not exist/i.test(e.message || ""));
+  async function enqueueJob(jobType, payload = {}) {
+    const id = sid();
+    const primary = await sb.from("bot_jobs").insert({server_id:id,job_type:jobType,payload,status:"pending"});
+    if (!primary.error) return {error:null,queue:"bot_jobs"};
+    if (!isMissingJobsTable(primary.error)) return {error:primary.error,queue:null};
+    const fallback = await sb.from("bot_commands").insert({user_id:user.id,server_id:id,command_type:jobType,payload,status:"queued"});
+    return {error:fallback.error,queue:fallback.error?null:"bot_commands"};
+  }
   async function ensureServer() {
     const id = sid();
     if (!id) { notify("관리할 서버를 선택해 주세요."); return false; }
     const p = await sb.from("purchase_requests").select("server_name,server_id,status").eq("user_id",user.id).eq("server_id",id).in("status",["approved","completed"]).limit(1).maybeSingle();
-    if (p.error) { console.error("server ownership query error:",p.error); notify("서버 권한 확인 오류: "+(p.error.message||p.error.code||"알 수 없는 오류")); return false; } if (!p.data) { notify("승인된 이용권 신청에 등록된 서버만 관리할 수 있어요."); return false; }
+    if (p.error) { console.error("server ownership query error:",p.error); notify("서버 권한을 확인하지 못했어요. 잠시 후 다시 시도해 주세요."); return false; } if (!p.data) { notify("승인된 이용권 신청에 등록된 서버만 관리할 수 있어요."); return false; }
     const existing = await sb.from("managed_servers").select("server_id").eq("server_id",id).maybeSingle();
-    if (existing.error) { console.error("managed server query error:",existing.error); notify("서버 설정 조회 오류: "+(existing.error.message||existing.error.code||"알 수 없는 오류")); return false; }
+    if (existing.error) { console.error("managed server query error:",existing.error); notify("서버 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요."); return false; }
     if (!existing.data) {
       const ownerId = (discordIds(user)[0] || user.id);
       const ins = await sb.from("managed_servers").insert({server_id:id,server_name:p.data.server_name || "Discord 서버",owner_id:ownerId,is_active:false});
@@ -59,8 +68,8 @@
     if(q.error){console.error("approved server query error:",q.error);select.innerHTML='<option value="">서버 목록 오류</option>';notify("서버 목록 오류: "+(q.error.message||q.error.code||"알 수 없는 오류"));return;}
     const seen=new Set(), rows=[];
     (q.data||[]).forEach(r=>{if(r.server_id&&!seen.has(r.server_id)){seen.add(r.server_id);rows.push(r);}});
-    if(!rows.length){select.innerHTML='<option value="">승인된 서버가 없습니다.</option>';serverId="";$("#managed-server-info").textContent="서버 ID를 포함해 이용권을 신청하고 관리자 승인을 받아야 합니다.";return;}
-    select.innerHTML='<option value="">관리할 서버 선택</option>'+rows.map(r=>'<option value="'+escapeHtml(r.server_id)+'">'+escapeHtml(r.server_name||"Discord 서버")+' · '+escapeHtml(r.server_id)+'</option>').join("");
+    if(!rows.length){select.innerHTML='<option value="">승인된 서버가 없습니다.</option>';serverId="";$("#managed-server-info").textContent="이용권 신청 후 승인을 받으면 서버를 관리할 수 있어요.";return;}
+    select.innerHTML='<option value="">관리할 서버 선택</option>'+rows.map(r=>'<option value="'+escapeHtml(r.server_id)+'">'+escapeHtml(r.server_name||"Discord 서버")+'</option>').join("");
     if(serverId&&seen.has(serverId))select.value=serverId;else{select.value=rows[0].server_id;serverId=select.value;}
     if(await ensureServer())await loadServerData();
   }
@@ -68,9 +77,9 @@
     if(!await ensureServer())return;
     const upd=await sb.from("managed_servers").update({is_active:active,updated_at:new Date().toISOString(),...(active?{started_at:new Date().toISOString()}:{})}).eq("server_id",sid());
     if(failed(upd.error,"관리 상태를 저장하지 못했어요."))return;
-    const job=await sb.from("bot_jobs").insert({server_id:sid(),job_type:active?"start_management":"stop_management",payload:{requested_by:user.id},status:"pending"});
-    if(failed(job.error,"상태는 저장했지만 봇 작업 요청을 등록하지 못했어요.")){await loadServerData();return;}
-    notify(active?"관리 시작 요청을 등록했어요. 봇이 실행되면 서버 소유자에게 DM을 보냅니다.":"관리 종료 요청을 등록했어요.");
+    const job=await enqueueJob(active?"start_management":"stop_management",{requested_by:user.id});
+    if(failed(job.error,"상태는 저장했지만 작업 요청을 등록하지 못했어요. 잠시 후 다시 시도해 주세요.")){await loadServerData();return;}
+    notify(active?"관리 시작 요청을 등록했어요.":"관리 종료 요청을 등록했어요.");
     await loadServerData();await loadJobs();
   }
   async function loadServerData() {
@@ -99,7 +108,7 @@
   async function loadRules() {
     const t=$("#moderation-rules-list"), id=sid();
     const q=await sb.from("moderation_rules").select("id,word,match_type,action_type,timeout_seconds,enabled,created_at").eq("server_id",id).order("created_at",{ascending:false});
-    if(q.error){t.innerHTML='<tr><td colspan="6" class="empty">규칙을 불러오지 못했어요. SQL과 RLS를 확인해 주세요.</td></tr>';return;}
+    if(q.error){t.innerHTML='<tr><td colspan="6" class="empty">규칙을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</td></tr>';return;}
     const labels={exact:"완전 일치",contains:"단어 포함",delete:"메시지 삭제",timeout:"타임아웃",ban:"영구 차단"};
     $("#moderation-count").textContent=(q.data||[]).length+"개";
     t.innerHTML=q.data?.length?q.data.map(r=>'<tr><td>'+escapeHtml(r.word)+'</td><td>'+labels[r.match_type]+'</td><td>'+labels[r.action_type]+'</td><td>'+(r.timeout_seconds?r.timeout_seconds+"초":"—")+'</td><td><button class="btn btn-light" data-rule-toggle="'+r.id+'" data-enabled="'+r.enabled+'">'+(r.enabled?"사용 중":"중지됨")+'</button></td><td><button class="btn btn-danger" data-rule-delete="'+r.id+'">삭제</button></td></tr>').join(""):'<tr><td colspan="6" class="empty">등록된 금지 단어가 없습니다.</td></tr>';
@@ -132,15 +141,15 @@
     const file=$("#announcement-image-file").files[0]||null;
     if(!content){notify("공지 내용을 입력해 주세요.");return;}
     if(image&&!/^https?:\/\//i.test(image)){notify("이미지 주소는 http 또는 https URL이어야 해요.");return;}
-    if(file){if(!file.type.startsWith("image/")||file.size>8*1024*1024){notify("이미지는 8MB 이하의 이미지 파일만 첨부할 수 있어요.");return;}const path=sid()+"/"+Date.now()+"-"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");const upload=await sb.storage.from("announcement-images").upload(path,file,{upsert:false,contentType:file.type});if(upload.error){notify("이미지 업로드에 실패했어요. Storage 설정 SQL을 적용했는지 확인해 주세요.");return;}image=sb.storage.from("announcement-images").getPublicUrl(path).data.publicUrl;}
+    if(file){if(!file.type.startsWith("image/")||file.size>8*1024*1024){notify("이미지는 8MB 이하의 이미지 파일만 첨부할 수 있어요.");return;}const path=sid()+"/"+Date.now()+"-"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");const upload=await sb.storage.from("announcement-images").upload(path,file,{upsert:false,contentType:file.type});if(upload.error){console.error(upload.error);notify("이미지를 업로드하지 못했어요. 다른 이미지로 다시 시도해 주세요.");return;}image=sb.storage.from("announcement-images").getPublicUrl(path).data.publicUrl;}
     let roles=[];
     if(mention==="role"){roles=$("#announcement-role-ids").value.split(",").map(x=>x.trim()).filter(Boolean);if(!roles.length||roles.some(x=>!/^\d{5,30}$/.test(x))){notify("역할 ID를 숫자로 입력해 주세요. 여러 개는 쉼표로 구분합니다.");return;}}
     const q=await sb.from("announcements").insert({server_id:sid(),channel_id:channel,title,content,image_url:image,status:"queued",created_by:user.id}).select("id").single();
     if(failed(q.error,"공지를 저장하지 못했어요."))return;
     const mentions=[];if(mention==="everyone"||mention==="here")mentions.push({announcement_id:q.data.id,mention_type:mention,role_id:null});if(mention==="role")roles.forEach(role_id=>mentions.push({announcement_id:q.data.id,mention_type:"role",role_id}));
     if(mentions.length){const m=await sb.from("announcement_mentions").insert(mentions);if(m.error){await sb.from("announcements").delete().eq("id",q.data.id);notify("멘션 설정을 저장하지 못했어요.");return;}}
-    const job=await sb.from("bot_jobs").insert({server_id:sid(),job_type:"post_announcement",payload:{announcement_id:q.data.id},status:"pending"});
-    if(job.error){await sb.from("announcements").delete().eq("id",q.data.id);notify("공지 작업을 등록하지 못했어요. SQL 정책을 확인해 주세요.");return;}
+    const job=await enqueueJob("post_announcement",{announcement_id:q.data.id});
+    if(job.error){await sb.from("announcements").delete().eq("id",q.data.id);console.error(job.error);notify("공지 발송 요청을 등록하지 못했어요. 잠시 후 다시 시도해 주세요.");return;}
     e.target.reset();$("#announcement-role-field").classList.add("hidden");notify("공지 발송 요청을 등록했어요.");await loadAnnouncements();await loadJobs();
   }
   async function loadAnnouncements() {
@@ -148,7 +157,7 @@
     if(q.error){t.innerHTML='<tr><td colspan="5" class="empty">공지 내역을 불러오지 못했어요.</td></tr>';return;}
     const states={draft:["작성 중",""],queued:["발송 대기","amber"],sent:["발송 완료","green"],failed:["실패","red"],deleted:["삭제됨",""]};
     t.innerHTML=q.data?.length?q.data.map(r=>{const st=states[r.status]||[r.status,""];return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.title||"(제목 없음)")+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.channel_id||"기본 채널")+'</td><td>'+(r.status!=="deleted"?'<button class="btn btn-danger" data-announcement-delete="'+r.id+'">삭제</button>':"—")+'</td></tr>';}).join(""):'<tr><td colspan="5" class="empty">등록된 공지가 없습니다.</td></tr>';
-    $$("[data-announcement-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("공지 삭제 작업을 요청할까요?"))return;const id=b.dataset.announcementDelete;const j=await sb.from("bot_jobs").insert({server_id:sid(),job_type:"delete_announcement",payload:{announcement_id:id},status:"pending"});if(failed(j.error,"삭제 작업을 등록하지 못했어요."))return;const u=await sb.from("announcements").update({status:"deleted",updated_at:new Date().toISOString()}).eq("id",id).eq("server_id",sid());if(failed(u.error,"삭제 상태를 저장하지 못했어요."))return;notify("공지 삭제 요청을 등록했어요.");await loadAnnouncements();await loadJobs();}));
+    $$("[data-announcement-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("공지 삭제 작업을 요청할까요?"))return;const id=b.dataset.announcementDelete;const j=await enqueueJob("delete_announcement",{announcement_id:id});if(failed(j.error,"삭제 작업을 등록하지 못했어요. 잠시 후 다시 시도해 주세요."))return;const u=await sb.from("announcements").update({status:"deleted",updated_at:new Date().toISOString()}).eq("id",id).eq("server_id",sid());if(failed(u.error,"삭제 상태를 저장하지 못했어요."))return;notify("공지 삭제 요청을 등록했어요.");await loadAnnouncements();await loadJobs();}));
   }
   async function saveBlacklistServer(e) {
     e.preventDefault();if(!await ensureServer())return;
@@ -177,7 +186,7 @@
   }
   async function loadFeatures() {
     const box=$("#feature-settings-list"),q=await sb.from("server_feature_settings").select("feature_key,settings,enabled").eq("server_id",sid());
-    if(q.error){box.innerHTML='<div class="empty">기능 설정을 불러오지 못했어요. 관리용 SQL을 적용해 주세요.</div>';return;}
+    if(q.error){box.innerHTML='<div class="empty">기능 설정을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return;}
     const rows=new Map((q.data||[]).map(r=>[r.feature_key,r]));
     box.innerHTML=features.map(f=>{const r=rows.get(f[0]);return '<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>'+escapeHtml(f[1])+'</strong><small>'+escapeHtml(f[2])+'</small></div><label class="switch-label"><input type="checkbox" class="switch" data-feature-toggle="'+f[0]+'" '+(r&&r.enabled?'checked':'')+'><span>'+(r&&r.enabled?'사용 중':'중지')+'</span></label></div><label class="feature-config-label" for="feature-config-'+f[0]+'">세부 설정 (JSON)</label><textarea id="feature-config-'+f[0]+'" data-feature-config="'+f[0]+'" rows="3" placeholder=\'{"channel_id":"","message":""}\'>'+escapeHtml(JSON.stringify((r&&r.settings)||{},null,2))+'</textarea><button class="btn btn-light" type="button" data-feature-save="'+f[0]+'">설정 저장</button></article>';}).join("");
     $$("[data-feature-toggle]").forEach(el=>el.addEventListener("change",async()=>{const key=el.dataset.featureToggle;let settings={};try{const raw=$('[data-feature-config="'+key+'"]').value.trim();settings=raw?JSON.parse(raw):{};}catch{notify("세부 설정 JSON 형식을 확인해 주세요.");el.checked=!el.checked;return;}const q=await sb.from("server_feature_settings").upsert({server_id:sid(),feature_key:key,settings,enabled:el.checked,updated_at:new Date().toISOString()},{onConflict:"server_id,feature_key"});if(failed(q.error,"기능 상태를 저장하지 못했어요."))return;el.nextElementSibling.textContent=el.checked?"사용 중":"중지";notify("기능 상태를 저장했어요.");}));
@@ -185,13 +194,18 @@
   }
   async function loadJobs() {
     const t=$("#bot-jobs-list");if(!t||!sid())return;
-    const q=await sb.from("bot_jobs").select("id,job_type,status,error_message,created_at").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50);
-    if(q.error){t.innerHTML='<tr><td colspan="4" class="empty">작업 기록을 불러오지 못했어요. SQL 및 RLS를 확인해 주세요.</td></tr>';return;}
-    const rows=q.data||[];
+    let q=await sb.from("bot_jobs").select("id,job_type,status,error_message,created_at").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50);
+    let rows=[];
+    if(q.error&&isMissingJobsTable(q.error)){
+      q=await sb.from("bot_commands").select("id,command_type,status,result,created_at").eq("server_id",sid()).eq("user_id",user.id).order("created_at",{ascending:false}).limit(50);
+      if(q.error){console.error(q.error);t.innerHTML='<tr><td colspan="4" class="empty">작업 기록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</td></tr>';return;}
+      rows=(q.data||[]).map(r=>({id:r.id,job_type:r.command_type,status:r.status==="queued"?"pending":r.status,error_message:r.result,created_at:r.created_at}));
+    }else if(q.error){console.error(q.error);t.innerHTML='<tr><td colspan="4" class="empty">작업 기록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</td></tr>';return;}
+    else rows=q.data||[];
     $("#jobs-pending").textContent=rows.filter(r=>r.status==="pending"||r.status==="processing").length;
     $("#jobs-failed").textContent=rows.filter(r=>r.status==="failed").length;
     const names={start_management:"관리 시작",stop_management:"관리 종료",post_announcement:"공지 발송",delete_announcement:"공지 삭제",sync:"서버 정보 동기화",refresh_roles:"역할 정보 갱신"};
-    const states={pending:["대기 중","amber"],processing:["처리 중","blue"],completed:["완료","green"],failed:["실패","red"]};
+    const states={pending:["대기 중","amber"],queued:["대기 중","amber"],processing:["처리 중","blue"],completed:["완료","green"],failed:["실패","red"]};
     t.innerHTML=rows.length?rows.map(r=>{const st=states[r.status]||[r.status,""];return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(names[r.job_type]||r.job_type)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.error_message||"—")+'</td></tr>';}).join(""):'<tr><td colspan="4" class="empty">등록된 작업이 없습니다.</td></tr>';
   }
   window.TEND_BOT_MANAGEMENT={init};
