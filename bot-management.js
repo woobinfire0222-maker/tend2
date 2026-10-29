@@ -117,6 +117,27 @@
     $("#blacklist-server-form").addEventListener("submit",saveBlacklistServer);
     $("#blacklist-user-form").addEventListener("submit",saveBlacklistUser);
     await loadServers();
+    subscribeDiscordInventory();
+  }
+  function subscribeDiscordInventory() {
+    if (!sb || !user) return;
+    sb.channel("tend-bot-live-" + user.id)
+      .on("postgres_changes", { event: "*", schema: "public", table: "discord_guilds" }, () => {
+        loadServers().catch(e => console.error("Live guild refresh failed:", e));
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "discord_channels" }, payload => {
+        if (!payload?.new?.server_id || String(payload.new.server_id) === String(sid())) {
+          loadChannels().catch(e => console.error("Live channel refresh failed:", e));
+        }
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "server_feature_settings" }, payload => {
+        if (!payload?.new?.server_id || String(payload.new.server_id) === String(sid())) {
+          loadFeatures().catch(e => console.error("Live feature refresh failed:", e));
+        }
+      })
+      .subscribe(status => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") console.warn("TEND live Discord sync subscription:", status);
+      });
   }
   async function loadServers() {
     const select=$("#managed-server-select");
