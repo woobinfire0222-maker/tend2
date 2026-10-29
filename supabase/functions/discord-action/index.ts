@@ -56,6 +56,10 @@ Deno.serve(async (request) => {
       channelId = String(channel?.channel_id || "");
     }
     if (!/^\d{5,30}$/.test(channelId)) return json({ error: "Choose or register an announcement channel first." }, 400);
+    const { data: allowedChannel, error: channelCheckError } = await db.from("announcement_channels")
+      .select("channel_id").eq("server_id", serverId).eq("channel_id", channelId).eq("enabled", true).maybeSingle();
+    if (channelCheckError) return json({ error: "Unable to verify the announcement channel." }, 500);
+    if (!allowedChannel) return json({ error: "Register this channel in TEND before sending announcements." }, 403);
 
     const title = String(body.title || "").trim().slice(0, 256);
     const content = String(body.content || "").trim();
