@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f7f8fa">
 <title>봇 관리 · TEND</title>
-<link rel="stylesheet" href="./portal.css?v=20261029-4">
+<link rel="stylesheet" href="./portal.css?v=20261029-5">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js?v=20261029-3"></script>
 </head>
@@ -24,7 +24,7 @@
 <section class="page-head"><div><h1 class="page-title" data-page-title>봇 관리</h1><p class="page-subtitle" data-page-subtitle>서버별 검열·공지·자동화 설정을 관리하세요.</p></div><span id="bot-status" class="badge amber">서버 선택 필요</span></section>
 
 <section class="card bot-server-card" style="margin-top:16px">
-<div class="card-head"><div><div class="card-title">관리 대상 서버</div><p class="page-subtitle">승인된 이용권 신청에 등록된 서버만 선택할 수 있습니다.</p></div><button class="btn btn-light" id="reload-bot-data" type="button">새로고침</button></div>
+<div class="card-head"><div><div class="card-title">관리 대상 서버</div><p class="page-subtitle">승인된 서버 중 기존 Discord 봇이 실제로 참여 중인 서버를 자동으로 표시합니다.</p></div><button class="btn btn-light" id="reload-bot-data" type="button">새로고침</button></div>
 <div class="inline-form"><select id="managed-server-select" class="control" aria-label="관리 대상 서버"><option value="">승인된 서버 불러오는 중…</option></select><button class="btn btn-blue" id="start-management" type="button">관리 시작</button><button class="btn btn-light" id="stop-management" type="button">관리 종료</button></div>
 <div id="managed-server-info" class="card-note" style="margin-top:12px">서버를 선택하면 해당 서버의 설정을 불러옵니다.</div>
 </section>
@@ -76,9 +76,9 @@
 </form>
 </article>
 <article class="card">
-<div class="card-head"><div class="card-title">공지 채널 관리</div><span class="card-note">채널 ID로 등록</span></div>
+<div class="card-head"><div class="card-title">자동 인식 채널</div><span class="card-note">기존 봇 데이터</span></div>
 <form id="announcement-channel-form" class="form-grid">
-<div class="field"><label for="announcement-channel-id">Discord 채널 ID</label><input id="announcement-channel-id" required maxlength="30" inputmode="numeric" placeholder="텍스트 채널 ID"></div>
+<div class="field"><label for="announcement-channel-id">Discord 채널 ID (필요할 때만 수동 등록)</label><input id="announcement-channel-id" required maxlength="30" inputmode="numeric" placeholder="자동 인식되지 않는 채널 ID"></div>
 <div class="field"><label for="announcement-channel-name">표시 이름 (선택)</label><input id="announcement-channel-name" maxlength="100" placeholder="예: 공지사항"></div>
 <label class="check-line"><input type="checkbox" id="announcement-channel-default"> 기본 공지 채널로 지정</label>
 <button class="btn btn-light" type="submit">채널 추가</button>
@@ -115,8 +115,8 @@
 <div class="notice warning" style="margin-top:16px">외부 서버의 구성원 여부는 봇이 해당 서버 정보를 확인할 수 있을 때만 판별할 수 있습니다. 닉네임만 등록하면 중복이나 변경으로 인해 정확히 식별하지 못할 수 있습니다.</div>
 </section>
 <section class="bot-panel" data-bot-panel="features">
-<div class="section-intro"><strong>필요한 기능만 골라 사용해요</strong><p>서버 운영에 필요한 자동화 기능을 켜거나 끌 수 있어요. 각 기능의 설명을 읽고 서버에 맞게 설정해 주세요.</p></div>
-<div class="card"><div class="card-head"><div class="card-title">서버 자동화 기능</div><span class="card-note">기능별 ON/OFF</span></div><p class="page-subtitle" style="margin-top:-5px;margin-bottom:18px">기능을 켜고 끄거나 설정을 열 수 있습니다. 세부 설정은 각 기능을 선택해 저장합니다.</p><div id="feature-settings-list" class="feature-settings-grid"><div class="empty">서버를 선택하세요.</div></div></div>
+<div class="section-intro"><strong>필요한 기능만 골라 사용해요</strong><p>토글을 바꾸면 설정이 Supabase에 즉시 저장됩니다. 기존 봇이 server_feature_settings 실시간 변경을 구독해야 Discord 동작에도 바로 반영됩니다.</p></div>
+<div class="card"><div class="card-head"><div class="card-title">서버 자동화 기능</div><span class="card-note">기능별 ON/OFF</span></div><p class="page-subtitle" style="margin-top:-5px;margin-bottom:18px">토글은 즉시 저장됩니다. 세부 설정을 바꾼 경우에는 설정 저장을 눌러 주세요.</p><div id="feature-settings-list" class="feature-settings-grid"><div class="empty">서버를 선택하세요.</div></div></div>
 </section>
 <section class="bot-panel" data-bot-panel="commands">
 <div class="section-intro"><strong>원하는 관리 작업을 요청해요</strong><p>명령어 카드를 선택하면 해당 작업을 요청할 수 있어요. 요청이 등록되면 작업 기록에서 진행 상태를 확인할 수 있어요.</p></div>
@@ -133,7 +133,7 @@
 </main>
 </div>
 <div id="toast" class="toast" role="status"></div>
-<script src="./bot-management.js?v=20261029-5"></script>
-<script src="./portal.js?v=20261029-4"></script>
+<script src="./bot-management.js?v=20261029-6"></script>
+<script src="./portal.js?v=20261029-5"></script>
 </body>
 </html>
