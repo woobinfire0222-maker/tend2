@@ -157,7 +157,7 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
     const table=document.createElement('table');table.className='admin-table';
     const thead=document.createElement('thead');thead.innerHTML='<tr><th>신청일</th><th>이용권</th><th>서버</th><th>사용자 ID</th><th>상태</th></tr>';table.append(thead);
     const tbody=document.createElement('tbody');
-    data.forEach(row=>{const tr=document.createElement('tr');const date=new Date(row.created_at).toLocaleString('ko-KR');const vals=[date,row.plan,row.server_name+(row.server_id?' ('+row.server_id+')':''),row.user_id];
+    data.forEach(row=>{const tr=document.createElement('tr');const date=new Date(row.created_at).toLocaleString('ko-KR');const vals=[date,row.plan,row.server_name||"Discord 서버",row.user_id];
       vals.forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});
       const td=document.createElement('td'),select=document.createElement('select');select.className='status-select';
       [['pending','확인 대기'],['approved','승인'],['rejected','거절'],['completed','완료']].forEach(([value,label])=>{const o=document.createElement('option');o.value=value;o.textContent=label;select.append(o)});
