@@ -1,18 +1,148 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101828">
-  <title>TEND</title>
-  <meta name="description" content="Discord 서버 관리를 더 간단하게. TEND">
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="./config.js"></script>
-  <script type="module" crossorigin src="./index-DD5tomYs.js"></script>
-  <link rel="stylesheet" crossorigin href="./index-BSGX77mM.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f7f8fa">
+<title>TEND — Discord 서버 운영을 더 간단하게</title>
+<meta name="description" content="Discord 서버 운영 관리 신청과 이용권을 관리하는 TEND">
+<style>
+:root{--ink:#17191f;--muted:#747985;--line:#e8eaf0;--blue:#356df3;--blue2:#2458df;--soft:#eef3ff;--bg:#f7f8fa;--white:#fff;--green:#1b9b68;--shadow:0 24px 70px rgba(25,36,70,.10)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif;color:var(--ink);background:var(--bg);letter-spacing:-.035em}a{color:inherit;text-decoration:none}button,input,select{font:inherit}button{cursor:pointer;border:0}.wrap{width:min(1120px,calc(100% - 40px));margin:auto}
+nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230,232,238,.8);background:rgba(247,248,250,.9);backdrop-filter:blur(16px);position:sticky;top:0;z-index:10}.nav-inner{display:flex;align-items:center;justify-content:space-between}.brand{display:flex;align-items:center;gap:10px;font-weight:850;font-size:22px;letter-spacing:-.055em}.brandmark{width:34px;height:34px;background:#20232b;color:white;border-radius:10px;display:grid;place-items:center;font-size:16px;font-weight:800}.navlinks{display:flex;gap:30px;color:#606572;font-size:14px;font-weight:600}.navright{display:flex;gap:10px;align-items:center}.btn{padding:12px 17px;border-radius:12px;font-weight:700;font-size:14px;transition:.18s ease;display:inline-flex;align-items:center;justify-content:center;gap:8px}.btn:hover{transform:translateY(-1px)}.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}.btn-dark{background:#20232b;color:white}.btn-dark:hover{background:#343842}.btn-light{background:white;border:1px solid var(--line);color:#272a32}.btn-blue{background:var(--blue);color:white;box-shadow:0 7px 18px #356df32b}.btn-blue:hover{background:var(--blue2)}.menu{display:none}.hero{padding:88px 0 76px;position:relative;overflow:hidden}.hero:before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,#e7edff 0%,rgba(231,237,255,0) 68%);right:-160px;top:-160px;pointer-events:none}.hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:56px;align-items:center;position:relative}.hero h1{font-size:clamp(43px,5.1vw,66px);line-height:1.12;letter-spacing:-.075em;margin:0 0 20px;font-weight:850}.hero h1 span{color:var(--blue)}.hero p{font-size:17px;line-height:1.85;color:#69707d;max-width:480px;margin:0}.hero-actions{display:flex;gap:11px;margin-top:30px;flex-wrap:wrap}.hero-note{margin-top:20px;color:#9095a0;font-size:12px}
+.dashboard{background:white;border:1px solid #e6e8ee;border-radius:20px;box-shadow:var(--shadow);overflow:hidden;transform:rotate(.5deg)}.dash-top{height:56px;border-bottom:1px solid #edf0f4;display:flex;align-items:center;justify-content:space-between;padding:0 18px}.dash-title{font-weight:800;font-size:13px;display:flex;align-items:center;gap:9px}.mini-mark{background:#20232b;color:white;width:25px;height:25px;border-radius:7px;display:grid;place-items:center;font-size:11px}.dash-state{font-size:11px;color:#4f5f83;background:#eef3ff;border-radius:20px;padding:6px 9px;font-weight:750}.dash-body{padding:22px}.server-head{display:flex;align-items:center;gap:12px}.server-icon{width:45px;height:45px;border-radius:14px;background:#edf1ff;color:var(--blue);display:grid;place-items:center;font-size:21px;font-weight:800}.server-head strong{font-size:15px;display:block}.server-head small{font-size:12px;color:#858b97;display:block;margin-top:4px}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0}.metric{padding:14px 13px;background:#f8f9fb;border:1px solid #f0f1f5;border-radius:12px}.metric span{font-size:11px;color:#7b818e;display:block}.metric strong{font-size:23px;display:block;margin-top:7px;letter-spacing:-.06em}.section-label{font-size:12px;color:#818794;font-weight:750;margin:20px 0 10px}.activity{display:flex;align-items:center;gap:11px;padding:12px 0;border-top:1px solid #f0f1f4}.activity-icon{width:34px;height:34px;border-radius:10px;background:#f1f4ff;display:grid;place-items:center;color:var(--blue);font-size:15px}.activity-copy{flex:1}.activity-copy strong{display:block;font-size:12px}.activity-copy small{display:block;color:#8a909c;font-size:11px;margin-top:4px}.activity time{font-size:10px;color:#9ba0aa}.dash-bottom{padding:13px 22px;background:#fbfcfe;border-top:1px solid #edf0f4;display:flex;justify-content:space-between;font-size:11px;color:#7d8491}
+.trust{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#fff}.trust-inner{display:flex;align-items:center;justify-content:space-between;gap:25px;padding:22px 0}.trust-label{font-size:12px;color:#9297a2}.trust-item{font-size:13px;font-weight:750;color:#616774;display:flex;align-items:center;gap:8px}.trust-item b{color:var(--blue);font-size:16px}section.content{padding:92px 0}.section-head{text-align:center;max-width:650px;margin:0 auto 44px}.kicker{font-size:12px;font-weight:800;color:var(--blue);letter-spacing:.08em;text-transform:uppercase}.section-head h2{font-size:clamp(30px,4vw,43px);letter-spacing:-.065em;line-height:1.2;margin:13px 0 14px}.section-head p{color:#737986;font-size:15px;line-height:1.8;margin:0}.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.feature{background:#fff;border:1px solid var(--line);border-radius:17px;padding:25px;min-height:210px;transition:.2s}.feature:hover{transform:translateY(-3px);box-shadow:0 14px 34px #18264a0b}.feature-icon{width:43px;height:43px;border-radius:13px;display:grid;place-items:center;background:#edf2ff;color:var(--blue);font-size:20px;margin-bottom:23px}.feature h3{font-size:17px;margin:0 0 9px;letter-spacing:-.04em}.feature p{font-size:13px;color:#7b818d;line-height:1.75;margin:0}
+.split{background:#20232b;color:white;padding:76px 0;overflow:hidden}.split-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}.split h2{font-size:clamp(31px,4vw,43px);line-height:1.2;letter-spacing:-.065em;margin:14px 0}.split p{color:#b9bdc7;line-height:1.85;font-size:14px}.check-list{display:grid;gap:15px;margin-top:25px}.check{display:flex;align-items:flex-start;gap:11px;color:#e7e9ee;font-size:14px}.check i{font-style:normal;background:#2f765c;color:#c9ffe6;border-radius:50%;width:22px;height:22px;display:grid;place-items:center;flex-shrink:0;font-size:12px}.chat-preview{background:#2a2e38;border:1px solid #3a3f4b;border-radius:18px;padding:22px;max-width:440px;margin-left:auto;width:100%}.chat-head{display:flex;align-items:center;gap:10px;border-bottom:1px solid #3b404b;padding-bottom:15px;margin-bottom:17px}.chat-head .mini-mark{width:31px;height:31px}.chat-head strong{font-size:13px}.chat-head small{display:block;color:#9299a7;font-size:11px;margin-top:3px}.chat-bubble{background:#343945;border-radius:4px 13px 13px 13px;padding:15px;margin:11px 0;color:#e9ebf0;font-size:12px;line-height:1.8}.chat-bubble b{display:block;color:#fff;font-size:12px;margin-bottom:5px}.chat-bubble.blue{background:#263d70}.chat-bubble .tiny{font-size:10px;color:#aab5ce;margin-top:8px}
+.pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.price-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:25px;position:relative}.price-card.featured{border:1.5px solid var(--blue);box-shadow:0 14px 40px #356df315}.popular{position:absolute;right:17px;top:17px;background:var(--soft);color:var(--blue);padding:6px 9px;border-radius:20px;font-size:10px;font-weight:800}.price-name{font-size:14px;font-weight:800}.price-desc{font-size:12px;color:#858b97;margin-top:7px;min-height:34px;line-height:1.6}.price{font-size:30px;font-weight:850;letter-spacing:-.06em;margin:22px 0 5px}.price small{font-size:12px;color:#777e8a;font-weight:500;letter-spacing:0}.price-note{font-size:11px;color:#9297a2;margin-bottom:20px}.price-card .btn{width:100%}.price-features{padding:18px 0 0;margin:18px 0 0;border-top:1px solid #eff0f4;display:grid;gap:12px;list-style:none;font-size:12px;color:#646b78}.price-features li:before{content:"✓";color:var(--green);font-weight:900;margin-right:8px}
+.faq-list{max-width:760px;margin:auto}.faq{background:white;border:1px solid var(--line);border-radius:13px;margin-bottom:10px;overflow:hidden}.faq button{background:white;width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;padding:19px 20px;font-weight:750;color:#262a32;font-size:14px}.faq button span:last-child{font-size:20px;color:#858b97;transition:transform .2s}.faq p{display:none;margin:0;padding:0 20px 19px;color:#727986;font-size:13px;line-height:1.8}.faq.open p{display:block}.faq.open button span:last-child{transform:rotate(45deg)}.cta{padding:0 0 90px}.cta-box{background:#edf2ff;border:1px solid #e0e8ff;border-radius:22px;padding:48px 25px;text-align:center}.cta-box h2{font-size:clamp(28px,4vw,39px);letter-spacing:-.065em;margin:0 0 12px}.cta-box p{font-size:14px;color:#6f7890;margin:0 0 24px}.cta-box .btn{min-width:170px}footer{border-top:1px solid var(--line);padding:27px 0 35px}.footer-top{display:flex;justify-content:space-between;gap:20px;align-items:center}.footer-brand{display:flex;align-items:center;gap:9px;font-weight:850}.footer-brand .brandmark{width:29px;height:29px;border-radius:8px}.footer-links{display:flex;gap:20px;color:#777d89;font-size:12px}.copyright{font-size:11px;color:#a0a4ad;margin-top:22px}
+.toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#20232b;color:white;padding:13px 18px;border-radius:12px;font-size:13px;box-shadow:0 12px 30px #0002;transition:.25s;z-index:60;max-width:calc(100% - 30px);text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}.modal-backdrop{position:fixed;inset:0;background:#10152280;z-index:50;display:none;align-items:center;justify-content:center;padding:18px}.modal-backdrop.show{display:flex}.modal{width:min(100%,480px);background:white;border-radius:18px;padding:26px;box-shadow:0 24px 80px #0003}.modal h2{font-size:23px;margin:0 0 8px;letter-spacing:-.05em}.modal p{font-size:13px;color:#747985;line-height:1.7;margin:0 0 18px}.field{display:grid;gap:7px;margin:14px 0}.field label{font-size:12px;font-weight:750;color:#505664}.field input,.field select{width:100%;border:1px solid #dfe3eb;border-radius:10px;padding:12px;color:#20232b;background:white;outline:none}.field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #356df31b}.modal-actions{display:flex;gap:9px;margin-top:20px}.modal-actions .btn{flex:1}.user-chip{font-size:12px;color:#5f6674;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.admin-panel{display:none;padding:22px 0 50px}.admin-panel.show{display:block}.admin-panel h2{font-size:26px;margin-bottom:15px}.admin-table-wrap{overflow:auto;background:white;border:1px solid var(--line);border-radius:14px}.admin-table{width:100%;border-collapse:collapse;font-size:12px;min-width:650px}.admin-table th,.admin-table td{padding:13px;text-align:left;border-bottom:1px solid #edf0f4}.admin-table th{color:#747985;background:#fafbfc}.status-select{padding:7px;border:1px solid var(--line);border-radius:8px;background:white}
+@media(max-width:850px){.hero-grid{grid-template-columns:1fr;gap:45px}.hero{padding-top:65px}.dashboard{max-width:560px;transform:none}.navlinks{display:none}.split-grid{grid-template-columns:1fr;gap:35px}.chat-preview{margin:0;max-width:none}.trust-inner{flex-wrap:wrap;justify-content:center}.trust-label{width:100%;text-align:center}.feature-grid{grid-template-columns:repeat(2,1fr)}.pricing{grid-template-columns:1fr;max-width:500px;margin:auto}.price-desc{min-height:0}}
+@media(max-width:560px){.wrap{width:min(100% - 30px,1120px)}nav{height:65px}.navright .btn-light{display:none}.navright .btn{padding:10px 12px;font-size:12px}.brand{font-size:20px}.brandmark{width:31px;height:31px}.hero{padding:52px 0 55px}.hero h1{font-size:43px}.hero p{font-size:15px}.hero-actions .btn{flex:1}.metrics{gap:7px}.metric{padding:11px 9px}.metric strong{font-size:20px}.dash-body{padding:16px}.activity time{display:none}section.content{padding:68px 0}.section-head{margin-bottom:30px}.feature-grid{grid-template-columns:1fr}.feature{min-height:0;padding:22px}.feature-icon{margin-bottom:17px}.split{padding:60px 0}.cta{padding-bottom:60px}.cta-box{padding:36px 18px}.footer-top{align-items:flex-start;flex-direction:column}.footer-links{flex-wrap:wrap}.trust-item{font-size:12px}.modal{padding:21px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
 </head>
-<body><div id="root"></div></body>
+<body>
+<nav><div class="wrap nav-inner">
+<a href="#" class="brand"><span class="brandmark">T</span>TEND</a>
+<div class="navlinks"><a href="#features">기능</a><a href="#how">이용 방법</a><a href="#pricing">요금 안내</a><a href="#faq">자주 묻는 질문</a></div>
+<div class="navright"><span id="userChip" class="user-chip" hidden></span><button id="loginBtn" class="btn btn-dark">Discord로 시작하기 <span>↗</span></button></div>
+</div></nav>
+<main>
+<section class="hero"><div class="wrap hero-grid"><div>
+<h1>서버 관리는<br><span>조금 더 간단하게.</span></h1>
+<p>반복되는 관리 업무부터 신고와 기록까지.<br>TEND가 서버 운영에 필요한 일을 도와드릴게요.</p>
+<div class="hero-actions"><button class="btn btn-blue" data-auth-action="purchase">TEND 시작하기 <span>→</span></button><a class="btn btn-light" href="#features">기능 살펴보기</a></div>
+<div class="hero-note">복잡한 설정은 줄이고, 서버 운영에 집중하세요.</div>
+</div>
+<div class="dashboard" aria-label="TEND 관리 화면 미리보기">
+<div class="dash-top"><div class="dash-title"><span class="mini-mark">T</span> TEND 관리 센터</div><span class="dash-state">이용 현황 미리보기</span></div>
+<div class="dash-body"><div class="server-head"><div class="server-icon">⌘</div><div><strong>내 서버 관리</strong><small>신청한 이용권과 관리 요청을 확인해요</small></div></div>
+<div class="metrics"><div class="metric"><span>이용권 종류</span><strong>3종</strong></div><div class="metric"><span>신청 상태</span><strong>확인</strong></div><div class="metric"><span>관리 기록</span><strong>저장</strong></div></div>
+<div class="section-label">TEND에서 할 수 있는 일</div>
+<div class="activity"><div class="activity-icon">✓</div><div class="activity-copy"><strong>이용권 신청</strong><small>1일 · 7일 · 30일 중 선택</small></div><time>언제든</time></div>
+<div class="activity"><div class="activity-icon">⌕</div><div class="activity-copy"><strong>요청 상태 확인</strong><small>신청 내용을 계정에 연결해 저장</small></div><time>실시간</time></div>
+<div class="activity"><div class="activity-icon">↻</div><div class="activity-copy"><strong>운영 요청 관리</strong><small>관리자 화면에서 신청 확인</small></div><time>관리자</time></div>
+</div><div class="dash-bottom"><span>로그인 후 이용 가능</span><span>계정 기반 저장</span></div></div>
+</div></section>
+<div class="trust"><div class="wrap trust-inner"><div class="trust-label">TEND가 도와주는 일</div><div class="trust-item"><b>✓</b> 반복 업무 정리</div><div class="trust-item"><b>⌕</b> 신고 및 기록 관리</div><div class="trust-item"><b>↗</b> 공지와 운영 지원</div><div class="trust-item"><b>◷</b> 기간제 이용권</div></div></div>
+<section class="content" id="features"><div class="wrap"><div class="section-head"><div class="kicker">What TEND does</div><h2>서버 운영에 필요한 기능을<br>한곳에서 관리해요.</h2><p>자주 쓰는 관리 업무를 정리하고, 필요한 요청과 이용 기간을 계정에서 관리할 수 있어요.</p></div>
+<div class="feature-grid">
+<article class="feature"><div class="feature-icon">↻</div><h3>운영 업무 정리</h3><p>반복되는 관리 요청을 모아 운영진이 확인하기 쉽게 정리해요.</p></article>
+<article class="feature"><div class="feature-icon">⌕</div><h3>요청 상태 확인</h3><p>신청한 이용권의 처리 상태를 계정과 연결해 확인할 수 있어요.</p></article>
+<article class="feature"><div class="feature-icon">▤</div><h3>관리 기록</h3><p>이용권 신청과 처리 상태를 데이터베이스에 기록해요.</p></article>
+<article class="feature"><div class="feature-icon">↗</div><h3>공지 및 운영 지원</h3><p>운영 지원 기능은 실제 연결된 범위 안에서 순차적으로 제공돼요.</p></article>
+<article class="feature"><div class="feature-icon">◎</div><h3>계정 연결</h3><p>Discord 계정으로 로그인하고 본인 신청 내역을 확인해요.</p></article>
+<article class="feature"><div class="feature-icon">◷</div><h3>기간제 이용권</h3><p>자동 구독이 아닌 1일·7일·30일 이용권 신청 방식이에요.</p></article>
+</div></div></section>
+<section class="split" id="how"><div class="wrap split-grid"><div><div class="kicker" style="color:#9eb8ff">Easy to use</div><h2>신청은 간단하게,<br>진행 상황은 명확하게.</h2><p>Discord 계정으로 로그인한 뒤 필요한 이용권을 선택하고 서버 정보를 제출하면 신청 내역이 계정에 저장돼요. 결제 기능은 아직 연결되지 않아 신청 접수와 결제 완료는 구분돼요.</p>
+<div class="check-list"><div class="check"><i>✓</i><span>Discord 로그인으로 계정을 연결해요.</span></div><div class="check"><i>✓</i><span>신청 내용은 Supabase에 저장돼요.</span></div><div class="check"><i>✓</i><span>관리자는 전용 권한이 있을 때만 신청 내역을 확인해요.</span></div></div></div>
+<div class="chat-preview"><div class="chat-head"><span class="mini-mark">T</span><div><strong>TEND</strong><small>이용권 신청 안내</small></div></div><div class="chat-bubble"><b>어떤 이용권이 필요하세요?</b>필요한 기간을 선택하고 Discord 서버 이름을 입력해 주세요.</div><div class="chat-bubble blue"><b>신청 내용 저장</b>로그인한 계정에 신청 내역이 연결돼요.<div class="tiny">접수 상태 · 확인 대기</div></div><div class="chat-bubble"><b>결제와 신청은 별개예요.</b>현재 결제 대행 서비스는 연결되지 않았어요.<div class="tiny">결제 완료로 표시하지 않음</div></div></div></div></section>
+<section class="content" id="pricing"><div class="wrap"><div class="section-head"><div class="kicker">Access passes</div><h2>필요한 기간만큼 이용하세요.</h2><p>월 구독 없이, 원하는 이용권을 선택할 수 있어요.<br>현재 버튼은 신청 접수용이며 실제 결제는 연결되어 있지 않아요.</p></div>
+<div class="pricing">
+<article class="price-card"><div class="price-name">1일 이용권</div><div class="price-desc">짧게 이용해 보고 싶을 때</div><div class="price">₩1,500 <small>/ 1일</small></div><div class="price-note">신청 후 관리자 확인</div><button class="btn btn-light" data-plan="1일" data-auth-action="purchase">이용권 신청하기</button><ul class="price-features"><li>이용 신청 접수</li><li>신청 상태 확인</li><li>계정에 신청 내역 저장</li></ul></article>
+<article class="price-card featured"><span class="popular">많이 선택하는 기간</span><div class="price-name">7일 이용권</div><div class="price-desc">일주일 동안 이용하고 싶을 때</div><div class="price">₩5,900 <small>/ 7일</small></div><div class="price-note">신청 후 관리자 확인</div><button class="btn btn-blue" data-plan="7일" data-auth-action="purchase">이용권 신청하기</button><ul class="price-features"><li>이용 신청 접수</li><li>신청 상태 확인</li><li>계정에 신청 내역 저장</li></ul></article>
+<article class="price-card"><div class="price-name">30일 이용권</div><div class="price-desc">한 달 동안 운영하고 싶을 때</div><div class="price">₩14,900 <small>/ 30일</small></div><div class="price-note">신청 후 관리자 확인</div><button class="btn btn-light" data-plan="30일" data-auth-action="purchase">이용권 신청하기</button><ul class="price-features"><li>이용 신청 접수</li><li>신청 상태 확인</li><li>계정에 신청 내역 저장</li></ul></article>
+</div><p style="text-align:center;color:#858b97;font-size:12px;line-height:1.8;margin:20px auto 0;max-width:650px">이용권 신청은 결제가 아닙니다. 결제 서비스가 연결되기 전까지 신청 상태는 결제 완료나 이용 시작을 의미하지 않아요.</p></div></section>
+<section class="content" id="faq" style="padding-top:20px"><div class="wrap"><div class="section-head"><div class="kicker">FAQ</div><h2>궁금한 점이 있나요?</h2><p>이용 전에 자주 궁금해하는 내용을 모았어요.</p></div><div class="faq-list">
+<div class="faq"><button aria-expanded="false">Discord 로그인이 안 돼요.<span>＋</span></button><p>Supabase 인증 설정에서 Discord 제공자를 활성화하고, Discord Developer Portal의 OAuth Redirect URL에 Supabase 콜백 주소를 등록해야 해요.</p></div>
+<div class="faq"><button aria-expanded="false">신청하면 바로 결제되나요?<span>＋</span></button><p>아니요. 현재는 신청 정보만 저장돼요. 결제 대행 서비스가 연결되어 있지 않으므로 실제 결제나 이용권 활성화가 완료된 것으로 표시하지 않아요.</p></div>
+<div class="faq"><button aria-expanded="false">신청 내역은 누가 볼 수 있나요?<span>＋</span></button><p>일반 사용자는 본인 신청 내역만 볼 수 있어요. 관리자 조회는 서버에서 부여한 app_metadata 권한과 데이터베이스 정책으로 제한돼요.</p></div>
+<div class="faq"><button aria-expanded="false">Discord 봇이 이미 연결되어 있나요?<span>＋</span></button><p>이 페이지는 로그인과 이용권 신청을 처리해요. Discord 봇의 실제 서버 관리 동작은 별도의 봇 서비스와 연결해야 하며, 연결되지 않은 기능을 작동한다고 표시하지 않아요.</p></div>
+</div></div></section>
+<section class="cta"><div class="wrap"><div class="cta-box"><h2>서버 운영, 조금 더 편하게.</h2><p>Discord 계정으로 로그인하고 필요한 이용권을 신청해 보세요.</p><button class="btn btn-dark" id="ctaLogin">Discord로 시작하기 <span>→</span></button></div></div></section>
+<section class="admin-panel" id="adminPanel"><div class="wrap"><h2>관리자 신청 관리</h2><p style="font-size:13px;color:#747985;margin:-5px 0 18px">관리자 권한이 부여된 계정에서만 표시됩니다.</p><div id="adminContent" class="admin-table-wrap"></div></div></section>
+</main>
+<footer><div class="wrap"><div class="footer-top"><a href="#" class="footer-brand"><span class="brandmark">T</span>TEND</a><div class="footer-links"><a href="#features">기능</a><a href="#pricing">요금 안내</a><a href="#faq">자주 묻는 질문</a><a href="mailto:support@tend.example" id="supportLink">고객 지원</a></div></div><div class="copyright">© 2026 TEND. 이용권 신청과 실제 결제는 별도입니다.</div></div></footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal-backdrop" id="purchaseModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><h2 id="modalTitle">이용권 신청</h2><p>아래 정보를 제출하면 신청 내역이 계정에 저장돼요. 이 단계에서는 결제가 진행되지 않아요.</p><form id="purchaseForm"><div class="field"><label for="planSelect">이용권</label><select id="planSelect" required><option value="1일">1일 이용권 · ₩1,500</option><option value="7일">7일 이용권 · ₩5,900</option><option value="30일">30일 이용권 · ₩14,900</option></select></div><div class="field"><label for="serverName">Discord 서버 이름</label><input id="serverName" maxlength="100" required placeholder="예: 우리 서버"></div><div class="field"><label for="serverId">Discord 서버 ID (선택)</label><input id="serverId" maxlength="30" inputmode="numeric" placeholder="서버 ID를 입력해 주세요"></div><div class="modal-actions"><button type="button" class="btn btn-light" id="cancelPurchase">취소</button><button type="submit" class="btn btn-blue" id="submitPurchase">신청 접수하기</button></div></form></div></div>
+<script>
+(() => {
+  const toastEl = document.getElementById('toast');
+  let toastTimer;
+  function notify(message){toastEl.textContent=message;toastEl.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),3200)}
+  document.querySelectorAll('.faq button').forEach(button=>button.addEventListener('click',()=>{const item=button.parentElement;const open=item.classList.toggle('open');button.setAttribute('aria-expanded',String(open));}));
+  const cfg = window.TEND_CONFIG || {};
+  const client = window.supabase && cfg.supabaseUrl && cfg.supabaseAnonKey ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}) : null;
+  let currentUser = null;
+  const loginBtn=document.getElementById('loginBtn'), ctaLogin=document.getElementById('ctaLogin'), userChip=document.getElementById('userChip');
+  const modal=document.getElementById('purchaseModal'), planSelect=document.getElementById('planSelect'), serverName=document.getElementById('serverName'), serverId=document.getElementById('serverId');
+  const adminPanel=document.getElementById('adminPanel'), adminContent=document.getElementById('adminContent');
+  const baseUrl=location.origin+location.pathname.replace(/[^/]*$/,'');
+  function openModal(plan){if(plan)planSelect.value=plan;modal.classList.add('show');serverName.focus()}
+  function closeModal(){modal.classList.remove('show')}
+  async function login(){if(!client){notify('Supabase 설정을 확인해 주세요.');return}const {error}=await client.auth.signInWithOAuth({provider:'discord',options:{redirectTo:baseUrl}});if(error)notify('Discord 로그인 실패: '+error.message)}
+  async function updateSession(){
+    if(!client){loginBtn.textContent='로그인 설정 확인';loginBtn.disabled=true;return}
+    const {data,error}=await client.auth.getSession();
+    if(error){notify('로그인 상태를 불러오지 못했어요.');return}
+    currentUser=data.session?.user||null;
+    if(currentUser){
+      const label=currentUser.user_metadata?.full_name||currentUser.user_metadata?.name||currentUser.user_metadata?.preferred_username||currentUser.email||'로그인됨';
+      userChip.hidden=false;userChip.textContent=label;loginBtn.textContent='로그아웃';loginBtn.className='btn btn-light';
+      document.querySelectorAll('[data-auth-action="purchase"]').forEach(b=>b.textContent='이용권 신청하기');
+      if(currentUser.app_metadata?.role==='admin'){adminPanel.classList.add('show');await loadAdmin()}
+      else {adminPanel.classList.remove('show')}
+    }else{
+      userChip.hidden=true;loginBtn.textContent='Discord로 시작하기 ↗';loginBtn.className='btn btn-dark';adminPanel.classList.remove('show')
+    }
+  }
+  loginBtn.addEventListener('click',async()=>{if(currentUser&&client){const {error}=await client.auth.signOut();if(error)notify('로그아웃에 실패했어요.');else{notify('로그아웃했어요.');await updateSession()}}else await login()});
+  ctaLogin.addEventListener('click',()=>currentUser?openModal():login());
+  document.querySelectorAll('[data-auth-action="purchase"]').forEach(btn=>btn.addEventListener('click',()=>{if(!currentUser){login();return}openModal(btn.dataset.plan)}));
+  document.getElementById('cancelPurchase').addEventListener('click',closeModal);
+  modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+  document.getElementById('purchaseForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    if(!client||!currentUser){notify('먼저 Discord로 로그인해 주세요.');return}
+    const name=serverName.value.trim(), id=serverId.value.trim();
+    if(!name){notify('Discord 서버 이름을 입력해 주세요.');return}
+    if(id&&!/^\d{5,30}$/.test(id)){notify('서버 ID는 숫자만 입력해 주세요.');return}
+    const submit=document.getElementById('submitPurchase');submit.disabled=true;submit.textContent='저장 중…';
+    const {error}=await client.from('purchase_requests').insert({user_id:currentUser.id,plan:planSelect.value,server_name:name,server_id:id||null,status:'pending'});
+    submit.disabled=false;submit.textContent='신청 접수하기';
+    if(error){console.error(error);notify(error.code==='42P01'?'데이터베이스 설정이 아직 필요해요.':'신청을 저장하지 못했어요. 데이터베이스 정책을 확인해 주세요.');return}
+    closeModal();serverName.value='';serverId.value='';notify('신청 내용이 저장됐어요. 아직 결제된 것은 아니에요.')
+  });
+  async function loadAdmin(){
+    if(!client||currentUser?.app_metadata?.role!=='admin')return;
+    const {data,error}=await client.from('purchase_requests').select('id,user_id,plan,server_name,server_id,status,created_at').order('created_at',{ascending:false}).limit(100);
+    if(error){adminContent.textContent='신청 목록을 불러오지 못했어요. 관리자 RLS 정책을 확인해 주세요.';return}
+    if(!data?.length){adminContent.innerHTML='<p style="padding:20px;color:#747985">아직 신청이 없어요.</p>';return}
+    const table=document.createElement('table');table.className='admin-table';
+    const thead=document.createElement('thead');thead.innerHTML='<tr><th>신청일</th><th>이용권</th><th>서버</th><th>사용자 ID</th><th>상태</th></tr>';table.append(thead);
+    const tbody=document.createElement('tbody');
+    data.forEach(row=>{const tr=document.createElement('tr');const date=new Date(row.created_at).toLocaleString('ko-KR');const vals=[date,row.plan,row.server_name+(row.server_id?' ('+row.server_id+')':''),row.user_id];
+      vals.forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});
+      const td=document.createElement('td'),select=document.createElement('select');select.className='status-select';
+      [['pending','확인 대기'],['approved','승인'],['rejected','거절'],['completed','완료']].forEach(([value,label])=>{const o=document.createElement('option');o.value=value;o.textContent=label;select.append(o)});
+      select.value=row.status;select.addEventListener('change',async()=>{select.disabled=true;const {error}=await client.from('purchase_requests').update({status:select.value}).eq('id',row.id);select.disabled=false;if(error){notify('상태 변경 실패: 정책을 확인해 주세요.');select.value=row.status}else{row.status=select.value;notify('신청 상태를 변경했어요.')}});td.append(select);tr.append(td);tbody.append(tr)});
+    table.append(tbody);adminContent.replaceChildren(table)
+  }
+  if(client){client.auth.onAuthStateChange(()=>{setTimeout(()=>updateSession(),0)})}
+  updateSession();
+})();
+</script>
+</body>
 </html>
