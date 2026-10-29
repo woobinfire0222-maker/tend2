@@ -204,12 +204,22 @@
     e.target.reset();notify("공지 채널을 저장했어요.");await loadChannels();
   }
   async function loadChannels() {
-    const list=$("#announcement-channels-list"),select=$("#announcement-channel");
-    const q=await sb.from("announcement_channels").select("id,channel_id,channel_name,is_default,enabled").eq("server_id",sid()).order("created_at",{ascending:true});
-    if(q.error){list.innerHTML='<div class="empty">채널 목록을 불러오지 못했어요.</div>';return;}
-    const rows=q.data||[];
-    select.innerHTML='<option value="">기본 채널 / 자동 선택</option>'+rows.filter(r=>r.enabled).map(r=>'<option value="'+escapeHtml(r.channel_id)+'">'+escapeHtml(r.channel_name||r.channel_id)+(r.is_default?" · 기본":"")+'</option>').join("");
-    list.innerHTML=rows.length?rows.map(r=>'<div class="stack-row"><div><strong>'+escapeHtml(r.channel_name||r.channel_id)+'</strong><small>'+escapeHtml(r.channel_id)+(r.is_default?" · 기본 채널":"")+'</small></div><div class="stack-actions">'+(!r.is_default?'<button class="btn btn-light" data-channel-default="'+r.id+'">기본 지정</button>':"")+'<button class="btn btn-danger" data-channel-delete="'+r.id+'">삭제</button></div></div>').join(""):'<div class="empty">등록된 채널이 없습니다.</div>';
+    const list=$("#announcement-channels-list"),select=$("#announcement-channel"),id=sid();
+    const results=await Promise.all([
+      sb.from("announcement_channels").select("id,channel_id,channel_name,is_default,enabled").eq("server_id",id).order("created_at",{ascending:true}),
+      sb.from("discord_channels").select("channel_id,channel_name,channel_type,can_send,synced_at").eq("server_id",id).order("channel_name",{ascending:true})
+    ]);
+    const saved=results[0],discovered=results[1];
+    if(saved.error){list.innerHTML='<div class="empty">저장한 채널 목록을 불러오지 못했어요.</div>';return;}
+    const rows=saved.data||[], discoveredRows=discovered.error?[]:(discovered.data||[]), options=new Map();
+    discoveredRows.forEach(r=>{if(r.can_send!==false)options.set(String(r.channel_id),{id:String(r.channel_id),name:r.channel_name||r.channel_id,auto:true});});
+    rows.filter(r=>r.enabled).forEach(r=>options.set(String(r.channel_id),{id:String(r.channel_id),name:r.channel_name||r.channel_id,auto:false,is_default:r.is_default}));
+    select.innerHTML='<option value="">기본 채널 / 자동 선택</option>'+[...options.values()].map(r=>'<option value="'+escapeHtml(r.id)+'">'+escapeHtml(r.name)+(r.auto?' · 봇 인식':'')+(r.is_default?' · 기본':'')+'</option>').join("");
+    if(discovered.error){
+      list.innerHTML='<div class="notice warning">자동 채널 인식 테이블을 사용할 수 없어요. Supabase 설정과 봇 동기화를 확인해 주세요.</div>'+(rows.length?rows.map(r=>'<div class="stack-row"><div><strong>'+escapeHtml(r.channel_name||r.channel_id)+'</strong><small>'+escapeHtml(r.channel_id)+(r.is_default?" · 기본 채널":"")+'</small></div><div class="stack-actions">'+(!r.is_default?'<button class="btn btn-light" data-channel-default="'+r.id+'">기본 지정</button>':"")+'<button class="btn btn-danger" data-channel-delete="'+r.id+'">삭제</button></div></div>').join(""):'<div class="empty">등록된 채널이 없습니다.</div>');
+    } else {
+      list.innerHTML='<div class="card-note" style="margin-bottom:8px">봇 인식 채널 '+discoveredRows.length+'개 · 전송 가능 '+discoveredRows.filter(r=>r.can_send!==false).length+'개</div>'+(discoveredRows.length?discoveredRows.map(r=>'<div class="stack-row"><div><strong>'+escapeHtml(r.channel_name||r.channel_id)+'</strong><small>'+escapeHtml(r.channel_id)+' · '+escapeHtml(r.channel_type||"채널")+(r.can_send===false?' · 전송 권한 없음':' · 자동 인식')+'</small></div></div>').join(""):'<div class="empty">봇이 인식한 채널이 없습니다. 기존 봇에서 서버·채널 정보를 Supabase로 동기화해야 해요.</div>')+(rows.length?'<div class="section-intro" style="margin-top:12px"><strong>저장된 공지 채널</strong></div>'+rows.map(r=>'<div class="stack-row"><div><strong>'+escapeHtml(r.channel_name||r.channel_id)+'</strong><small>'+escapeHtml(r.channel_id)+(r.is_default?" · 기본 채널":"")+'</small></div><div class="stack-actions">'+(!r.is_default?'<button class="btn btn-light" data-channel-default="'+r.id+'">기본 지정</button>':"")+'<button class="btn btn-danger" data-channel-delete="'+r.id+'">삭제</button></div></div>').join(""):'');
+    }
     $$("[data-channel-default]").forEach(b=>b.addEventListener("click",async()=>{const reset=await sb.from("announcement_channels").update({is_default:false}).eq("server_id",sid());if(failed(reset.error,"기본 채널을 변경하지 못했어요."))return;const r=await sb.from("announcement_channels").update({is_default:true}).eq("id",b.dataset.channelDefault).eq("server_id",sid());if(failed(r.error,"기본 채널을 변경하지 못했어요."))return;await loadChannels();}));
     $$("[data-channel-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("이 공지 채널을 삭제할까요?"))return;const r=await sb.from("announcement_channels").delete().eq("id",b.dataset.channelDelete).eq("server_id",sid());if(failed(r.error,"채널을 삭제하지 못했어요."))return;await loadChannels();}));
   }
