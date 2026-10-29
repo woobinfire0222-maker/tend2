@@ -144,15 +144,13 @@
   }
   async function management(active) {
     if(!await ensureServer())return;
-    const current=await sb.from("managed_servers").select("bot_connected,last_seen_at").eq("server_id",sid()).maybeSingle();
-    if(failed(current.error,"봇 연결 상태를 확인하지 못했어요."))return;
-    const recent=!!current.data?.last_seen_at&&(Date.now()-new Date(current.data.last_seen_at).getTime()<120000);
-    if(active&&(!current.data?.bot_connected||!recent)){
-      notify("봇 프로그램이 연결되지 않았어요. 봇을 온라인으로 실행한 뒤 다시 시도해 주세요.");
+    const result=await sb.functions.invoke("discord-action",{body:{action:"set_management",server_id:sid(),active}});
+    if(result.error){
+      console.error("management action failed:",result.error,result.data);
+      const detail=result.data?.error||result.error.message||"백엔드 연결을 확인해 주세요.";
+      notify(active?"관리를 시작하지 못했어요: "+detail:"관리를 종료하지 못했어요: "+detail);
       return;
     }
-    const upd=await sb.from("managed_servers").update({is_active:active,updated_at:new Date().toISOString(),...(active?{started_at:new Date().toISOString()}:{})}).eq("server_id",sid());
-    if(failed(upd.error,"관리 상태를 변경하지 못했어요."))return;
     notify(active?"관리를 시작했어요.":"관리를 종료했어요.");
     await loadServerData();
   }
@@ -215,16 +213,35 @@
     const file=$("#announcement-image-file").files[0]||null;
     if(!content){notify("공지 내용을 입력해 주세요.");return;}
     if(image&&!/^https?:\/\//i.test(image)){notify("이미지 주소는 http 또는 https URL이어야 해요.");return;}
-    if(file){if(!file.type.startsWith("image/")||file.size>8*1024*1024){notify("이미지는 8MB 이하의 이미지 파일만 첨부할 수 있어요.");return;}const path=sid()+"/"+Date.now()+"-"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");const upload=await sb.storage.from("announcement-images").upload(path,file,{upsert:false,contentType:file.type});if(upload.error){console.error(upload.error);notify("이미지를 업로드하지 못했어요. 다른 이미지로 다시 시도해 주세요.");return;}image=sb.storage.from("announcement-images").getPublicUrl(path).data.publicUrl;}
+    if(file){
+      if(!file.type.startsWith("image/")||file.size>8*1024*1024){notify("이미지는 8MB 이하의 이미지 파일만 첨부할 수 있어요.");return;}
+      const path=sid()+"/"+Date.now()+"-"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+      const upload=await sb.storage.from("announcement-images").upload(path,file,{upsert:false,contentType:file.type});
+      if(upload.error){console.error(upload.error);notify("이미지를 업로드하지 못했어요. 다른 이미지로 다시 시도해 주세요.");return;}
+      image=sb.storage.from("announcement-images").getPublicUrl(path).data.publicUrl;
+    }
     let roles=[];
-    if(mention==="role"){roles=$("#announcement-role-ids").value.split(",").map(x=>x.trim()).filter(Boolean);if(!roles.length||roles.some(x=>!/^\d{5,30}$/.test(x))){notify("역할 ID를 숫자로 입력해 주세요. 여러 개는 쉼표로 구분합니다.");return;}}
-    const q=await sb.from("announcements").insert({server_id:sid(),channel_id:channel,title,content,image_url:image,status:"queued",created_by:user.id}).select("id").single();
-    if(failed(q.error,"공지를 저장하지 못했어요."))return;
-    const mentions=[];if(mention==="everyone"||mention==="here")mentions.push({announcement_id:q.data.id,mention_type:mention,role_id:null});if(mention==="role")roles.forEach(role_id=>mentions.push({announcement_id:q.data.id,mention_type:"role",role_id}));
-    if(mentions.length){const m=await sb.from("announcement_mentions").insert(mentions);if(m.error){await sb.from("announcements").delete().eq("id",q.data.id);notify("멘션 설정을 저장하지 못했어요.");return;}}
-    const job=await enqueueJob("post_announcement",{announcement_id:q.data.id});
-    if(job.error){await sb.from("announcements").delete().eq("id",q.data.id);console.error(job.error);notify("공지 발송 요청을 등록하지 못했어요. 잠시 후 다시 시도해 주세요.");return;}
-    e.target.reset();$("#announcement-role-field").classList.add("hidden");notify("공지 발송 요청을 등록했어요.");await loadAnnouncements();await loadJobs();
+    if(mention==="role"){
+      roles=$("#announcement-role-ids").value.split(",").map(x=>x.trim()).filter(Boolean);
+      if(!roles.length||roles.some(x=>!/^\d{5,30}$/.test(x))){notify("역할 ID를 숫자로 입력해 주세요. 여러 개는 쉼표로 구분합니다.");return;}
+    }
+    const save=await sb.from("announcements").insert({server_id:sid(),channel_id:channel,title,content,image_url:image,status:"queued",created_by:user.id}).select("id").single();
+    if(failed(save.error,"공지를 기록하지 못했어요."))return;
+    const result=await sb.functions.invoke("discord-action",{body:{action:"send_announcement",server_id:sid(),channel_id:channel,title,content,image_url:image,mention,role_ids:roles}});
+    if(result.error||result.data?.error){
+      const detail=result.data?.error||result.error?.message||"백엔드 연결을 확인해 주세요.";
+      await sb.from("announcements").update({status:"failed"}).eq("id",save.data.id).eq("server_id",sid());
+      console.error("announcement send failed:",result.error,result.data);
+      notify("Discord에 공지를 보내지 못했어요: "+detail);
+      await loadAnnouncements();
+      return;
+    }
+    const finalChannel=result.data?.channel_id||channel;
+    const update=await sb.from("announcements").update({status:"sent",channel_id:finalChannel}).eq("id",save.data.id).eq("server_id",sid());
+    if(update.error)console.error("announcement log update failed:",update.error);
+    e.target.reset();$("#announcement-role-field").classList.add("hidden");
+    notify("공지를 Discord에 바로 보냈어요.");
+    await loadAnnouncements();
   }
   async function loadAnnouncements() {
     const t=$("#announcements-list"),q=await sb.from("announcements").select("id,title,status,channel_id,created_at").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50);
