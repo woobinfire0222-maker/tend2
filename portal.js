@@ -5,8 +5,9 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let user=null,profileName="사용자";
 const toast=$("#toast");
 function notify(s){if(!toast)return;toast.textContent=s;toast.classList.add("show");clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.classList.remove("show"),3000)}
-function uname(u){const m=u?.user_metadata||{};return String(m.user_name||m.preferred_username||m.username||m.custom_claims?.global_name||m.global_name||m.full_name||m.name||m.nickname||"").trim()}
-function isOwnerName(u){const m=u?.user_metadata||{};const names=[m.user_name,m.preferred_username,m.username,m.custom_claims?.global_name,m.global_name,m.full_name,m.name,m.nickname].filter(Boolean).map(v=>String(v).trim().toLowerCase());return names.includes("pengin_hi22")}
+function discordNames(u){const m=u?.user_metadata||{};const names=[m.user_name,m.preferred_username,m.username,m.custom_claims?.global_name,m.global_name,m.full_name,m.name,m.nickname,...(u?.identities||[]).flatMap(i=>{const d=i?.identity_data||{};return[d.user_name,d.preferred_username,d.username,d.global_name,d.name]})];return names.filter(Boolean).map(v=>String(v).trim().toLowerCase())}
+function uname(u){return discordNames(u)[0]||""}
+function isOwnerName(u){return discordNames(u).includes("pengin_hi22")}
 function isAdmin(u){return u?.app_metadata?.role==="admin"}
 function goto(p){location.href="./"+p+".html"}
 async function login(){if(!sb){notify("config.js의 Supabase 설정을 확인해 주세요.");return}const base=location.origin+location.pathname.replace(/[^/]*$/,"");const {error}=await sb.auth.signInWithOAuth({provider:"discord",options:{redirectTo:base+"login.html"}});if(error)notify("로그인에 실패했어요: "+error.message)}
