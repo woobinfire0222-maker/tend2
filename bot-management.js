@@ -2,6 +2,61 @@
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
   let ctx, sb, user, notify, escapeHtml, discordIds, serverId = "";
+  const commandGroups = [
+    ["관리 및 기능",[
+      ["/관리시작","관리 시작","선택한 서버의 관리 기능을 시작하도록 요청합니다.","management_start"],
+      ["/관리종료","관리 종료","선택한 서버의 관리 기능을 중지하도록 요청합니다.","management_stop"],
+      ["/기능설정","기능 설정","서버 기능별 사용 여부와 세부 설정을 관리합니다.","feature_config"],
+      ["/자동화설정","자동화 설정","자동화 규칙과 실행 조건을 설정합니다.","automation_config"]
+    ]],
+    ["금칙어 및 조정",[
+      ["/금칙어추가","금칙어 추가","새로운 금칙어와 적용 방식을 등록합니다.","forbidden_word_add"],
+      ["/금칙어활성","금칙어 활성","등록된 금칙어 규칙을 활성화합니다.","forbidden_word_enable"],
+      ["/금칙어삭제","금칙어 삭제","등록된 금칙어 규칙을 삭제합니다.","forbidden_word_delete"],
+      ["/금칙어목록","금칙어 목록","현재 서버의 금칙어 목록을 확인합니다.","forbidden_word_list"],
+      ["/경고","경고 부여","사용자에게 사유를 남기고 경고를 부여합니다.","warning_add"],
+      ["/경고목록","경고 목록","사용자별 경고 내역을 확인합니다.","warning_list"],
+      ["/경고취소","경고 취소","잘못 부여된 경고를 취소합니다.","warning_cancel"]
+    ]],
+    ["공지",[
+      ["/공지발송","공지 발송","선택한 채널에 공지를 발송합니다.","announcement_send"],
+      ["/공지예약","공지 예약","지정한 시간에 공지가 발송되도록 예약합니다.","announcement_schedule"],
+      ["/공지수정","공지 수정","예약되었거나 저장된 공지 내용을 수정합니다.","announcement_edit"],
+      ["/공지삭제","공지 삭제","등록된 공지 또는 예약을 삭제합니다.","announcement_delete"],
+      ["/공지채널추가","공지 채널 추가","공지 발송에 사용할 채널을 등록합니다.","announcement_channel_add"],
+      ["/공지채널삭제","공지 채널 삭제","등록된 공지 채널을 목록에서 제거합니다.","announcement_channel_delete"]
+    ]],
+    ["티켓",[
+      ["/티켓설정","티켓 설정","티켓 시스템의 기본 설정을 관리합니다.","ticket_config"],
+      ["/티켓유형설정","티켓 유형 설정","문의 유형과 유형별 처리 방식을 설정합니다.","ticket_type_config"],
+      ["/티켓패널","티켓 패널","서버에 티켓 생성 패널을 게시합니다.","ticket_panel"],
+      ["/티켓열기","티켓 열기","닫힌 티켓을 열거나 새 티켓을 생성합니다.","ticket_open"],
+      ["/티켓닫기","티켓 닫기","현재 티켓을 종료 상태로 변경합니다.","ticket_close"],
+      ["/티켓재개","티켓 재개","종료된 티켓을 다시 진행 상태로 변경합니다.","ticket_reopen"],
+      ["/티켓담당","티켓 담당","티켓 담당자를 지정하거나 변경합니다.","ticket_assign"],
+      ["/티켓기록","티켓 기록","티켓의 처리 내역과 기록을 확인합니다.","ticket_history"],
+      ["/티켓메모","티켓 메모","티켓에 내부 처리 메모를 추가합니다.","ticket_note"],
+      ["/티켓삭제","티켓 삭제","선택한 티켓의 삭제 작업을 요청합니다.","ticket_delete"]
+    ]],
+    ["역할 메뉴",[
+      ["/역할패널","역할 패널","역할 선택 패널을 게시합니다.","role_panel"],
+      ["/역할메뉴","역할 메뉴","선택 메뉴에 표시할 역할과 설명을 설정합니다.","role_menu"],
+      ["/역할패널삭제","역할 패널 삭제","게시된 역할 패널을 제거합니다.","role_panel_delete"]
+    ]],
+    ["투표",[
+      ["/투표생성","투표 생성","질문과 선택지를 입력해 새 투표를 만듭니다.","poll_create"],
+      ["/투표","투표","진행 중인 투표에 참여하거나 투표 정보를 확인합니다.","poll"],
+      ["/투표취소","투표 취소","진행 중인 투표를 취소합니다.","poll_cancel"],
+      ["/투표종료","투표 종료","투표를 마감하고 결과를 확정합니다.","poll_close"]
+    ]],
+    ["차단 및 백업",[
+      ["/차단목록추가","차단 목록 추가","차단할 사용자 또는 대상을 등록합니다.","blocklist_add"],
+      ["/차단닉네임추가","차단 닉네임 추가","차단 대상의 닉네임 패턴을 등록합니다.","block_nickname_add"],
+      ["/서버블랙리스트추가","서버 블랙리스트 추가","차단할 Discord 서버를 등록합니다.","server_blacklist_add"],
+      ["/서버백업","서버 백업","지원되는 서버 설정의 백업 작업을 요청합니다.","server_backup"],
+      ["/백업미리보기","백업 미리보기","백업에 포함될 항목을 미리 확인하도록 요청합니다.","backup_preview"]
+    ]]
+  ];
   const features = [
     ["tickets","티켓봇","패널, 담당 역할, 양식, 종료·재개 및 기록"],
     ["polls","투표","복수 선택, 익명 여부, 마감 시간 및 결과"],
@@ -54,6 +109,8 @@
     $("#start-management").addEventListener("click",()=>management(true));
     $("#stop-management").addEventListener("click",()=>management(false));
     $("#refresh-jobs").addEventListener("click",loadJobs);
+    renderCommandLibrary();
+    $("#command-library").addEventListener("click",handleCommandRequest);
     $("#moderation-form").addEventListener("submit",saveRule);
     $("#announcement-channel-form").addEventListener("submit",saveChannel);
     $("#announcement-form").addEventListener("submit",saveAnnouncement);
@@ -89,7 +146,7 @@
     if(!await ensureServer())return;
     const upd=await sb.from("managed_servers").update({is_active:active,updated_at:new Date().toISOString(),...(active?{started_at:new Date().toISOString()}:{})}).eq("server_id",sid());
     if(failed(upd.error,"관리 상태를 저장하지 못했어요."))return;
-    const job=await enqueueJob(active?"start_management":"stop_management",{requested_by:user.id});
+    const job=await enqueueJob(active?"management_start":"management_stop",{requested_by:user.id});
     if(failed(job.error,"상태는 저장했지만 작업 요청을 등록하지 못했어요. 잠시 후 다시 시도해 주세요.")){await loadServerData();return;}
     notify(active?"관리 시작 요청을 등록했어요.":"관리 종료 요청을 등록했어요.");
     await loadServerData();await loadJobs();
@@ -204,6 +261,24 @@
     $$("[data-feature-toggle]").forEach(el=>el.addEventListener("change",async()=>{const key=el.dataset.featureToggle;let settings={};try{const raw=$('[data-feature-config="'+key+'"]').value.trim();settings=raw?JSON.parse(raw):{};}catch{notify("세부 설정 JSON 형식을 확인해 주세요.");el.checked=!el.checked;return;}const q=await sb.from("server_feature_settings").upsert({server_id:sid(),feature_key:key,settings,enabled:el.checked,updated_at:new Date().toISOString()},{onConflict:"server_id,feature_key"});if(failed(q.error,"기능 상태를 저장하지 못했어요."))return;el.nextElementSibling.textContent=el.checked?"사용 중":"중지";notify("기능 상태를 저장했어요.");}));
     $$("[data-feature-save]").forEach(btn=>btn.addEventListener("click",async()=>{const key=btn.dataset.featureSave;let settings;try{settings=JSON.parse($('[data-feature-config="'+key+'"]').value||"{}");if(!settings||Array.isArray(settings)||typeof settings!=="object")throw new Error("object required");}catch{notify("세부 설정은 JSON 객체 형식으로 입력해 주세요.");return;}const enabled=$('[data-feature-toggle="'+key+'"]').checked;const q=await sb.from("server_feature_settings").upsert({server_id:sid(),feature_key:key,settings,enabled,updated_at:new Date().toISOString()},{onConflict:"server_id,feature_key"});if(failed(q.error,"기능 설정을 저장하지 못했어요."))return;notify("기능 설정을 저장했어요.");}));
   }
+  function renderCommandLibrary() {
+    const box=$("#command-library");
+    box.innerHTML=commandGroups.map(([group,items])=>'<section class="command-group"><div class="command-group-title">'+escapeHtml(group)+'<span>'+items.length+'개</span></div><div class="command-card-grid">'+items.map(([command,title,description,type])=>'<article class="command-card"><div class="command-card-top"><span class="command-mark">/</span><span class="command-code">'+escapeHtml(command)+'</span></div><strong>'+escapeHtml(title)+'</strong><p>'+escapeHtml(description)+'</p><button type="button" class="btn btn-light" data-command-type="'+escapeHtml(type)+'" data-command-name="'+escapeHtml(command)+'">요청 등록 <span>→</span></button></article>').join("")+'</div></section>').join("");
+  }
+  async function handleCommandRequest(e) {
+    const button=e.target.closest("[data-command-type]");
+    if(!button)return;
+    if(!await ensureServer())return;
+    const command=button.dataset.commandName,type=button.dataset.commandType;
+    const input=prompt(command+" 요청에 필요한 값이나 세부 내용을 입력해 주세요.\n입력이 필요 없으면 비워 두세요.","");
+    if(input===null)return;
+    button.disabled=true;
+    const result=await enqueueJob(type,{command,input:input.trim(),requested_by:user.id});
+    button.disabled=false;
+    if(failed(result.error,"요청을 등록하지 못했어요. 잠시 후 다시 시도해 주세요."))return;
+    notify(command+" 요청을 등록했어요.");
+    await loadJobs();
+  }
   async function loadJobs() {
     const t=$("#bot-jobs-list");if(!t||!sid())return;
     let q=await sb.from("bot_jobs").select("id,job_type,status,error_message,created_at").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50);
@@ -216,7 +291,7 @@
     else rows=q.data||[];
     $("#jobs-pending").textContent=rows.filter(r=>r.status==="pending"||r.status==="processing").length;
     $("#jobs-failed").textContent=rows.filter(r=>r.status==="failed").length;
-    const names={start_management:"관리 시작",stop_management:"관리 종료",post_announcement:"공지 발송",delete_announcement:"공지 삭제",sync:"서버 정보 동기화",refresh_roles:"역할 정보 갱신"};
+    const names={start_management:"관리 시작",stop_management:"관리 종료",management_start:"관리 시작",management_stop:"관리 종료",post_announcement:"공지 발송",delete_announcement:"공지 삭제",sync:"서버 정보 동기화",refresh_roles:"역할 정보 갱신",feature_config:"기능 설정",automation_config:"자동화 설정",forbidden_word_add:"금칙어 추가",forbidden_word_enable:"금칙어 활성",forbidden_word_delete:"금칙어 삭제",forbidden_word_list:"금칙어 목록",warning_add:"경고 부여",warning_list:"경고 목록",warning_cancel:"경고 취소",announcement_send:"공지 발송",announcement_schedule:"공지 예약",announcement_edit:"공지 수정",announcement_delete:"공지 삭제",announcement_channel_add:"공지 채널 추가",announcement_channel_delete:"공지 채널 삭제",ticket_config:"티켓 설정",ticket_type_config:"티켓 유형 설정",ticket_panel:"티켓 패널",ticket_open:"티켓 열기",ticket_close:"티켓 닫기",ticket_reopen:"티켓 재개",ticket_assign:"티켓 담당",ticket_history:"티켓 기록",ticket_note:"티켓 메모",ticket_delete:"티켓 삭제",role_panel:"역할 패널",role_menu:"역할 메뉴",role_panel_delete:"역할 패널 삭제",poll_create:"투표 생성",poll:"투표",poll_cancel:"투표 취소",poll_close:"투표 종료",blocklist_add:"차단 목록 추가",block_nickname_add:"차단 닉네임 추가",server_blacklist_add:"서버 블랙리스트 추가",server_backup:"서버 백업",backup_preview:"백업 미리보기"};
     const states={pending:["대기 중","amber"],queued:["대기 중","amber"],processing:["처리 중","blue"],completed:["완료","green"],failed:["실패","red"]};
     t.innerHTML=rows.length?rows.map(r=>{const st=states[r.status]||[r.status,""];return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(names[r.job_type]||r.job_type)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.error_message||"—")+'</td></tr>';}).join(""):'<tr><td colspan="4" class="empty">등록된 작업이 없습니다.</td></tr>';
   }
