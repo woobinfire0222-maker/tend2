@@ -205,7 +205,7 @@ create table if not exists public.moderation_rules (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   check (
-    (action_type = 'timeout' and timeout_seconds between 1 and 2419200)
+    (action_type = 'timeout' and timeout_seconds is not null and timeout_seconds between 1 and 2419200)
     or (action_type <> 'timeout' and timeout_seconds is null)
   )
 );
