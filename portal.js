@@ -37,7 +37,7 @@ if($("#bot-last-seen"))$("#bot-last-seen").textContent=data.last_seen_at?new Dat
 }
 $("#bot-form")?.addEventListener("submit",async e=>{
 e.preventDefault();const serverId=$("#bot-server-id")?.value.trim()||"";
-if(!/^\\d{5,30}$/.test(serverId)){notify("Discord 서버 ID는 숫자 5~30자리로 입력해 주세요.");return}
+if(!/^\d{5,30}$/.test(serverId)){notify("Discord 서버 ID는 숫자 5~30자리로 입력해 주세요.");return}
 const b=$("#save-bot");b.disabled=true;
 const payload={user_id:user.id,server_id:serverId,welcome_enabled:$("#welcome_enabled").checked,log_enabled:$("#log_enabled").checked,auto_moderation_enabled:$("#auto_moderation_enabled").checked,log_channel_id:$("#log-channel").value.trim()||null,welcome_message:$("#welcome-message").value.trim(),moderation_level:$("#moderation-level").value,updated_at:new Date().toISOString()};
 const {error}=await sb.from("bot_settings").upsert(payload,{onConflict:"user_id"});b.disabled=false;
@@ -47,7 +47,7 @@ notify("설정을 Supabase에 저장했어요. 봇 프로세스가 읽으면 적
 const commandForm=$("#bot-command-form");
 commandForm?.addEventListener("submit",async e=>{
 e.preventDefault();const serverId=$("#bot-server-id")?.value.trim()||"";
-if(!/^\\d{5,30}$/.test(serverId)){notify("먼저 서버 ID를 저장해 주세요.");return}
+if(!/^\d{5,30}$/.test(serverId)){notify("먼저 서버 ID를 저장해 주세요.");return}
 const type=$("#bot-command-type").value;const extra=$("#bot-command-payload").value.trim();
 const b=$("#send-bot-command");b.disabled=true;
 const {error}=await sb.from("bot_commands").insert({user_id:user.id,server_id:serverId,command_type:type,payload:extra?{text:extra}:{},status:"queued"});
