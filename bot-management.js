@@ -280,7 +280,19 @@
     if(q.error){box.innerHTML='<div class="empty">기능 설정을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return;}
     const rows=new Map((q.data||[]).map(r=>[r.feature_key,r]));
     box.innerHTML=features.map(f=>{const r=rows.get(f[0]);return '<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>'+escapeHtml(f[1])+'</strong><small>'+escapeHtml(f[2])+'</small></div><label class="switch-label"><input type="checkbox" class="switch" data-feature-toggle="'+f[0]+'" '+(r&&r.enabled?'checked':'')+'><span>'+(r&&r.enabled?'사용 중':'중지')+'</span></label></div><label class="feature-config-label" for="feature-config-'+f[0]+'">세부 설정 (JSON)</label><textarea id="feature-config-'+f[0]+'" data-feature-config="'+f[0]+'" rows="3" placeholder=\'{"channel_id":"","message":""}\'>'+escapeHtml(JSON.stringify((r&&r.settings)||{},null,2))+'</textarea><button class="btn btn-light" type="button" data-feature-save="'+f[0]+'">설정 저장</button></article>';}).join("");
-    $$("[data-feature-toggle]").forEach(el=>el.addEventListener("change",async()=>{const key=el.dataset.featureToggle;let settings={};try{const raw=$('[data-feature-config="'+key+'"]').value.trim();settings=raw?JSON.parse(raw):{};}catch{notify("세부 설정 JSON 형식을 확인해 주세요.");el.checked=!el.checked;return;}const q=await sb.from("server_feature_settings").upsert({server_id:sid(),feature_key:key,settings,enabled:el.checked,updated_at:new Date().toISOString()},{onConflict:"server_id,feature_key"});if(failed(q.error,"기능 상태를 저장하지 못했어요."))return;el.nextElementSibling.textContent=el.checked?"사용 중":"중지";notify("기능 상태를 저장했어요.");}));
+    $$("[data-feature-toggle]").forEach(el=>el.addEventListener("change",async()=>{
+      const key=el.dataset.featureToggle,desired=el.checked,previous=!desired;
+      const configField=$$("[data-feature-config]").find(x=>x.dataset.featureConfig===key);
+      let settings={};
+      try{const raw=(configField?.value||"").trim();settings=raw?JSON.parse(raw):{};}
+      catch{notify("세부 설정 JSON 형식을 확인해 주세요.");el.checked=previous;return;}
+      el.disabled=true;el.nextElementSibling.textContent="적용 중…";
+      const q=await sb.from("server_feature_settings").upsert({server_id:sid(),feature_key:key,settings,enabled:desired,updated_at:new Date().toISOString()},{onConflict:"server_id,feature_key"});
+      el.disabled=false;
+      if(failed(q.error,"기능 상태를 저장하지 못했어요.")){el.checked=previous;el.nextElementSibling.textContent=previous?"사용 중":"중지";return;}
+      el.nextElementSibling.textContent=desired?"사용 중":"중지";
+      notify(desired?"기능을 켰어요. 봇 설정에 즉시 전달됐어요.":"기능을 껐어요. 봇 설정에 즉시 전달됐어요.");
+    }));
     $$("[data-feature-save]").forEach(btn=>btn.addEventListener("click",async()=>{const key=btn.dataset.featureSave;let settings;try{settings=JSON.parse($('[data-feature-config="'+key+'"]').value||"{}");if(!settings||Array.isArray(settings)||typeof settings!=="object")throw new Error("object required");}catch{notify("세부 설정은 JSON 객체 형식으로 입력해 주세요.");return;}const enabled=$('[data-feature-toggle="'+key+'"]').checked;const q=await sb.from("server_feature_settings").upsert({server_id:sid(),feature_key:key,settings,enabled,updated_at:new Date().toISOString()},{onConflict:"server_id,feature_key"});if(failed(q.error,"기능 설정을 저장하지 못했어요."))return;notify("기능 설정을 저장했어요.");}));
   }
   function renderCommandLibrary() {
