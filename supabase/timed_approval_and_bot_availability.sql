@@ -61,7 +61,7 @@ begin
       (new.server_id, coalesce(nullif(new.server_name,''),'Discord 서버'), new.user_id::text, false, false, new.expires_at, now())
     on conflict (server_id) do update set
       server_name = coalesce(nullif(excluded.server_name,''), public.managed_servers.server_name),
-      expires_at = greatest(coalesce(public.managed_servers.expires_at, now()), coalesce(excluded.expires_at, now())),
+      expires_at = excluded.expires_at,
       management_available = public.managed_servers.bot_connected
         and coalesce(excluded.expires_at, now()) > now(),
       updated_at = now();
@@ -98,6 +98,12 @@ select
        and pr.status = 'approved'
        and pr.expires_at > now()
    )) as management_available
-from public.managed_servers ms;
+from public.managed_servers ms
+where exists (
+  select 1 from public.purchase_requests own_pr
+  where own_pr.server_id = ms.server_id
+    and own_pr.user_id = auth.uid()
+    and own_pr.status = 'approved'
+);
 
 grant select on public.server_management_status to authenticated;
