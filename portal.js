@@ -94,13 +94,27 @@ const names={sync:"서버 정보 동기화",post_announcement:"공지 전송",re
 const states={queued:["대기 중","amber"],processing:["처리 중","blue"],completed:["완료","green"],failed:["실패","red"]};
 t.innerHTML=data.map(r=>{const st=states[r.status]||[r.status,""];return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(names[r.command_type]||r.command_type)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.result||"—")+'</td></tr>'}).join("");
 }
-async function loadServers(){shell("servers","서버 관리","내 계정으로 신청한 Discord 서버를 확인하세요.");const box=$("#server-list");let result;try{result=await withTimeout(sb.from("purchase_requests").select("id,server_name,server_id,plan,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(100));}catch(e){console.error("server list timeout:",e);if(box)box.innerHTML='<div class="empty">서버 목록을 불러오지 못했어요. 새로고침 후 다시 시도해 주세요.</div>';return}const {data,error}=result;if(error){box.innerHTML='<div class="empty">서버 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return}const rows=(data||[]).filter(r=>r.status==="approved"||r.status==="completed");box.innerHTML=rows.length?rows.map(r=>'<div class="setting-row"><div><strong>'+escapeHtml(r.server_name||"Discord 서버")+'</strong><small>'+escapeHtml(r.plan)+' 이용권</small></div>'+statusBadge(r.status)+'</div>').join(""):'<div class="empty">승인된 서버가 아직 없어요. 이용권 신청 후 관리자 승인을 기다려 주세요.</div>'}
+async function loadServers(){
+shell("servers","서버 관리","승인된 서버와 이용 기간, 봇 연결 상태를 확인하세요.");
+const box=$("#server-list");if(!box)return;box.innerHTML='<div class="empty">서버 목록을 불러오는 중…</div>';
+let result;try{result=await withTimeout(sb.from("purchase_requests").select("id,server_name,server_id,plan,status,created_at,expires_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(100));}catch(e){console.error("server list timeout:",e);box.innerHTML='<div class="empty">서버 목록을 불러오지 못했어요. 새로고침 후 다시 시도해 주세요.</div>';return}
+const {data,error}=result;if(error){console.error("server list error:",error);box.innerHTML='<div class="empty">서버 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return}
+const rows=(data||[]).filter(r=>r.status==="approved"||r.status==="completed");if(!rows.length){box.innerHTML='<div class="empty">승인된 서버가 아직 없어요. 이용권 신청 후 승인을 기다려 주세요.</div>';return}
+const ids=[...new Set(rows.map(r=>r.server_id).filter(Boolean))];let liveRows=[];
+if(ids.length){try{const live=await withTimeout(sb.from("managed_servers").select("server_id,server_name,bot_connected,management_available,is_active,expires_at,last_seen_at").in("server_id",ids));if(live.error)console.error("managed server status error:",live.error);else liveRows=live.data||[]}catch(e){console.error("managed server status timeout:",e)}}
+const liveMap=new Map(liveRows.map(s=>[s.server_id,s]));const clientId=String(cfg.discordBotClientId||"").trim();
+box.innerHTML=rows.map(r=>{const s=liveMap.get(r.server_id),expiry=s?.expires_at||r.expires_at,expired=expiry&&new Date(expiry).getTime()<=Date.now(),available=!!s?.management_available&&!!s?.bot_connected&&!expired;
+const invite=clientId&&r.server_id&&!expired?'https://discord.com/oauth2/authorize?client_id='+encodeURIComponent(clientId)+'&scope=bot%20applications.commands&permissions='+encodeURIComponent(String(cfg.discordBotPermissions||"0"))+'&guild_id='+encodeURIComponent(r.server_id)+'&disable_guild_select=true':"";
+const state=expired?'<span class="badge red">기간 만료</span>':available?'<span class="badge green">관리 가능</span>':'<span class="badge amber">관리 불가능</span>';
+const until=expiry?new Date(expiry).toLocaleString("ko-KR"):"승인 후 이용 기간 적용";
+return '<div class="setting-row"><div><strong>'+escapeHtml(s?.server_name||r.server_name||"Discord 서버")+'</strong><small>서버 ID: '+escapeHtml(r.server_id||"미등록")+'</small><small>'+escapeHtml(r.plan)+' · 만료: '+escapeHtml(until)+'</small><small>'+(s?.bot_connected?"봇 연결됨":"봇 미연결")+'</small></div><div class="stack-actions">'+state+(invite?'<a class="btn btn-blue" target="_blank" rel="noopener noreferrer" href="'+invite+'">봇 초대</a>':"")+'</div></div>';}).join("");
+}
 async function loadAdmin(){
 shell("admin","관리자 대시보드","신청을 승인하거나 거절하고, 처리 사유를 남길 수 있습니다.");
 if(!isAdmin(user)){const t=$("#admin-requests");if(t)t.innerHTML='<tr><td colspan="8" class="empty">이 계정은 관리자 계정이 아닙니다.</td></tr>';notify("관리자 계정만 이용할 수 있어요.");return}
 let totals;try{totals=await withTimeout(Promise.all([count("purchase_requests",{}),count("purchase_requests",{status:"pending"}),count("purchase_requests",{payment_status:"unpaid"}),count("purchase_requests",{status:"completed"})]));}catch(e){console.error("admin counts timeout:",e);totals=[null,null,null,null]}const [total,pending,unpaid,active]=totals;
 $("#admin-total").textContent=total??"—";$("#admin-pending").textContent=pending??"—";$("#admin-unpaid").textContent=unpaid??"—";$("#admin-active").textContent=active??"—";
-const {data,error}=await sb.from("purchase_requests").select("id,user_id,plan,server_name,server_id,status,payment_status,rejection_reason,created_at").order("created_at",{ascending:false}).limit(100);
+let result;try{result=await withTimeout(sb.from("purchase_requests").select("id,user_id,plan,server_name,server_id,status,payment_status,rejection_reason,created_at,expires_at").order("created_at",{ascending:false}).limit(100));}catch(e){console.error("admin request list timeout:",e);const table=$("#admin-requests");if(table)table.innerHTML='<tr><td colspan="8" class="empty">신청 목록을 불러오지 못했어요. 새로고침 후 다시 시도해 주세요.</td></tr>';return}const {data,error}=result;
 const table=$("#admin-requests");
 if(error){table.innerHTML='<tr><td colspan="8">신청 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</td></tr>';return}
 if(!data?.length){table.innerHTML='<tr><td colspan="8" class="empty">신청이 없습니다.</td></tr>';return}
