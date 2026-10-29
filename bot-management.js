@@ -324,7 +324,7 @@
       el.disabled=false;
       if(failed(q.error,"기능 상태를 저장하지 못했어요.")){el.checked=previous;el.nextElementSibling.textContent=previous?"사용 중":"중지";return;}
       el.nextElementSibling.textContent=desired?"사용 중":"중지";
-      notify(desired?"기능을 켰어요. 봇 설정에 즉시 전달됐어요.":"기능을 껐어요. 봇 설정에 즉시 전달됐어요.");
+      notify(desired?"기능을 켰어요. 설정을 저장했고 봇이 변경을 감지하면 적용돼요.":"기능을 껐어요. 설정을 저장했고 봇이 변경을 감지하면 적용돼요.");
     }));
     $$("[data-feature-save]").forEach(btn=>btn.addEventListener("click",async()=>{const key=btn.dataset.featureSave;let settings;try{settings=JSON.parse($('[data-feature-config="'+key+'"]').value||"{}");if(!settings||Array.isArray(settings)||typeof settings!=="object")throw new Error("object required");}catch{notify("세부 설정은 JSON 객체 형식으로 입력해 주세요.");return;}const enabled=$('[data-feature-toggle="'+key+'"]').checked;const q=await sb.from("server_feature_settings").upsert({server_id:sid(),feature_key:key,settings,enabled,updated_at:new Date().toISOString()},{onConflict:"server_id,feature_key"});if(failed(q.error,"기능 설정을 저장하지 못했어요."))return;notify("기능 설정을 저장했어요.");}));
   }
