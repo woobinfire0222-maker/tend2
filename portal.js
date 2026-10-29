@@ -18,7 +18,7 @@ function nav(page){const admin=isAdmin(user)||isOwnerName(user);const items=[["d
 async function getSession(){if(!sb)return null;const {data,error}=await sb.auth.getSession();if(error)throw error;return data.session?.user||null}
 async function requireUser(){try{user=await getSession()}catch(e){notify("로그인 상태를 확인하지 못했어요. 새로고침 후 다시 시도해 주세요.");return false}if(!user){if(location.pathname.endsWith("login.html"))return false;location.href="./login.html";return false}profileName=uname(user)||user.user_metadata?.global_name||user.email||"Discord 사용자";if(location.pathname.endsWith("login.html")){goto("dashboard");return false}return true}
 function shell(page,title,subtitle){nav(page);const titleEl=$("[data-page-title]");if(titleEl)titleEl.textContent=title;const sub=$("[data-page-subtitle]");if(sub)sub.textContent=subtitle||"";const userLabel=$("[data-top-user]");if(userLabel)userLabel.textContent=profileName}
-async function count(table,filters){let q=sb.from(table).select("id",{count:"exact",head:true});for(const [k,v] of Object.entries(filters||{}))q=q.eq(k,v);const {count,error}=await q;return error?null:count}
+async function count(table,filters){let q=sb.from(table).select("id",{count:"exact",head:true});for(const [k,v] of Object.entries(filters||{}))q=q.eq(k,v);const {count,error}=await q;if(error){console.error("Supabase count error:",table,error);return null}return count}
 function statusBadge(s){const map={pending:["확인 대기","amber"],approved:["승인됨","blue"],rejected:["거절됨","red"],completed:["완료","green"],paid:["입금 확인","green"],active:["활성","green"],inactive:["중지","red"]};const x=map[s]||[s||"확인 필요",""];return '<span class="badge '+x[1]+'">'+x[0]+"</span>"}
 async function loadDashboard(){
 shell("dashboard","대시보드","TEND 이용 현황과 최근 신청을 확인하세요.");
@@ -26,7 +26,7 @@ const counts=await Promise.all([count("purchase_requests",{user_id:user.id}),cou
 ["#stat-all","#stat-pending","#stat-approved","#stat-completed"].forEach((sel,i)=>{const el=$(sel);if(el)el.textContent=counts[i]===null?"오류":String(counts[i])});
 const {data,error}=await sb.from("purchase_requests").select("id,plan,server_name,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(5);
 const tbody=$("#recent-requests");
-if(error){if(tbody)tbody.innerHTML='<tr><td colspan="4">신청 내역을 불러오지 못했어요. Supabase SQL과 RLS 정책을 확인해 주세요.</td></tr>';}
+if(error){console.error("purchase_requests load error:",error);if(tbody)tbody.innerHTML='<tr><td colspan="4">신청 내역 오류: '+escapeHtml(error.message||error.code||"알 수 없는 오류")+'</td></tr>';}
 else if(!data?.length){if(tbody)tbody.innerHTML='<tr><td colspan="4" class="empty">아직 신청 내역이 없어요.</td></tr>';}
 else if(tbody){tbody.innerHTML=data.map(r=>'<tr><td>'+escapeHtml(r.server_name)+'</td><td>'+escapeHtml(r.plan)+'</td><td>'+statusBadge(r.status)+'</td><td>'+new Date(r.created_at).toLocaleDateString("ko-KR")+'</td></tr>').join("");}
 const refresh=$("#refresh-server-status");if(refresh)refresh.addEventListener("click",loadDashboardServerStatus);
@@ -36,11 +36,11 @@ async function loadDashboardServerStatus(){
 const box=$("#dashboard-server-status");if(!box)return;
 box.innerHTML='<div class="empty">서버 상태를 확인하는 중…</div>';
 const req=await sb.from("purchase_requests").select("server_id,server_name,status,plan").eq("user_id",user.id).in("status",["approved","completed"]).not("server_id","is",null).order("created_at",{ascending:false});
-if(req.error){box.innerHTML='<div class="empty">이용권 정보를 불러오지 못했어요. SQL 및 권한 설정을 확인해 주세요.</div>';return;}
+if(req.error){console.error("dashboard server requests error:",req.error);box.innerHTML='<div class="empty">이용권 조회 오류: '+escapeHtml(req.error.message||req.error.code||"알 수 없는 오류")+'</div>';return;}
 const unique=[];const seen=new Set();(req.data||[]).forEach(r=>{if(r.server_id&&!seen.has(r.server_id)){seen.add(r.server_id);unique.push(r)}});
 if(!unique.length){box.innerHTML='<div class="empty">아직 승인된 서버가 없어요. 서버 ID를 포함해 이용권을 신청하고 관리자 승인을 받아 주세요.</div>';return;}
 const live=await sb.from("managed_servers").select("server_id,server_name,is_active,bot_connected,last_seen_at,updated_at").in("server_id",unique.map(r=>r.server_id));
-if(live.error){box.innerHTML='<div class="empty">서버 신청은 확인했지만 봇 상태 테이블을 읽지 못했어요. 최신 schema.sql을 Supabase에 적용했는지 확인해 주세요.</div>';return;}
+if(live.error){console.error("managed_servers load error:",live.error);box.innerHTML='<div class="empty">봇 상태 조회 오류: '+escapeHtml(live.error.message||live.error.code||"알 수 없는 오류")+'</div>';return;}
 const byId=new Map((live.data||[]).map(r=>[r.server_id,r]));
 box.innerHTML='<div class="stack-list">'+unique.map(r=>{const s=byId.get(r.server_id);const recent=s?.last_seen_at&&(Date.now()-new Date(s.last_seen_at).getTime()<120000);const connected=!!s?.bot_connected&&!!recent;const state=connected?'<span class="badge green">봇 온라인</span>':'<span class="badge amber">연결 확인 필요</span>';const management=s?.is_active?'<span class="badge blue">관리 시작</span>':'<span class="badge">관리 중지</span>';const seenAt=s?.last_seen_at?new Date(s.last_seen_at).toLocaleString("ko-KR"):"접속 기록 없음";return '<div class="stack-row"><div><strong>'+escapeHtml(s?.server_name||r.server_name||"Discord 서버")+'</strong><small>서버 ID: '+escapeHtml(r.server_id)+' · 마지막 응답: '+escapeHtml(seenAt)+'</small></div><div class="stack-actions">'+state+management+'</div></div>'}).join("")+'</div>';
 }
