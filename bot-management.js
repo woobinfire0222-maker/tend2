@@ -309,43 +309,65 @@
     $$("[data-blacklist-server-delete]").forEach(btn=>btn.addEventListener("click",async()=>{const q=await sb.from("server_blacklists").delete().eq("id",btn.dataset.blacklistServerDelete).eq("managed_server_id",sid());if(failed(q.error,"삭제하지 못했어요."))return;await loadBlacklists();}));
     $$("[data-blacklist-user-delete]").forEach(btn=>btn.addEventListener("click",async()=>{const q=await sb.from("user_blacklists").delete().eq("id",btn.dataset.blacklistUserDelete).eq("server_id",sid());if(failed(q.error,"삭제하지 못했어요."))return;await loadBlacklists();}));
   }
+  const featureFields = {
+    tickets:[["panel_channel_id","패널 게시 채널 ID","text"],["support_role_ids","담당 역할 ID (쉼표 구분)","list"],["category_id","티켓 카테고리 ID","text"],["welcome_message","티켓 생성 안내","textarea"],["close_message","종료 안내","textarea"]],
+    polls:[["default_duration_minutes","기본 진행 시간(분)","number"],["allow_multiple","복수 선택 허용","boolean"],["anonymous","익명 투표","boolean"],["results_channel_id","결과 채널 ID","text"]],
+    welcome:[["channel_id","환영 채널 ID","text"],["message","환영 메시지 ({user}, {server} 사용 가능)","textarea"],["embed_color","임베드 색상 (HEX)","text"],["image_url","이미지 URL","text"]],
+    goodbye:[["channel_id","퇴장 알림 채널 ID","text"],["message","퇴장 메시지 ({user}, {server} 사용 가능)","textarea"]],
+    auto_roles:[["role_ids","자동 지급 역할 ID (쉼표 구분)","list"],["delay_seconds","지급 대기 시간(초)","number"]],
+    reaction_roles:[["channel_id","역할 패널 채널 ID","text"],["message_id","역할 패널 메시지 ID","text"],["roles","역할 목록 (이모지:역할ID, 쉼표 구분)","textarea"],["mode","선택 방식 (button/select)","select:button,select"]],
+    auto_responses:[["channel_ids","적용 채널 ID (쉼표 구분, 비우면 전체)","list"],["responses","자동 응답 규칙 (키워드=답변, 한 줄에 하나)","textarea"],["ignore_bots","봇 메시지 무시","boolean"]],
+    link_filter:[["allowed_domains","허용 도메인 (쉼표 구분)","list"],["block_invites","Discord 초대 링크 차단","boolean"],["action","위반 조치","select:delete,warn,timeout"],["timeout_seconds","타임아웃 시간(초)","number"]],
+    anti_spam:[["max_messages","허용 메시지 수","number"],["interval_seconds","측정 시간(초)","number"],["duplicate_limit","동일 메시지 반복 허용 횟수","number"],["action","위반 조치","select:delete,warn,timeout"],["timeout_seconds","타임아웃 시간(초)","number"]],
+    account_security:[["minimum_account_age_days","최소 계정 생성 기간(일)","number"],["new_member_action","신규 계정 조치","select:flag,timeout,kick"],["timeout_seconds","타임아웃 시간(초)","number"],["alert_channel_id","보안 알림 채널 ID","text"]],
+    server_logs:[["channel_id","로그 채널 ID","text"],["message_events","메시지 변경/삭제 기록","boolean"],["member_events","입퇴장 기록","boolean"],["role_events","역할 변경 기록","boolean"],["voice_events","음성 채널 이동 기록","boolean"]],
+    warnings:[["max_warnings","누적 경고 기준","number"],["action","기준 도달 시 조치","select:none,timeout,kick,ban"],["timeout_seconds","타임아웃 시간(초)","number"],["notify_user","대상자에게 안내","boolean"]],
+    temporary_voice:[["lobby_channel_id","임시 채널 생성용 대기 채널 ID","text"],["category_id","임시 채널 카테고리 ID","text"],["default_user_limit","기본 인원 제한","number"],["delete_empty_after_seconds","빈 채널 삭제 대기(초)","number"]],
+    server_backup:[["backup_channel_id","백업 알림 채널 ID","text"],["include_roles","역할 구조 포함","boolean"],["include_channels","채널 구조 포함","boolean"],["include_permissions","권한 설정 포함","boolean"],["schedule_hours","자동 백업 주기(시간, 0=끔)","number"]]
+  };
+  function featureFieldHtml(featureKey, field, settings) {
+    const [key,label,type]=field, value=settings[key];
+    const id="feature-field-"+featureKey+"-"+key;
+    if(type==="boolean") return '<label class="feature-editor-check"><input type="checkbox" id="'+id+'" data-setting-key="'+key+'" '+(value===true?"checked":"")+'><span>'+escapeHtml(label)+'</span></label>';
+    if(type==="textarea") return '<label class="field"><span>'+escapeHtml(label)+'</span><textarea id="'+id+'" data-setting-key="'+key+'" rows="3">'+escapeHtml(Array.isArray(value)?value.join("\\n"):value??"")+'</textarea></label>';
+    if(type==="list") return '<label class="field"><span>'+escapeHtml(label)+'</span><input id="'+id+'" data-setting-key="'+key+'" value="'+escapeHtml(Array.isArray(value)?value.join(", "):value??"")+'" placeholder="쉼표로 구분"></label>';
+    if(type.startsWith("select:")) return '<label class="field"><span>'+escapeHtml(label)+'</span><select id="'+id+'" data-setting-key="'+key+'">'+type.slice(7).split(",").map(v=>'<option value="'+v+'" '+(String(value??"")===v?"selected":"")+'>'+v+'</option>').join("")+'</select></label>';
+    return '<label class="field"><span>'+escapeHtml(label)+'</span><input id="'+id+'" data-setting-key="'+key+'" type="'+(type==="number"?"number":"text")+'" value="'+escapeHtml(value??"")+'"></label>';
+  }
+  function openFeatureEditor(featureKey, feature, settings, enabled) {
+    document.querySelector("#feature-editor-backdrop")?.remove();
+    const fields=featureFields[featureKey]||[];
+    const backdrop=document.createElement("div");
+    backdrop.id="feature-editor-backdrop";
+    backdrop.className="feature-editor-backdrop";
+    backdrop.innerHTML='<section class="feature-editor" role="dialog" aria-modal="true" aria-labelledby="feature-editor-title"><header><div><h2 id="feature-editor-title">'+escapeHtml(feature[1])+'</h2><p>'+escapeHtml(feature[2])+'</p></div><button type="button" class="btn btn-light" data-editor-close>닫기</button></header><form id="feature-editor-form"><div class="feature-editor-fields">'+fields.map(f=>featureFieldHtml(featureKey,f,settings)).join("")+'</div><label class="feature-editor-check feature-editor-enabled"><input type="checkbox" id="feature-editor-enabled" '+(enabled?"checked":"")+'><span>이 기능 사용</span></label><footer><button type="button" class="btn btn-light" data-editor-close>취소</button><button class="btn btn-blue" type="submit">설정 저장 및 적용</button></footer></form></section>';
+    document.body.append(backdrop);
+    backdrop.querySelectorAll("[data-editor-close]").forEach(b=>b.addEventListener("click",()=>backdrop.remove()));
+    backdrop.addEventListener("click",e=>{if(e.target===backdrop)backdrop.remove();});
+    backdrop.querySelector("#feature-editor-form").addEventListener("submit",async e=>{
+      e.preventDefault();
+      const button=e.submitter;button.disabled=true;button.textContent="저장 중…";
+      const next={...settings};
+      backdrop.querySelectorAll("[data-setting-key]").forEach(el=>{
+        const key=el.dataset.settingKey;
+        if(el.type==="checkbox") next[key]=el.checked;
+        else if(el.type==="number") next[key]=el.value===""?null:Number(el.value);
+        else if(el.tagName==="SELECT") next[key]=el.value;
+        else if(featureFields[featureKey].find(f=>f[0]===key)?.[2]==="list") next[key]=el.value.split(",").map(v=>v.trim()).filter(Boolean);
+        else next[key]=el.value;
+      });
+      const nextEnabled=backdrop.querySelector("#feature-editor-enabled").checked;
+      const saved=await sb.from("server_feature_settings").upsert({server_id:sid(),feature_key:featureKey,settings:next,enabled:nextEnabled,updated_at:new Date().toISOString()},{onConflict:"server_id,feature_key"});
+      if(failed(saved.error,"기능 설정을 저장하지 못했어요.")){button.disabled=false;button.textContent="설정 저장 및 적용";return;}
+      backdrop.remove();notify(nextEnabled?"설정을 저장했어요. 봇이 이 기능을 지원하면 바로 적용돼요.":"설정을 저장했어요.");await loadFeatures();
+    });
+  }
   async function loadFeatures() {
     const box=$("#feature-settings-list"),q=await sb.from("server_feature_settings").select("feature_key,settings,enabled").eq("server_id",sid());
     if(q.error){box.innerHTML='<div class="empty">기능 설정을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return;}
     const rows=new Map((q.data||[]).map(r=>[r.feature_key,r]));
-    box.innerHTML=features.map(f=>{const r=rows.get(f[0]);return '<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>'+escapeHtml(f[1])+'</strong><small>'+escapeHtml(f[2])+'</small></div><label class="switch-label"><input type="checkbox" class="switch" data-feature-toggle="'+f[0]+'" '+(r&&r.enabled?'checked':'')+'><span>'+(r&&r.enabled?'사용 중':'중지')+'</span></label></div><label class="feature-config-label" for="feature-config-'+f[0]+'">세부 설정 (JSON)</label><textarea id="feature-config-'+f[0]+'" data-feature-config="'+f[0]+'" rows="3" placeholder=\'{"channel_id":"","message":""}\'>'+escapeHtml(JSON.stringify((r&&r.settings)||{},null,2))+'</textarea><button class="btn btn-light" type="button" data-feature-save="'+f[0]+'">설정 저장</button></article>';}).join("");
-    $$("[data-feature-toggle]").forEach(el=>el.addEventListener("change",async()=>{
-      const key=el.dataset.featureToggle,desired=el.checked,previous=!desired;
-      const configField=$$("[data-feature-config]").find(x=>x.dataset.featureConfig===key);
-      let settings={};
-      try{const raw=(configField?.value||"").trim();settings=raw?JSON.parse(raw):{};}
-      catch{notify("세부 설정 JSON 형식을 확인해 주세요.");el.checked=previous;return;}
-      el.disabled=true;el.nextElementSibling.textContent="적용 중…";
-      const q=await sb.from("server_feature_settings").upsert({server_id:sid(),feature_key:key,settings,enabled:desired,updated_at:new Date().toISOString()},{onConflict:"server_id,feature_key"});
-      el.disabled=false;
-      if(failed(q.error,"기능 상태를 저장하지 못했어요.")){el.checked=previous;el.nextElementSibling.textContent=previous?"사용 중":"중지";return;}
-      el.nextElementSibling.textContent=desired?"사용 중":"중지";
-      notify(desired?"기능을 켰어요. 설정을 저장했고 봇이 변경을 감지하면 적용돼요.":"기능을 껐어요. 설정을 저장했고 봇이 변경을 감지하면 적용돼요.");
-    }));
-    $$("[data-feature-save]").forEach(btn=>btn.addEventListener("click",async()=>{const key=btn.dataset.featureSave;let settings;try{settings=JSON.parse($('[data-feature-config="'+key+'"]').value||"{}");if(!settings||Array.isArray(settings)||typeof settings!=="object")throw new Error("object required");}catch{notify("세부 설정은 JSON 객체 형식으로 입력해 주세요.");return;}const enabled=$('[data-feature-toggle="'+key+'"]').checked;const q=await sb.from("server_feature_settings").upsert({server_id:sid(),feature_key:key,settings,enabled,updated_at:new Date().toISOString()},{onConflict:"server_id,feature_key"});if(failed(q.error,"기능 설정을 저장하지 못했어요."))return;notify("기능 설정을 저장했어요.");}));
-  }
-  function renderCommandLibrary() {
-    const box=$("#command-library");
-    box.innerHTML=commandGroups.map(([group,items])=>'<section class="command-group"><div class="command-group-title">'+escapeHtml(group)+'<span>'+items.length+'개</span></div><div class="command-card-grid">'+items.map(([command,title,description,type])=>'<article class="command-card"><div class="command-card-top"><span class="command-mark">/</span><span class="command-code">'+escapeHtml(command)+'</span></div><strong>'+escapeHtml(title)+'</strong><p>'+escapeHtml(description)+'</p><button type="button" class="btn btn-light" data-command-type="'+escapeHtml(type)+'" data-command-name="'+escapeHtml(command)+'">요청 등록 <span>→</span></button></article>').join("")+'</div></section>').join("");
-  }
-  async function handleCommandRequest(e) {
-    const button=e.target.closest("[data-command-type]");
-    if(!button)return;
-    if(!await ensureServer())return;
-    const command=button.dataset.commandName,type=button.dataset.commandType;
-    const input=prompt(command+" 요청에 필요한 값이나 세부 내용을 입력해 주세요.\n입력이 필요 없으면 비워 두세요.","");
-    if(input===null)return;
-    button.disabled=true;
-    const result=await enqueueJob(type,{command,input:input.trim(),requested_by:user.id});
-    button.disabled=false;
-    if(failed(result.error,"요청을 등록하지 못했어요. 잠시 후 다시 시도해 주세요."))return;
-    notify(command+" 요청을 등록했어요.");
-    await loadJobs();
+    box.innerHTML=features.map(f=>{const r=rows.get(f[0]),enabled=!!r?.enabled;return '<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>'+escapeHtml(f[1])+'</strong><small>'+escapeHtml(f[2])+'</small></div><span class="badge '+(enabled?"green":"")+'">'+(enabled?"사용 중":"중지")+'</span></div><button type="button" class="btn btn-light" data-feature-edit="'+f[0]+'">자세히 설정 <span>→</span></button></article>';}).join("");
+    $$("[data-feature-edit]").forEach(btn=>btn.addEventListener("click",()=>{const key=btn.dataset.featureEdit,feature=features.find(f=>f[0]===key),r=rows.get(key);openFeatureEditor(key,feature,r?.settings||{},!!r?.enabled);}));
   }
   async function loadJobs() {
     const t=$("#bot-jobs-list");if(!t||!sid())return;
