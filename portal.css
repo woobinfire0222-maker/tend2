@@ -96,3 +96,23 @@
 
 
 .brand-logo{display:block;width:34px;height:34px;object-fit:contain;border-radius:8px;flex:none}.sidebar .brand-logo{width:34px;height:34px}.footer-brand .brand-logo{width:29px;height:29px}.login-page>.brand .brand-logo{width:34px;height:34px}.login-symbol{background:transparent!important;padding:0!important}.login-symbol img{width:48px;height:48px;object-fit:contain;display:block}
+
+.feature-setting-card{background:#fff;transition:border-color .15s,box-shadow .15s}
+.feature-setting-card:hover{border-color:#cbd7ff;box-shadow:0 5px 18px #25345a0a}
+.feature-setting-card .btn{justify-self:start}
+.feature-editor-backdrop{position:fixed;inset:0;z-index:200;background:rgba(20,25,38,.48);display:grid;place-items:center;padding:18px;overflow:auto}
+.feature-editor{width:min(100%,620px);max-height:min(88vh,820px);overflow:auto;background:#fff;border-radius:18px;box-shadow:0 24px 80px #10182835;padding:22px}
+.feature-editor>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+.feature-editor h2{font-size:20px;letter-spacing:-.05em;margin:0}
+.feature-editor header p{font-size:12px;color:var(--muted);line-height:1.6;margin:6px 0 0}
+.feature-editor-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.feature-editor-fields .field{min-width:0}
+.feature-editor-fields .field:has(textarea){grid-column:1/-1}
+.feature-editor-fields .field>span{font-size:12px;font-weight:700;color:#505664}
+.feature-editor-fields input,.feature-editor-fields select,.feature-editor-fields textarea{width:100%;min-width:0;border:1px solid #dfe3eb;border-radius:9px;padding:10px;background:#fff;font:inherit;font-size:12px;color:var(--ink)}
+.feature-editor-fields textarea{resize:vertical;line-height:1.6}
+.feature-editor-check{display:flex;align-items:center;gap:9px;padding:11px 0;font-size:13px;font-weight:700}
+.feature-editor-check input{width:17px;height:17px;accent-color:var(--blue)}
+.feature-editor-enabled{border-top:1px solid var(--line);margin-top:16px;padding-top:17px}
+.feature-editor footer{display:flex;justify-content:flex-end;gap:9px;border-top:1px solid var(--line);padding-top:16px;margin-top:12px}
+@media(max-width:560px){.feature-editor{padding:17px;border-radius:14px}.feature-editor-fields{grid-template-columns:1fr}.feature-editor-fields .field:has(textarea){grid-column:auto}.feature-editor>header{align-items:flex-start}}
