@@ -94,12 +94,3 @@
 
 
 
-
-/* Mobile top navigation */
-.mobile-top-nav{display:none}
-@media(max-width:760px){
- .mobile-top-nav{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:-12px 0 20px;padding:6px;background:#fff;border:1px solid #e8eaf0;border-radius:13px}
- .mobile-top-nav a{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;padding:10px 3px;border-radius:9px;color:#737986;font-size:11px;font-weight:750;white-space:nowrap}
- .mobile-top-nav a span{font-size:15px;line-height:1}
- .mobile-top-nav a.active{background:#eef3ff;color:#356df3}
-}
