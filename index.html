@@ -38,7 +38,9 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
 .admin-table td:last-child{min-width:125px}
 .admin-table td:last-child select{max-width:125px}
 .admin-table-wrap>p{margin:0!important;padding:26px!important;font-size:13px!important;color:#747985!important}
+.mobile-nav{display:none}
 @media(max-width:850px){.hero-grid{grid-template-columns:1fr;gap:45px}.hero{padding-top:65px}.dashboard{max-width:560px;transform:none}.navlinks{display:none}.split-grid{grid-template-columns:1fr;gap:35px}.chat-preview{margin:0;max-width:none}.trust-inner{flex-wrap:wrap;justify-content:center}.trust-label{width:100%;text-align:center}.feature-grid{grid-template-columns:repeat(2,1fr)}.pricing{grid-template-columns:1fr;max-width:500px;margin:auto}.price-desc{min-height:0}}
+@media(max-width:850px){nav{height:auto;min-height:65px}.nav-inner{flex-wrap:wrap;padding:10px 0;row-gap:9px}.navright{margin-left:auto}.mobile-nav{display:flex;order:3;width:100%;gap:7px;padding-top:9px;border-top:1px solid var(--line)}.mobile-nav a{flex:1;min-width:0;text-align:center;padding:10px 4px;background:#fff;border:1px solid var(--line);border-radius:10px;font-size:12px;font-weight:700;color:#4f5664;white-space:nowrap}.mobile-nav a:active{background:var(--soft);color:var(--blue)}}
 @media(max-width:560px){.wrap{width:min(100% - 30px,1120px)}nav{height:65px}.navright .btn-light{display:none}.navright .btn{padding:10px 12px;font-size:12px}.brand{font-size:20px}.brandmark{width:31px;height:31px}.hero{padding:52px 0 55px}.hero h1{font-size:43px}.hero p{font-size:15px}.hero-actions .btn{flex:1}.metrics{gap:7px}.metric{padding:11px 9px}.metric strong{font-size:20px}.dash-body{padding:16px}.activity time{display:none}section.content{padding:68px 0}.section-head{margin-bottom:30px}.feature-grid{grid-template-columns:1fr}.feature{min-height:0;padding:22px}.feature-icon{margin-bottom:17px}.split{padding:60px 0}.cta{padding-bottom:60px}.cta-box{padding:36px 18px}.footer-top{align-items:flex-start;flex-direction:column}.footer-links{flex-wrap:wrap}.trust-item{font-size:12px}.modal{padding:21px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -49,6 +51,7 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
 <a href="#" class="brand"><span class="brandmark">T</span>TEND</a>
 <div class="navlinks"><a href="#features">기능</a><a href="#how">이용 방법</a><a href="#pricing">요금 안내</a><a href="#faq">자주 묻는 질문</a></div>
 <div class="navright"><a class="btn btn-light" href="./dashboard.html">대시보드</a><a class="btn btn-light" href="./requests.html">이용권 신청</a><a class="btn btn-light" href="./bot.html">봇 관리</a><a class="btn btn-light" href="./servers.html">서버 관리</a><span id="userChip" class="user-chip" hidden></span><button id="loginBtn" class="btn btn-dark">Discord로 시작하기 <span>↗</span></button></div>
+<div class="mobile-nav" aria-label="주요 메뉴"><a href="./dashboard.html">대시보드</a><a href="./requests.html">이용권 신청</a><a href="./bot.html">봇 관리</a><a href="./servers.html">서버 관리</a></div>
 </div></nav>
 <main>
 <section class="hero"><div class="wrap hero-grid"><div>
