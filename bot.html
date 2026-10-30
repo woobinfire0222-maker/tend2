@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f7f8fa">
 <title>봇 관리 · TEND</title>
-<link rel="stylesheet" href="./portal.css?v=20261030-mobile-nav">
+<link rel="stylesheet" href="./portal.css?v=20261030-top-nav">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js?v=20261029-3"></script>
 </head>
@@ -20,7 +20,7 @@
 </div>
 </aside>
 <main class="main">
-<header class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="btn btn-light mobile-menu" data-mobile-menu>☰</button><span class="crumb">Workspace / <b data-page-title>봇 관리</b></span></div><div class="topbar-actions"><span class="crumb" data-top-user></span></div></header>
+<header class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="btn btn-light mobile-menu" data-mobile-menu>☰</button><span class="crumb">Workspace / <b data-page-title>봇 관리</b></span></div><div class="topbar-actions"><span class="crumb" data-top-user></span></div></header><nav class="mobile-top-nav" aria-label="주요 메뉴"><a href="./dashboard.html" class=""><span>▦</span>대시보드</a><a href="./requests.html" class=""><span>▤</span>이용권 신청</a><a href="./bot.html" class="active"><span>⌘</span>봇 관리</a><a href="./servers.html" class=""><span>◈</span>서버 관리</a></nav>
 <section class="page-head"><div><h1 class="page-title" data-page-title>봇 관리</h1><p class="page-subtitle" data-page-subtitle>서버별 검열·공지·자동화 설정을 관리하세요.</p></div><span id="bot-status" class="badge amber">서버 선택 필요</span></section>
 
 <section class="card bot-server-card" style="margin-top:16px">
