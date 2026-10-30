@@ -102,8 +102,6 @@
     $("#start-management").addEventListener("click",()=>management(true));
     $("#stop-management").addEventListener("click",()=>management(false));
     $("#refresh-jobs").addEventListener("click",loadJobs);
-    renderCommandLibrary();
-    $("#command-library").addEventListener("click",handleCommandRequest);
     $("#moderation-form").addEventListener("submit",saveRule);
     $("#announcement-channel-form").addEventListener("submit",saveChannel);
     $("#announcement-form").addEventListener("submit",saveAnnouncement);
