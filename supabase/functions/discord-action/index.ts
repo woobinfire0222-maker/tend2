@@ -51,7 +51,7 @@ Deno.serve(async (request) => {
     const content = String(body.content || "").trim();
     const image = String(body.image_url || "").trim();
     const mention = String(body.mention || "none");
-    const roleIds = Array.isArray(body.role_ids) ? body.role_ids.map(String).filter((id) => /^\\d{5,30}$/.test(id)) : [];
+    const roleIds = Array.isArray(body.role_ids) ? body.role_ids.map(String).filter((id) => /^\d{5,30}$/.test(id)) : [];
     if (!content) return json({ error: "Announcement content is required." }, 400);
     if (content.length > 4000) return json({ error: "Announcement content must be 4000 characters or fewer." }, 400);
     if (image && !/^https?:\\/\\//i.test(image)) return json({ error: "Image URL must start with http or https." }, 400);
