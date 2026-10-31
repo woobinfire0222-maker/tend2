@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f7f8fa">
 <title>봇 관리 튜토리얼 · TEND</title>
-<link rel="stylesheet" href="./portal.css?v=20261029-3">
+<link rel="stylesheet" href="./portal.css?v=20261031-5">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js?v=20261029-3"></script>
 </head>
@@ -13,7 +13,7 @@
 <div class="layout">
 <aside class="sidebar">
 <a class="brand" href="./index.html" aria-label="TEND 메인 메뉴로 이동"><img class="brand-logo" src="./TEND.png" alt="TEND 로고">TEND</a>
-<div data-side-nav></div>
+<div data-side-nav><div class="nav-label">WORKSPACE</div><nav class="side-nav"><a href="./dashboard.html"><span class="nav-icon">▦</span>대시보드</a><a href="./requests.html"><span class="nav-icon">▤</span>이용권 신청</a><a class="active" href="./bot.html"><span class="nav-icon">⌘</span>봇 관리</a><a href="./servers.html"><span class="nav-icon">◈</span>서버 관리</a></nav></div>
 <div class="sidebar-bottom"><a class="btn btn-light" href="./bot.html" style="display:block;text-align:center;width:100%;margin-bottom:12px">실제 봇 관리로 돌아가기</a><button class="btn btn-blue" id="restart-guided-tour" type="button" style="width:100%;margin-bottom:12px">튜토리얼 다시 시작</button><a class="btn btn-light" href="./tutorial.html" style="display:block;text-align:center;width:100%;margin-bottom:12px">튜토리얼 체험하기 ↗</a>
 <div class="profile-chip"><div class="avatar" data-profile-initial>T</div><div class="profile-text"><strong data-profile-name>불러오는 중</strong><small>Discord 계정</small></div></div>
 <button class="btn btn-light" data-logout style="width:100%">로그아웃</button>
