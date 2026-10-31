@@ -94,7 +94,7 @@
   }
   async function init(options) {
     ctx=options; sb=ctx.sb; user=ctx.user; notify=ctx.notify; escapeHtml=ctx.escapeHtml; discordIds=ctx.discordIds; ctx.shell("bot","봇 관리","서버별 검열·공지·자동화 설정을 관리하세요.");
-    $("[data-bot-tab]").forEach(b=>b.addEventListener("click",()=>{const key=b.dataset.botTab;$("[data-bot-tab]").forEach(x=>x.classList.toggle("active",x===b));$("[data-bot-panel]").forEach(p=>p.classList.toggle("active",p.dataset.botPanel===key));}));
+    $$("[data-bot-tab]").forEach(b=>b.addEventListener("click",()=>{const key=b.dataset.botTab;$$("[data-bot-tab]").forEach(x=>x.classList.toggle("active",x===b));$$("[data-bot-panel]").forEach(p=>p.classList.toggle("active",p.dataset.botPanel===key));}));
     $("#moderation-action").addEventListener("change",()=>$("#timeout-field").classList.toggle("hidden",$("#moderation-action").value!=="timeout"));
     $("#announcement-mention").addEventListener("change",()=>$("#announcement-role-field").classList.toggle("hidden",$("#announcement-mention").value!=="role"));
     $("#managed-server-select").addEventListener("change",async()=>{serverId=$("#managed-server-select").value;if(await ensureServer())await loadServerData();});
@@ -214,8 +214,8 @@
     const labels={exact:"완전 일치",contains:"단어 포함",delete:"메시지 삭제",timeout:"타임아웃",ban:"영구 차단"};
     $("#moderation-count").textContent=(q.data||[]).length+"개";
     t.innerHTML=q.data?.length?q.data.map(r=>'<tr><td>'+escapeHtml(r.word)+'</td><td>'+labels[r.match_type]+'</td><td>'+labels[r.action_type]+'</td><td>'+(r.timeout_seconds?r.timeout_seconds+"초":"—")+'</td><td><button class="btn btn-light" data-rule-toggle="'+r.id+'" data-enabled="'+r.enabled+'">'+(r.enabled?"사용 중":"중지됨")+'</button></td><td><button class="btn btn-danger" data-rule-delete="'+r.id+'">삭제</button></td></tr>').join(""):'<tr><td colspan="6" class="empty">등록된 금지 단어가 없습니다.</td></tr>';
-    $("[data-rule-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("이 금지 단어를 삭제할까요?"))return;const r=await sb.from("moderation_rules").delete().eq("id",b.dataset.ruleDelete).eq("server_id",id);if(failed(r.error,"삭제하지 못했어요."))return;notify("금지 단어를 삭제했어요.");await loadRules();}));
-    $("[data-rule-toggle]").forEach(b=>b.addEventListener("click",async()=>{const r=await sb.from("moderation_rules").update({enabled:b.dataset.enabled!=="true",updated_at:new Date().toISOString()}).eq("id",b.dataset.ruleToggle).eq("server_id",id);if(failed(r.error,"상태를 변경하지 못했어요."))return;await loadRules();}));
+    $$("[data-rule-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("이 금지 단어를 삭제할까요?"))return;const r=await sb.from("moderation_rules").delete().eq("id",b.dataset.ruleDelete).eq("server_id",id);if(failed(r.error,"삭제하지 못했어요."))return;notify("금지 단어를 삭제했어요.");await loadRules();}));
+    $$("[data-rule-toggle]").forEach(b=>b.addEventListener("click",async()=>{const r=await sb.from("moderation_rules").update({enabled:b.dataset.enabled!=="true",updated_at:new Date().toISOString()}).eq("id",b.dataset.ruleToggle).eq("server_id",id);if(failed(r.error,"상태를 변경하지 못했어요."))return;await loadRules();}));
   }
   async function saveChannel(e) {
     e.preventDefault();if(!await ensureServer())return;
@@ -243,8 +243,8 @@
     } else {
       list.innerHTML='<div class="card-note" style="margin-bottom:8px">봇 인식 채널 '+discoveredRows.length+'개 · 전송 가능 '+discoveredRows.filter(r=>r.can_send!==false).length+'개</div>'+(discoveredRows.length?discoveredRows.map(r=>'<div class="stack-row"><div><strong>'+escapeHtml(r.channel_name||r.channel_id)+'</strong><small>'+escapeHtml(r.channel_id)+' · '+escapeHtml(r.channel_type||"채널")+(r.can_send===false?' · 전송 권한 없음':' · 자동 인식')+'</small></div></div>').join(""):'<div class="empty">봇이 인식한 채널이 없습니다. 기존 봇에서 서버·채널 정보를 Supabase로 동기화해야 해요.</div>')+(rows.length?'<div class="section-intro" style="margin-top:12px"><strong>저장된 공지 채널</strong></div>'+rows.map(r=>'<div class="stack-row"><div><strong>'+escapeHtml(r.channel_name||r.channel_id)+'</strong><small>'+escapeHtml(r.channel_id)+(r.is_default?" · 기본 채널":"")+'</small></div><div class="stack-actions">'+(!r.is_default?'<button class="btn btn-light" data-channel-default="'+r.id+'">기본 지정</button>':"")+'<button class="btn btn-danger" data-channel-delete="'+r.id+'">삭제</button></div></div>').join(""):'');
     }
-    $("[data-channel-default]").forEach(b=>b.addEventListener("click",async()=>{const reset=await sb.from("announcement_channels").update({is_default:false}).eq("server_id",sid());if(failed(reset.error,"기본 채널을 변경하지 못했어요."))return;const r=await sb.from("announcement_channels").update({is_default:true}).eq("id",b.dataset.channelDefault).eq("server_id",sid());if(failed(r.error,"기본 채널을 변경하지 못했어요."))return;await loadChannels();}));
-    $("[data-channel-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("이 공지 채널을 삭제할까요?"))return;const r=await sb.from("announcement_channels").delete().eq("id",b.dataset.channelDelete).eq("server_id",sid());if(failed(r.error,"채널을 삭제하지 못했어요."))return;await loadChannels();}));
+    $$("[data-channel-default]").forEach(b=>b.addEventListener("click",async()=>{const reset=await sb.from("announcement_channels").update({is_default:false}).eq("server_id",sid());if(failed(reset.error,"기본 채널을 변경하지 못했어요."))return;const r=await sb.from("announcement_channels").update({is_default:true}).eq("id",b.dataset.channelDefault).eq("server_id",sid());if(failed(r.error,"기본 채널을 변경하지 못했어요."))return;await loadChannels();}));
+    $$("[data-channel-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("이 공지 채널을 삭제할까요?"))return;const r=await sb.from("announcement_channels").delete().eq("id",b.dataset.channelDelete).eq("server_id",sid());if(failed(r.error,"채널을 삭제하지 못했어요."))return;await loadChannels();}));
   }
   async function saveAnnouncement(e) {
     e.preventDefault();
@@ -288,7 +288,7 @@
     if(q.error){console.error("announcement history query failed:",q.error);t.innerHTML='<tr><td colspan="5" class="empty">공지 내역을 불러오지 못했어요. 데이터베이스 설정을 확인해 주세요.</td></tr>';return;}
     const states={queued:["발송 대기","amber"],sent:["발송 완료","green"],failed:["실패","red"],deleted:["삭제됨",""]};
     t.innerHTML=q.data?.length?q.data.map(r=>{const st=states[r.status]||[r.status,""];return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.title||"(제목 없음)")+(r.error_message?'<small class="reason-text">'+escapeHtml(r.error_message)+'</small>':"")+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.channel_id||"기본 채널")+'</td><td>'+(r.status!=="deleted"?'<button class="btn btn-danger" data-announcement-delete="'+r.id+'">삭제</button>':"—")+'</td></tr>';}).join(""):'<tr><td colspan="5" class="empty">등록된 공지가 없습니다.</td></tr>';
-    $$("[data-announcement-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("사이트의 공지 내역에서 삭제할까요?"))return;const id=b.dataset.announcementDelete;const u=await sb.from("bot_announcements").update({status:"deleted",updated_at:new Date().toISOString()}).eq("id",id).eq("server_id",sid());if(failed(u.error,"공지 내역을 삭제하지 못했어요."))return;notify("공지 내역을 삭제했어요.");await loadAnnouncements();}));
+    $$$("[data-announcement-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("사이트의 공지 내역에서 삭제할까요?"))return;const id=b.dataset.announcementDelete;const u=await sb.from("bot_announcements").update({status:"deleted",updated_at:new Date().toISOString()}).eq("id",id).eq("server_id",sid());if(failed(u.error,"공지 내역을 삭제하지 못했어요."))return;notify("공지 내역을 삭제했어요.");await loadAnnouncements();}));
   }
   async function saveBlacklistServer(e) {
     e.preventDefault();if(!await ensureServer())return;
@@ -312,8 +312,8 @@
     const a=results[0],b=results[1];
     servers.innerHTML=a.error?'<div class="empty">목록을 불러오지 못했어요.</div>':a.data?.length?a.data.map(r=>'<div class="stack-row"><div><strong>'+escapeHtml(r.blocked_server_id)+'</strong><small>'+escapeHtml(r.reason)+' · '+(r.enabled?"활성":"중지")+'</small></div><button class="btn btn-danger" data-blacklist-server-delete="'+r.id+'">삭제</button></div>').join(""):'<div class="empty">등록된 서버가 없습니다.</div>';
     users.innerHTML=b.error?'<div class="empty">목록을 불러오지 못했어요.</div>':b.data?.length?b.data.map(r=>'<div class="stack-row"><div><strong>'+escapeHtml(r.username||r.discord_user_id||"사용자")+'</strong><small>'+(r.discord_user_id?"ID: "+escapeHtml(r.discord_user_id)+" · ":"")+escapeHtml(r.reason)+'</small></div><button class="btn btn-danger" data-blacklist-user-delete="'+r.id+'">삭제</button></div>').join(""):'<div class="empty">등록된 사용자가 없습니다.</div>';
-    $("[data-blacklist-server-delete]").forEach(btn=>btn.addEventListener("click",async()=>{const q=await sb.from("server_blacklists").delete().eq("id",btn.dataset.blacklistServerDelete).eq("managed_server_id",sid());if(failed(q.error,"삭제하지 못했어요."))return;await loadBlacklists();}));
-    $("[data-blacklist-user-delete]").forEach(btn=>btn.addEventListener("click",async()=>{const q=await sb.from("user_blacklists").delete().eq("id",btn.dataset.blacklistUserDelete).eq("server_id",sid());if(failed(q.error,"삭제하지 못했어요."))return;await loadBlacklists();}));
+    $$("[data-blacklist-server-delete]").forEach(btn=>btn.addEventListener("click",async()=>{const q=await sb.from("server_blacklists").delete().eq("id",btn.dataset.blacklistServerDelete).eq("managed_server_id",sid());if(failed(q.error,"삭제하지 못했어요."))return;await loadBlacklists();}));
+    $$("[data-blacklist-user-delete]").forEach(btn=>btn.addEventListener("click",async()=>{const q=await sb.from("user_blacklists").delete().eq("id",btn.dataset.blacklistUserDelete).eq("server_id",sid());if(failed(q.error,"삭제하지 못했어요."))return;await loadBlacklists();}));
   }
   const featureFields = {
     tickets:[["panel_channel_id","패널 게시 채널 ID","text"],["support_role_ids","담당 역할 ID (쉼표 구분)","list"],["category_id","티켓 카테고리 ID","text"],["welcome_message","티켓 생성 안내","textarea"],["close_message","종료 안내","textarea"]],
@@ -375,7 +375,7 @@
     if(q.error){box.innerHTML='<div class="empty">기능 설정을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return;}
     const rows=new Map((q.data||[]).map(r=>[r.feature_key,r]));
     box.innerHTML=features.map(f=>{const r=rows.get(f[0]),enabled=!!r?.enabled;return '<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>'+escapeHtml(f[1])+'</strong><small>'+escapeHtml(f[2])+'</small></div><span class="badge '+(enabled?"green":"")+'">'+(enabled?"사용 중":"중지")+'</span></div><button type="button" class="btn btn-light" data-feature-edit="'+f[0]+'">자세히 설정 <span>→</span></button></article>';}).join("");
-    $("[data-feature-edit]").forEach(btn=>btn.addEventListener("click",()=>{const key=btn.dataset.featureEdit,feature=features.find(f=>f[0]===key),r=rows.get(key);openFeatureEditor(key,feature,r?.settings||{},!!r?.enabled);}));
+    $$("[data-feature-edit]").forEach(btn=>btn.addEventListener("click",()=>{const key=btn.dataset.featureEdit,feature=features.find(f=>f[0]===key),r=rows.get(key);openFeatureEditor(key,feature,r?.settings||{},!!r?.enabled);}));
   }
   async function loadJobs() {
     const t=$("#bot-jobs-list");if(!t||!sid())return;
