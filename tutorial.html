@@ -5,9 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f7f8fa">
 <title>봇 관리 튜토리얼 · TEND</title>
-<link rel="stylesheet" href="./portal.css?v=20261031-5">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./config.js?v=20261029-3"></script>
+<link rel="stylesheet" href="./portal.css?v=20261031-6">
 </head>
 <body data-page="bot" class="tutorial-demo-page">
 <div class="layout">
@@ -15,8 +13,8 @@
 <a class="brand" href="./index.html" aria-label="TEND 메인 메뉴로 이동"><img class="brand-logo" src="./TEND.png" alt="TEND 로고">TEND</a>
 <div data-side-nav><div class="nav-label">WORKSPACE</div><nav class="side-nav"><a href="./dashboard.html"><span class="nav-icon">▦</span>대시보드</a><a href="./requests.html"><span class="nav-icon">▤</span>이용권 신청</a><a class="active" href="./bot.html"><span class="nav-icon">⌘</span>봇 관리</a><a href="./servers.html"><span class="nav-icon">◈</span>서버 관리</a></nav></div>
 <div class="sidebar-bottom"><a class="btn btn-light" href="./bot.html" style="display:block;text-align:center;width:100%;margin-bottom:12px">실제 봇 관리로 돌아가기</a><button class="btn btn-blue" id="restart-guided-tour" type="button" style="width:100%;margin-bottom:12px">튜토리얼 다시 시작</button><a class="btn btn-light" href="./tutorial.html" style="display:block;text-align:center;width:100%;margin-bottom:12px">튜토리얼 체험하기 ↗</a>
-<div class="profile-chip"><div class="avatar" data-profile-initial>T</div><div class="profile-text"><strong data-profile-name>불러오는 중</strong><small>Discord 계정</small></div></div>
-<button class="btn btn-light" data-logout style="width:100%">로그아웃</button>
+<div class="profile-chip"><div class="avatar" data-profile-initial>T</div><div class="profile-text"><strong>체험 사용자</strong><small>DEMO ACCOUNT</small></div></div>
+<span class="card-note" style="display:block;text-align:center">가상 계정 · 실제 로그인 없음</span>
 </div>
 </aside>
 <main class="main">
@@ -24,8 +22,8 @@
 <section class="page-head"><div><h1 class="page-title" data-page-title>봇 관리 체험</h1><p class="page-subtitle" data-page-subtitle>실제 관리 화면과 동일한 구성에서 기능을 직접 눌러보세요. 변경 사항은 저장되지 않습니다.</p></div><span id="bot-status" class="badge green">체험 서버 연결됨</span></section><div class="tutorial-demo-ribbon"><b>체험 모드</b><span>실제 Discord · 봇 · 데이터베이스와 연결되지 않으며, 모든 변경은 이 화면에서만 유지됩니다.</span></div>
 
 <section class="card bot-server-card" data-tour="server" style="margin-top:16px">
-<div class="card-head"><div><div class="card-title">관리 대상 서버</div><p class="page-subtitle">승인된 서버 중 기존 Discord 봇이 실제로 참여 중인 서버를 자동으로 표시합니다.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-light" id="reload-bot-data" type="button">목록 새로고침</button><button class="btn btn-blue" id="open-discord-inventory" type="button">서버 정보 보기</button></div></div>
-<div class="inline-form"><select id="managed-server-select" class="control" aria-label="관리 대상 서버"><option value="">승인된 서버 불러오는 중…</option></select><button class="btn btn-blue" id="start-management" type="button">관리 시작</button><button class="btn btn-light" id="stop-management" type="button">관리 종료</button></div>
+<div class="card-head"><div><div class="card-title">관리 대상 서버</div><p class="page-subtitle">체험용으로 준비된 가상 서버입니다. 실제 Discord 서버와 연결되지 않습니다.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-light" id="reload-bot-data" type="button">목록 새로고침</button><button class="btn btn-blue" id="open-discord-inventory" type="button">서버 정보 보기</button></div></div>
+<div class="inline-form"><select id="managed-server-select" class="control" aria-label="관리 대상 서버"><option value="">TEND 체험 서버</option></select><button class="btn btn-blue" id="start-management" type="button">관리 시작</button><button class="btn btn-light" id="stop-management" type="button">관리 종료</button></div>
 <div id="managed-server-info" class="card-note" style="margin-top:12px">멤버 128명 · 채널 12개 · 온라인 34명 <span class="tutorial-only-note">가상 데이터</span></div>
 </section>
 
@@ -55,7 +53,7 @@
 <div class="setting-row"><div><strong>완전 일치</strong><small>구분된 단어가 규칙과 일치할 때 적용</small></div></div>
 <div class="setting-row"><div><strong>단어 포함</strong><small>메시지 안에 지정한 문자열이 포함될 때 적용</small></div></div>
 <div class="setting-row"><div><strong>타임아웃</strong><small>Discord에서 허용하는 범위 내 초 단위로 설정</small></div></div>
-<p class="page-subtitle">규칙이 여러 개 일치하는 경우 실제 제재 우선순위는 봇 프로그램 설정에 따릅니다. 봇이 온라인이어야 검열이 실행됩니다.</p>
+<p class="page-subtitle">규칙이 여러 개 일치하는 경우 실제 Discord에는 아무런 조치도 적용되지 않습니다.</p>
 </article>
 </div>
 <article class="card" style="margin-top:16px"><div class="card-head"><div class="card-title">등록된 금지 단어</div><span class="card-note" id="moderation-count">0개</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>단어</th><th>검열 방식</th><th>조치</th><th>시간</th><th>상태</th><th>관리</th></tr></thead><tbody id="moderation-rules-list"><tr><td colspan="6" class="empty">서버를 선택하세요.</td></tr></tbody></table></div></article>
@@ -73,11 +71,11 @@
 <div class="field"><label for="announcement-mention">멘션</label><select id="announcement-mention"><option value="none">멘션 없음</option><option value="everyone">@everyone</option><option value="here">@here</option><option value="role">역할 멘션</option></select></div>
 <div class="field hidden" id="announcement-role-field"><label for="announcement-role-ids">역할 ID (여러 개는 쉼표로 구분)</label><input id="announcement-role-ids" maxlength="1000" placeholder="역할 ID, 역할 ID"></div>
 <button class="btn btn-blue" type="submit" >공지 바로 보내기</button>
-<p class="card-note">등록하면 Discord 채널로 바로 전송됩니다.</p>
+<p class="card-note">등록하면 체험 화면의 공지 내역에만 추가됩니다.</p>
 </form>
 </article>
 <article class="card">
-<div class="card-head"><div class="card-title">자동 인식 채널</div><span class="card-note">기존 봇 데이터</span></div>
+<div class="card-head"><div class="card-title">자동 인식 채널</div><span class="card-note">체험 데이터</span></div>
 <form id="announcement-channel-form" class="form-grid">
 <div class="field"><label for="announcement-channel-id">Discord 채널 ID (필요할 때만 수동 등록)</label><input id="announcement-channel-id" required maxlength="30" inputmode="numeric" placeholder="자동 인식되지 않는 채널 ID"></div>
 <div class="field"><label for="announcement-channel-name">표시 이름 (선택)</label><input id="announcement-channel-name" maxlength="100" placeholder="예: 공지사항"></div>
@@ -113,16 +111,16 @@
 <div id="blacklist-users-list" class="stack-list" style="margin-top:14px"></div>
 </article>
 </div>
-<div class="notice warning" style="margin-top:16px">외부 서버의 구성원 여부는 봇이 해당 서버 정보를 확인할 수 있을 때만 판별할 수 있습니다. 닉네임만 등록하면 중복이나 변경으로 인해 정확히 식별하지 못할 수 있습니다.</div>
+<div class="notice warning" style="margin-top:16px">이 목록은 체험 화면 안에서만 작동합니다. 실제 서버나 사용자를 차단하지 않습니다.</div>
 </section>
 <section class="bot-panel" data-bot-panel="features">
 <div class="section-intro"><strong>필요한 기능을 선택하고 세부 설정을 관리해요</strong><p>각 기능의 자세히 설정을 눌러 채널, 역할, 작동 조건과 안내 문구를 설정할 수 있어요.</p></div>
 <div class="card"><div class="card-head"><div class="card-title">서버 자동화 기능</div><span class="card-note">기능별 ON/OFF</span></div><p class="page-subtitle" style="margin-top:-5px;margin-bottom:18px">기능 카드를 눌러 세부 설정을 열고 저장하세요.</p><div id="feature-settings-list" data-tour="features" class="feature-settings-grid"><div class="empty">서버를 선택하세요.</div></div></div>
 </section>
 <section class="bot-panel" data-bot-panel="jobs">
-<div class="section-intro"><strong>요청한 작업이 어떻게 처리되는지 확인해요</strong><p>대기 중인 작업과 실패한 작업, 봇의 마지막 응답 시간을 볼 수 있어요. 봇 프로그램이 연결되어 있어야 실제 작업 결과가 갱신돼요.</p></div>
+<div class="section-intro"><strong>요청한 작업이 어떻게 처리되는지 확인해요</strong><p>대기 중인 작업과 실패한 작업, 가상 봇의 마지막 응답 시간을 볼 수 있어요. 실제 작업과 무관한 예시 기록만 표시됩니다.</p></div>
 <div class="grid two-col">
-<article class="card"><div class="card-head"><div class="card-title">봇 상태</div><span id="bot-health" class="badge amber">응답 대기</span></div><div class="setting-row"><div><strong>마지막 응답</strong><small>봇의 마지막 응답 시간</small></div><span id="bot-last-seen" class="card-note">—</span></div><p class="page-subtitle">이 상태는 봇 프로그램이 직접 갱신해야 정확합니다.</p></article>
+<article class="card"><div class="card-head"><div class="card-title">봇 상태</div><span id="bot-health" class="badge amber">응답 대기</span></div><div class="setting-row"><div><strong>마지막 응답</strong><small>봇의 마지막 응답 시간</small></div><span id="bot-last-seen" class="card-note">—</span></div><p class="page-subtitle">이 상태는 표시된 상태와 기록은 모두 체험용 예시입니다.</p></article>
 <article class="card"><div class="card-head"><div class="card-title">작업 처리 상태</div></div><div class="setting-row"><div><strong>대기 중</strong><small>봇에서 처리해야 하는 작업</small></div><strong id="jobs-pending">—</strong></div><div class="setting-row"><div><strong>실패</strong><small>확인이 필요한 작업</small></div><strong id="jobs-failed">—</strong></div><button class="btn btn-light" id="refresh-jobs" type="button">작업 기록 새로고침</button></article>
 </div>
 <article class="card" style="margin-top:16px"><div class="card-head"><div class="card-title">최근 작업</div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>등록 시각</th><th>작업</th><th>상태</th><th>결과</th></tr></thead><tbody id="bot-jobs-list"><tr><td colspan="4" class="empty">서버를 선택하세요.</td></tr></tbody></table></div></article>
@@ -130,6 +128,6 @@
 </main>
 </div>
 <div id="toast" class="toast" role="status"></div>
-<script src="./tutorial-demo.js?v=20261031-1"></script>
+<script src="./tutorial-demo.js?v=20261031-2"></script>
 </body>
 </html>
