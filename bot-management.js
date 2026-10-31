@@ -99,6 +99,7 @@
     $("#announcement-mention").addEventListener("change",()=>$("#announcement-role-field").classList.toggle("hidden",$("#announcement-mention").value!=="role"));
     $("#managed-server-select").addEventListener("change",async()=>{serverId=$("#managed-server-select").value;if(await ensureServer())await loadServerData();});
     $("#reload-bot-data").addEventListener("click",loadServers);
+    $("#refresh-discord-inventory").addEventListener("click",refreshDiscordInventory);
     $("#start-management").addEventListener("click",()=>management(true));
     $("#stop-management").addEventListener("click",()=>management(false));
     $("#refresh-jobs").addEventListener("click",loadJobs);
@@ -116,6 +117,7 @@
       .on("postgres_changes", { event: "*", schema: "public", table: "discord_guilds" }, () => {
         loadServers().catch(e => console.error("Live guild refresh failed:", e));
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "discord_roles" }, () => { loadDiscordInventory().catch(e => console.error("Live role refresh failed:", e)); })
       .on("postgres_changes", { event: "*", schema: "public", table: "discord_channels" }, payload => {
         if (!payload?.new?.server_id || String(payload.new.server_id) === String(sid())) {
           loadChannels().catch(e => console.error("Live channel refresh failed:", e));
@@ -195,7 +197,56 @@
     $("#bot-health").className="badge "+(s.bot_connected?"green":"amber");
     $("#bot-last-seen").textContent=s.last_seen_at?new Date(s.last_seen_at).toLocaleString("ko-KR"):"—";
     $("#managed-server-info").textContent=($("#managed-server-select").selectedOptions[0]?.textContent||id)+" · "+(managementActive?"관리 중":"관리 종료");
-    await Promise.all([loadRules(),loadChannels(),loadAnnouncements(),loadBlacklists(),loadFeatures(),loadJobs()]);
+    await Promise.all([loadRules(),loadChannels(),loadAnnouncements(),loadBlacklists(),loadFeatures(),loadJobs(),loadDiscordInventory()]);
+  }
+  async function refreshDiscordInventory() {
+    const button=$("#refresh-discord-inventory");
+    if(!await ensureServer())return;
+    if(button){button.disabled=true;button.textContent="Discord에서 불러오는 중…";}
+    try {
+      const result=await sb.functions.invoke("discord-action",{body:{action:"sync_server_info",server_id:sid()}});
+      if(result.error||result.data?.error)throw new Error(result.data?.error||result.error?.message||"서버 정보를 동기화하지 못했어요.");
+      await loadServers();
+      await loadDiscordInventory();
+      const c=result.data?.counts||{};
+      notify("Discord 서버 정보를 갱신했어요. 채널 "+(c.channels??0)+"개 · 역할 "+(c.roles??0)+"개");
+    } catch(error) {
+      console.error("Discord inventory refresh failed:",error);
+      notify("봇 정보를 새로고침하지 못했어요: "+(error.message||"잠시 후 다시 시도해 주세요."));
+    } finally {
+      if(button){button.disabled=false;button.textContent="Discord 정보 새로고침";}
+    }
+  }
+  async function loadDiscordInventory() {
+    const root=$("#discord-inventory-content");
+    if(!root||!sid())return;
+    const [g,c,r]=await Promise.all([
+      sb.from("discord_guilds").select("server_name,description,owner_id,approximate_member_count,approximate_presence_count,channel_count,role_count,emoji_count,sticker_count,verification_level,preferred_locale,premium_tier,premium_subscription_count,synced_at").eq("server_id",sid()).maybeSingle(),
+      sb.from("discord_channels").select("channel_id,channel_name,channel_type,position,parent_id,can_send").eq("server_id",sid()).order("position",{ascending:true}),
+      sb.from("discord_roles").select("role_id,role_name,color,position,managed,mentionable").eq("server_id",sid()).order("position",{ascending:false})
+    ]);
+    if(g.error||c.error||r.error){
+      console.error("Discord inventory read failed:",g.error,c.error,r.error);
+      root.innerHTML='<div class="empty">전체 서버 정보 테이블을 읽지 못했어요. Supabase 마이그레이션을 실행했는지 확인해 주세요.</div>';
+      return;
+    }
+    const guild=g.data,channels=c.data||[],roles=r.data||[];
+    if(!guild){root.innerHTML='<div class="empty">아직 동기화된 정보가 없어요. 위의 Discord 정보 새로고침을 눌러 주세요.</div>';return;}
+    const types={"0":"텍스트","2":"음성","4":"카테고리","5":"공지","13":"스테이지","15":"포럼","16":"미디어"};
+    const stats=[
+      ["멤버",Number(guild.approximate_member_count||0).toLocaleString("ko-KR")],
+      ["온라인",Number(guild.approximate_presence_count||0).toLocaleString("ko-KR")],
+      ["채널",channels.length],
+      ["역할",roles.length],
+      ["이모지",guild.emoji_count||0],
+      ["스티커",guild.sticker_count||0]
+    ];
+    root.innerHTML='<div class="grid two-col">'+stats.map(x=>'<div class="setting-row"><div><strong>'+x[0]+'</strong></div><strong>'+x[1]+'</strong></div>').join("")+'</div>'+
+      '<div class="setting-row"><div><strong>'+escapeHtml(guild.server_name)+'</strong><small>서버 ID: '+escapeHtml(sid())+' · 소유자 ID: '+escapeHtml(guild.owner_id||"확인 불가")+'</small></div><span class="card-note">부스트 '+(guild.premium_subscription_count||0)+'개 · Tier '+(guild.premium_tier||0)+'</span></div>'+
+      (guild.description?'<p class="page-subtitle">'+escapeHtml(guild.description)+'</p>':'')+
+      '<p class="card-note">마지막 동기화: '+(guild.synced_at?new Date(guild.synced_at).toLocaleString("ko-KR"):"—")+' · 언어: '+escapeHtml(guild.preferred_locale||"—")+'</p>'+
+      '<div class="grid two-col" style="margin-top:14px"><div><strong>채널 목록 ('+channels.length+')</strong><div class="stack-list" style="margin-top:8px">'+(channels.length?channels.map(x=>'<div class="stack-row"><div><strong>'+escapeHtml(x.channel_name)+'</strong><small>'+escapeHtml(types[String(x.channel_type)]||"기타")+' · '+escapeHtml(x.channel_id)+(x.parent_id?' · 상위 카테고리 ID '+escapeHtml(x.parent_id):"")+'</small></div><span class="card-note">'+(x.can_send?"전송 가능":"읽기 전용")+'</span></div>').join(""):'<div class="empty">채널이 없습니다.</div>')+'</div></div>'+
+      '<div><strong>역할 목록 ('+roles.length+')</strong><div class="stack-list" style="margin-top:8px">'+(roles.length?roles.map(x=>'<div class="stack-row"><div><strong>'+escapeHtml(x.role_name)+'</strong><small>'+escapeHtml(x.role_id)+(x.managed?" · 연동 역할":"")+(x.mentionable?" · 멘션 가능":"")+'</small></div><span class="card-note">위치 '+x.position+'</span></div>').join(""):'<div class="empty">역할이 없습니다.</div>')+'</div></div></div>';
   }
   async function saveRule(e) {
     e.preventDefault();if(!await ensureServer())return;
