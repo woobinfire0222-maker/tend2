@@ -12,8 +12,14 @@ const steps=[
 ["공지 내용 작성","공지 내용을 입력하고 입력란 밖을 눌러주세요. 내용은 필수예요.","#announcement-content","change"],
 ["공지 보내기","공지 바로 보내기를 눌러 가상 공지를 등록해요.","#announcement-form button[type=submit]","click"],
 ["자동 서버 차단","자동 서버 차단 탭을 눌러 서버와 사용자를 관리하는 화면을 살펴봐요.",'[data-bot-tab="blacklist"]',"click"],
+["서버 차단 등록","서버 ID와 사유를 입력한 뒤 추가 버튼을 눌러요.","#blacklist-server-form button[type=submit]","click"],
+["사용자 차단 등록","사용자 ID 또는 닉네임과 사유를 입력한 뒤 추가 버튼을 눌러요.","#blacklist-user-form button[type=submit]","click"],
+["공지 채널 등록","서버 공지 탭으로 이동해 채널 등록도 체험해요.",'[data-bot-tab="announcements"]',"click"],
+["채널 추가","채널 ID와 이름을 입력한 뒤 채널 추가를 눌러요.","#announcement-channel-form button[type=submit]","click"],
 ["추가 기능","추가 기능 14개 탭을 눌러 자동화 기능 목록을 확인해요.",'[data-bot-tab="features"]',"click"],
-["작업 기록","작업 기록 탭을 눌러 봇 상태와 처리 결과를 확인해요.",'[data-bot-tab="jobs"]',"click"]
+["작업 기록","작업 기록 탭을 눌러 봇 상태와 처리 결과를 확인해요.",'[data-bot-tab="jobs"]',"click"],
+["기능 상세 설정 열기","자동 검열의 자세히 설정을 눌러 세부 설정을 확인해요.",'[data-feature-detail="0"]',"click"],
+["기능 상세 설정 닫기","설정 확인이 끝났어요. 창 오른쪽 위 X를 눌러 닫아 주세요.",".demo-modal-close","click"]
 ];
 const featureSteps=[["자동 검열",0],["공지 자동화",4],["투표 시스템",8]];steps.splice(steps.findIndex(s=>s[0]==="작업 기록"),0,...featureSteps.map(([name,i])=>[name+" 기능 설정",name+" 스위치를 켜거나 꺼 보세요.",'[data-feature="'+i+'"]',"change"]));
 const pages={overview:["서버 개요","멤버 128명 · 채널 12개 · 온라인 34명","서버 정보와 관리 상태를 한눈에 확인해요."],channels:["채널 목록","# 공지사항 · # 일반 채팅 · # 문의 · # 운영진","서버에 등록된 채널과 용도를 살펴봐요."],members:["멤버 관리","서버 블랙리스트 · 사용자 차단 목록","서버와 특정 사용자의 관리 목록이에요."],moderation:["채팅 검열","금지 단어 · 검열 방식 · 위반 시 조치","등록한 검열 규칙과 가상 처리 내역이에요."],announcements:["서버 공지","제목 · 내용 · 발송 채널 · 이미지 · 멘션","공지 작성과 발송 내역을 확인해요."],features:["자동화 기능","환영 메시지 · 자동 역할 · 티켓 · 투표 · 링크 필터 등 14개","자동화 기능별 설정과 작동 상태를 확인해요."],jobs:["작업 기록","봇 상태 · 마지막 응답 · 대기 작업 · 실패 작업","봇의 작업 처리 상태와 최근 기록이에요."]};
@@ -56,7 +62,7 @@ function guideVirtual(mode,i){const keys=["overview","channels","announcements",
 function closeVirtual(){const p=$("#tend-discord-preview"),h=$("#tend-helper");p.classList.remove("open");h.style.left=(innerWidth-390)+"px";setTimeout(()=>{virtualOpen=false;finished=true;locked=false;document.body.classList.remove("tend-tutorial-locked");p.remove();h.remove()},1000)}
 function finish(){finished=true;document.body.classList.remove("tend-tutorial-locked");clearTimeout(typing);shade&&shade.remove();shade=null;$(".tend-guide-active").forEach(x=>x.classList.remove("tend-guide-active"));const h=$("#tend-helper");if(h){h.classList.remove("welcome");h.classList.add("visible");h.style.left="10px";h.style.top=Math.max(10,innerHeight-145)+'px';$("#guide-title").textContent="튜토리얼을 종료했어요.";typeText($("#guide-text"),"안내를 마쳤어요. 이제 페이지의 기능을 자유롭게 이용할 수 있어요.");$("#guide-count").textContent="튜토리얼 종료";}if(virtualOpen){$("#tend-discord-preview")?.classList.remove("open");virtualOpen=false}}
 function restart(){addStyle();step=0;finished=false;viewedPages=new Set();document.body.classList.remove("tend-tutorial-locked");virtualOpen=false;$("#tend-discord-preview")?.classList.remove("open");$("#tend-helper")?.remove();$("#tend-guide-shade")?.remove();shade=null;const h=makeHelper();h.classList.add("visible","welcome");h.style.cssText="";}
-document.addEventListener("click",e=>{if(finished||virtualOpen)return;const s=steps[step];if(!s||s[3]!=="click")return;const t=e.target.closest(s[2]);if(t&&t===active){if(t.matches("[data-bot-tab]")){const tab=t.dataset.botTab;$$("[data-bot-panel]").forEach(p=>p.classList.toggle("active",p.dataset.botPanel===tab));$$("[data-bot-tab]").forEach(b=>b.classList.toggle("active",b===t))}setTimeout(()=>{step++;render()},120)}},true);
+document.addEventListener("click",e=>{if(finished||virtualOpen)return;const s=steps[step];if(!s)return;const t=e.target.closest(s[2]);if(s[3]==="change"){if(t&&t===active)return;if(e.target.closest("button,a,select,input,textarea,[role=button]")){e.preventDefault();e.stopImmediatePropagation()}return}if(s[3]!=="click"||!t||t!==active){e.preventDefault();e.stopImmediatePropagation();return}if(t.matches("[data-bot-tab]")){const tab=t.dataset.botTab;$("[data-bot-panel]").forEach(p=>p.classList.toggle("active",p.dataset.botPanel===tab));$("[data-bot-tab]").forEach(b=>b.classList.toggle("active",b===t))}setTimeout(()=>{step++;render()},120)},true);
 document.addEventListener("change",e=>{if(!finished&&!virtualOpen&&steps[step]?.[3]==="change"&&e.target===active){setTimeout(()=>{step++;render()},120)}},true);
 document.addEventListener("input",e=>{if(!finished&&!virtualOpen&&steps[step]?.[3]==="input"&&e.target===active&&e.target.value.trim()){e.stopImmediatePropagation();step++;render()}},true);
 window.startTendHelper=restart;window.addEventListener("load",()=>{restart();const b=$("#restart-guided-tour");if(b)b.onclick=restart});window.addEventListener("resize",()=>window._tendGuidePlace?.());window.addEventListener("scroll",()=>window._tendGuidePlace?.(),true);
