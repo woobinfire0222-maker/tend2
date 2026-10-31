@@ -121,6 +121,9 @@
           loadChannels().catch(e => console.error("Live channel refresh failed:", e));
         }
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "server_feature_settings", filter: "server_id=eq." + sid() }, () => {
+        loadFeatures().catch(e => console.error("Live feature settings refresh failed:", e));
+      })
       .subscribe(status => {
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") console.warn("TEND live Discord sync subscription:", status);
       });
