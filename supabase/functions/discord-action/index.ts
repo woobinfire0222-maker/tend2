@@ -46,6 +46,127 @@ Deno.serve(async (request) => {
   if (purchaseError) return json({ error: "Unable to verify server access." }, 500);
   if (!purchase) return json({ error: "An approved plan is required for this server." }, 403);
 
+  if (action === "sync_server_info") {
+    const discord = async (path: string) => {
+      const response = await fetch("https://discord.com/api/v10" + path, {
+        headers: { Authorization: "Bot " + botToken, "Content-Type": "application/json" },
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const detail = typeof payload?.message === "string" ? payload.message : "Discord API request failed.";
+        throw new Error(detail + " (HTTP " + response.status + ")");
+      }
+      return payload;
+    };
+
+    try {
+      const [guild, channels, roles, emojis, stickers] = await Promise.all([
+        discord("/guilds/" + serverId + "?with_counts=true"),
+        discord("/guilds/" + serverId + "/channels"),
+        discord("/guilds/" + serverId + "/roles"),
+        discord("/guilds/" + serverId + "/emojis"),
+        discord("/guilds/" + serverId + "/stickers"),
+      ]);
+      if (!Array.isArray(channels) || !Array.isArray(roles) || !Array.isArray(emojis) || !Array.isArray(stickers)) {
+        return json({ error: "Discord returned an unexpected inventory response." }, 502);
+      }
+
+      const now = new Date().toISOString();
+      const channelRows = channels.map((c: Record<string, unknown>) => ({
+        channel_id: String(c.id),
+        server_id: serverId,
+        channel_name: String(c.name || "이름 없는 채널"),
+        channel_type: String(c.type),
+        can_send: [0, 5, 15, 16].includes(Number(c.type)),
+        position: Number(c.position || 0),
+        parent_id: c.parent_id ? String(c.parent_id) : null,
+        topic: typeof c.topic === "string" ? c.topic : null,
+        is_nsfw: c.nsfw === true,
+        bitrate: typeof c.bitrate === "number" ? c.bitrate : null,
+        user_limit: typeof c.user_limit === "number" ? c.user_limit : null,
+        synced_at: now,
+      }));
+      const roleRows = roles.map((r: Record<string, unknown>) => ({
+        role_id: String(r.id),
+        server_id: serverId,
+        role_name: String(r.name || "이름 없는 역할"),
+        color: Number(r.color || 0),
+        position: Number(r.position || 0),
+        permissions: String(r.permissions || "0"),
+        hoist: r.hoist === true,
+        mentionable: r.mentionable === true,
+        managed: r.managed === true,
+        synced_at: now,
+      }));
+
+      const guildRow = {
+        server_id: serverId,
+        server_name: String(guild.name || "Discord 서버"),
+        icon_url: guild.icon ? "https://cdn.discordapp.com/icons/" + serverId + "/" + String(guild.icon) + ".png?size=256" : null,
+        bot_present: true,
+        owner_id: String(guild.owner_id || ""),
+        description: typeof guild.description === "string" ? guild.description : null,
+        approximate_member_count: Number(guild.approximate_member_count || 0),
+        approximate_presence_count: Number(guild.approximate_presence_count || 0),
+        verification_level: Number(guild.verification_level || 0),
+        preferred_locale: String(guild.preferred_locale || ""),
+        premium_tier: Number(guild.premium_tier || 0),
+        premium_subscription_count: Number(guild.premium_subscription_count || 0),
+        features: Array.isArray(guild.features) ? guild.features : [],
+        channel_count: channelRows.length,
+        role_count: roleRows.length,
+        emoji_count: emojis.length,
+        sticker_count: stickers.length,
+        synced_at: now,
+      };
+
+      const { error: guildError } = await db.from("discord_guilds").upsert(guildRow, { onConflict: "server_id" });
+      if (guildError) return json({ error: "Unable to save server information: " + guildError.message }, 500);
+
+      if (channelRows.length) {
+        const { error } = await db.from("discord_channels").upsert(channelRows, { onConflict: "channel_id" });
+        if (error) return json({ error: "Unable to save channel information: " + error.message }, 500);
+        const ids = channelRows.map(c => c.channel_id);
+        const { error: pruneError } = await db.from("discord_channels").delete().eq("server_id", serverId).not("channel_id", "in", "(" + ids.join(",") + ")");
+        if (pruneError) return json({ error: "Unable to remove outdated channels: " + pruneError.message }, 500);
+      } else {
+        const { error } = await db.from("discord_channels").delete().eq("server_id", serverId);
+        if (error) return json({ error: "Unable to clear outdated channels: " + error.message }, 500);
+      }
+
+      if (roleRows.length) {
+        const { error } = await db.from("discord_roles").upsert(roleRows, { onConflict: "role_id" });
+        if (error) return json({ error: "Unable to save role information: " + error.message }, 500);
+        const ids = roleRows.map(r => r.role_id);
+        const { error: pruneError } = await db.from("discord_roles").delete().eq("server_id", serverId).not("role_id", "in", "(" + ids.join(",") + ")");
+        if (pruneError) return json({ error: "Unable to remove outdated roles: " + pruneError.message }, 500);
+      } else {
+        const { error } = await db.from("discord_roles").delete().eq("server_id", serverId);
+        if (error) return json({ error: "Unable to clear outdated roles: " + error.message }, 500);
+      }
+
+      return json({
+        ok: true,
+        server_id: serverId,
+        server_name: guildRow.server_name,
+        synced_at: now,
+        counts: {
+          channels: channelRows.length,
+          text_channels: channelRows.filter(c => [0, 5, 15, 16].includes(Number(c.channel_type))).length,
+          voice_channels: channelRows.filter(c => [2, 13].includes(Number(c.channel_type))).length,
+          categories: channelRows.filter(c => Number(c.channel_type) === 4).length,
+          roles: roleRows.length,
+          members: guildRow.approximate_member_count,
+          online: guildRow.approximate_presence_count,
+          emojis: emojis.length,
+          stickers: stickers.length,
+        },
+      });
+    } catch (error) {
+      return json({ error: error instanceof Error ? error.message : "Unable to sync Discord server information." }, 502);
+    }
+  }
+
   if (action === "send_announcement") {
     const title = String(body.title || "").trim().slice(0, 200);
     const content = String(body.content || "").trim();
