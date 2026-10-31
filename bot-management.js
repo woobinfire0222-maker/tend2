@@ -99,7 +99,7 @@
     $("#announcement-mention").addEventListener("change",()=>$("#announcement-role-field").classList.toggle("hidden",$("#announcement-mention").value!=="role"));
     $("#managed-server-select").addEventListener("change",async()=>{serverId=$("#managed-server-select").value;if(await ensureServer())await loadServerData();});
     $("#reload-bot-data").addEventListener("click",loadServers);
-    $("#refresh-discord-inventory").addEventListener("click",refreshDiscordInventory);
+    $("#open-discord-inventory").addEventListener("click",openDiscordInventory);
     $("#start-management").addEventListener("click",()=>management(true));
     $("#stop-management").addEventListener("click",()=>management(false));
     $("#refresh-jobs").addEventListener("click",loadJobs);
@@ -199,6 +199,19 @@
     $("#managed-server-info").textContent=($("#managed-server-select").selectedOptions[0]?.textContent||id)+" · "+(managementActive?"관리 중":"관리 종료");
     await Promise.all([loadRules(),loadChannels(),loadAnnouncements(),loadBlacklists(),loadFeatures(),loadJobs(),loadDiscordInventory()]);
   }
+  function openDiscordInventory() {
+    if(!sid()){notify("먼저 관리 대상 서버를 선택해 주세요.");return;}
+    $("#discord-inventory-window")?.remove();
+    const overlay=document.createElement("div");
+    overlay.id="discord-inventory-window";
+    overlay.className="feature-editor-backdrop";
+    overlay.innerHTML='<section class="feature-editor" role="dialog" aria-modal="true" aria-labelledby="discord-inventory-title"><header><div><h2 id="discord-inventory-title">Discord 서버 정보</h2><p>서버 기본 정보, 전체 채널, 공지 채널과 역할을 확인합니다.</p></div><button type="button" class="btn btn-light" data-discord-info-close>닫기</button></header><div style="display:flex;justify-content:flex-end;margin:12px 0"><button class="btn btn-blue" id="refresh-discord-inventory" type="button">Discord 정보 새로고침</button></div><div id="discord-inventory-content"><div class="empty">서버 정보를 불러오는 중…</div></div></section>';
+    document.body.append(overlay);
+    overlay.querySelector("[data-discord-info-close]").addEventListener("click",()=>overlay.remove());
+    overlay.addEventListener("click",e=>{if(e.target===overlay)overlay.remove();});
+    overlay.querySelector("#refresh-discord-inventory").addEventListener("click",refreshDiscordInventory);
+    loadDiscordInventory();
+  }
   async function refreshDiscordInventory() {
     const button=$("#refresh-discord-inventory");
     if(!await ensureServer())return;
@@ -232,11 +245,11 @@
     }
     const guild=g.data,channels=c.data||[],roles=r.data||[];
     if(!guild){root.innerHTML='<div class="empty">아직 동기화된 정보가 없어요. 위의 Discord 정보 새로고침을 눌러 주세요.</div>';return;}
-    const types={"0":"텍스트","2":"음성","4":"카테고리","5":"공지","13":"스테이지","15":"포럼","16":"미디어"};
+    const types={"0":"텍스트","2":"음성","4":"카테고리","5":"공지 채널","13":"스테이지","15":"포럼","16":"미디어"};
     const stats=[
       ["멤버",Number(guild.approximate_member_count||0).toLocaleString("ko-KR")],
       ["온라인",Number(guild.approximate_presence_count||0).toLocaleString("ko-KR")],
-      ["채널",channels.length],
+      ["전체 채널",channels.length],["공지 채널",channels.filter(x=>String(x.channel_type)==="5").length],["텍스트 채널",channels.filter(x=>String(x.channel_type)==="0").length],
       ["역할",roles.length],
       ["이모지",guild.emoji_count||0],
       ["스티커",guild.sticker_count||0]
