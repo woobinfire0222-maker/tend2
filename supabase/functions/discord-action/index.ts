@@ -60,13 +60,15 @@ Deno.serve(async (request) => {
     };
 
     try {
-      const [guild, channels, roles, emojis, stickers] = await Promise.all([
+      const [guild, channels, roles, emojiResult, stickerResult] = await Promise.all([
         discord("/guilds/" + serverId + "?with_counts=true"),
         discord("/guilds/" + serverId + "/channels"),
         discord("/guilds/" + serverId + "/roles"),
-        discord("/guilds/" + serverId + "/emojis"),
-        discord("/guilds/" + serverId + "/stickers"),
+        discord("/guilds/" + serverId + "/emojis").catch(() => []),
+        discord("/guilds/" + serverId + "/stickers").catch(() => []),
       ]);
+      const emojis = Array.isArray(emojiResult) ? emojiResult : [];
+      const stickers = Array.isArray(stickerResult) ? stickerResult : [];
       if (!Array.isArray(channels) || !Array.isArray(roles) || !Array.isArray(emojis) || !Array.isArray(stickers)) {
         return json({ error: "Discord returned an unexpected inventory response." }, 502);
       }
@@ -77,7 +79,7 @@ Deno.serve(async (request) => {
         server_id: serverId,
         channel_name: String(c.name || "이름 없는 채널"),
         channel_type: String(c.type),
-        can_send: [0, 5, 15, 16].includes(Number(c.type)),
+        can_send: [0, 5].includes(Number(c.type)),
         position: Number(c.position || 0),
         parent_id: c.parent_id ? String(c.parent_id) : null,
         topic: typeof c.topic === "string" ? c.topic : null,
