@@ -153,3 +153,41 @@
 .tutorial-complete{margin-top:13px;padding:12px;border-radius:9px;background:#f0f7f3;color:#28734a;font-size:11px;font-weight:750}
 @media(max-width:700px){.tutorial-layout{grid-template-columns:1fr;gap:12px}.tutorial-steps{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.tutorial-steps button{padding:9px 7px;gap:6px}.tutorial-steps button span{font-size:10px}.tutorial-steps button small{font-size:9px}.tutorial-stage{padding:15px}}
 @media(max-width:480px){.tutorial-card{padding:15px}.tutorial-heading{flex-direction:column;gap:10px}.tutorial-plans{grid-template-columns:1fr}.tutorial-plans label>span{min-height:0;display:grid;grid-template-columns:1fr auto;align-items:center}.tutorial-plans small{grid-column:1}.tutorial-plans b{grid-column:2;grid-row:1/3}.tutorial-fields{grid-template-columns:1fr}.tutorial-invite-preview{align-items:flex-start;flex-wrap:wrap}.tutorial-preview-tag{margin-left:0}}
+
+/* Virtual Discord server management simulator */
+.tutorial-heading-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.sim-backdrop{position:fixed;inset:0;z-index:500;background:#101522b8;display:grid;place-items:center;padding:18px}
+.sim-window{width:min(1380px,100%);height:min(850px,94vh);background:#fff;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 100px #0005}
+.sim-top{height:65px;flex:none;display:flex;align-items:center;gap:14px;padding:0 19px;border-bottom:1px solid #e8eaf0}
+.sim-top>div{display:grid;gap:3px}.sim-top strong{font-size:15px}.sim-kicker{font-size:9px;letter-spacing:.1em;color:#356df3;font-weight:850}
+.sim-warning{margin-left:auto;background:#fff5e7;color:#98600c;padding:7px 10px;border-radius:7px;font-size:10px;font-weight:800}
+.sim-close{width:32px;height:32px;border-radius:8px;background:#f1f3f6;color:#525967;font-size:22px}
+.sim-body{display:grid;grid-template-columns:62px 190px minmax(280px,1fr) 310px;min-height:0;flex:1;background:#f4f5f8}
+.sim-server-rail{background:#202431;display:flex;align-items:center;flex-direction:column;gap:12px;padding:15px 8px}
+.sim-server-logo{width:40px;height:40px;border-radius:14px;background:#3a4152;color:#fff;display:grid;place-items:center;font-weight:900}.sim-server-logo.active{background:#356df3;border-radius:13px}
+.sim-channel-rail{background:#e9ebf0;display:flex;flex-direction:column;padding:17px 10px;min-width:0}
+.sim-server-name{font-size:12px;font-weight:850;padding:0 8px 18px;border-bottom:1px solid #d9dce4}.sim-server-name span{float:right}
+.sim-channel-label{font-size:10px;color:#7b8290;font-weight:800;margin:19px 8px 8px}
+.sim-channel{background:transparent;text-align:left;color:#626a78;padding:9px 10px;border-radius:7px;font-size:12px;margin:2px 0}
+.sim-channel.active{background:#fff;color:#28344d;font-weight:800}
+.sim-user{margin-top:auto;border-top:1px solid #d8dce4;padding:13px 4px 0;display:flex;align-items:center;gap:8px}.sim-user>span:last-child{display:grid;gap:3px}.sim-user b{font-size:10px}.sim-user small{font-size:9px;color:#269b68}
+.sim-avatar{width:32px;height:32px;flex:none;border-radius:50%;background:#dce5ff;color:#315fd5;display:grid;place-items:center;font-size:11px;font-weight:850}
+.sim-discord{min-width:0;display:flex;flex-direction:column;background:#fff;border-right:1px solid #e5e8ee}
+.sim-channel-head{height:52px;flex:none;border-bottom:1px solid #eceef2;display:flex;align-items:center;justify-content:space-between;padding:0 16px}.sim-channel-head b{font-size:13px}.sim-channel-head span{font-size:10px;color:#8a909c}
+.sim-chat{padding:15px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:18px}
+.sim-message{display:flex;gap:10px;align-items:flex-start}.sim-message>div{min-width:0;flex:1}.sim-message-meta{display:flex;align-items:center;gap:8px}.sim-message-meta b{font-size:11px}.sim-message-meta small{font-size:9px;color:#9298a3}.sim-message p{font-size:12px;line-height:1.6;margin:5px 0;color:#424957;overflow-wrap:anywhere}
+.sim-delete{font-size:9px;color:#9a6570;background:transparent;padding:3px 0}.sim-delete:hover{color:#c33}
+.sim-compose{display:flex;gap:8px;padding:12px;border-top:1px solid #eceef2}.sim-compose input,.sim-form-block input,.sim-form-block textarea{min-width:0;width:100%;border:1px solid #e0e4eb;border-radius:8px;padding:10px;font-size:11px;outline:0}.sim-compose button,.sim-inline button,.sim-primary{background:#356df3;color:#fff;border-radius:8px;padding:0 13px;font-size:11px;font-weight:800;flex:none}
+.sim-control{background:#fff;min-width:0;overflow:auto;padding:15px}
+.sim-control-title{display:grid;gap:4px;margin-bottom:14px}.sim-control-title b{font-size:13px}.sim-control-title small{font-size:10px;color:#8a909c}
+.sim-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;background:#f2f4f7;border-radius:9px}.sim-tabs button{padding:8px 2px;border-radius:7px;background:transparent;color:#737b88;font-size:10px;font-weight:750}.sim-tabs button.active{background:#fff;color:#356df3;box-shadow:0 1px 4px #18243a12}
+#sim-control-content{padding-top:14px}.sim-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.sim-stat-grid>div{display:grid;gap:7px;padding:12px;border:1px solid #edf0f4;border-radius:9px}.sim-stat-grid small{font-size:9px;color:#818895}.sim-stat-grid b{font-size:17px}
+.sim-info-card{display:grid;gap:7px;padding:12px;border:1px solid #e9edf4;border-radius:9px;margin-top:11px}.sim-info-card b{font-size:11px}.sim-info-card span,.sim-info-card small{font-size:10px;color:#737b88;line-height:1.5}.sim-online-dot{color:#269b68!important}
+.sim-action-list{display:grid;gap:6px;margin-top:12px}.sim-action-list button{display:flex;justify-content:space-between;padding:11px;border:1px solid #edf0f4;border-radius:8px;background:#fff;text-align:left;font-size:10px;font-weight:750;color:#4d5563}.sim-action-list button span{color:#356df3}
+.sim-feedback{padding:10px;background:#f3f6ff;border-radius:8px;color:#4964a6;font-size:10px;line-height:1.6;margin-top:10px}
+.sim-form-block{display:grid;gap:8px}.sim-form-block label{font-size:10px;font-weight:800;color:#505664}.sim-form-block small{font-size:9px;color:#858c98;line-height:1.5}.sim-inline{display:flex;gap:6px}.sim-inline button{padding:0 10px}.sim-list-title{font-size:10px;font-weight:850;margin:17px 0 8px}.sim-ban-row{display:flex;align-items:center;justify-content:space-between;padding:9px;border:1px solid #edf0f4;border-radius:8px;margin-bottom:6px;font-size:10px}.sim-ban-row button{background:transparent;color:#b44a57;font-size:10px}
+.sim-form-block textarea{resize:vertical}.sim-primary{min-height:36px}.sim-ann-preview{display:grid;gap:8px;padding:12px;border:1px solid #e5eaf5;border-left:3px solid #356df3;border-radius:8px;margin-top:12px}.sim-ann-preview small,.sim-ann-preview span{font-size:9px;color:#818895}.sim-ann-preview b{font-size:12px}.sim-ann-preview p{font-size:11px;line-height:1.6;white-space:pre-wrap;margin:0}
+.sim-bottom{height:48px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 15px;border-top:1px solid #e8eaf0}.sim-bottom span{font-size:9px;color:#818895}
+.sim-empty{font-size:11px;color:#8b929e;text-align:center;padding:25px}
+@media(max-width:1000px){.sim-body{grid-template-columns:52px 155px minmax(230px,1fr)}.sim-control{grid-column:1/-1;max-height:270px;border-top:1px solid #e5e8ee}.sim-window{height:95vh}.sim-control-title{display:none}.sim-tabs{max-width:360px}}
+@media(max-width:620px){.sim-backdrop{padding:0}.sim-window{height:100dvh;border-radius:0}.sim-top{padding:0 11px}.sim-warning{font-size:8px}.sim-body{grid-template-columns:42px 112px minmax(0,1fr);grid-template-rows:minmax(280px,1fr) 240px}.sim-server-rail{padding:12px 4px}.sim-server-logo{width:32px;height:32px}.sim-channel-rail{padding:12px 6px}.sim-server-name{font-size:10px;padding:0 4px 13px}.sim-channel{font-size:10px;padding:8px 5px}.sim-channel-head{padding:0 9px}.sim-channel-head span{display:none}.sim-chat{padding:10px}.sim-control{grid-column:1/-1;grid-row:2;max-height:none;padding:12px}.sim-bottom{height:44px;padding:0 9px}.sim-bottom span{max-width:68%;line-height:1.4}.sim-bottom .btn{font-size:9px;padding:7px}}
