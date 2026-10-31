@@ -244,8 +244,11 @@
     $$("[data-channel-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("이 공지 채널을 삭제할까요?"))return;const r=await sb.from("announcement_channels").delete().eq("id",b.dataset.channelDelete).eq("server_id",sid());if(failed(r.error,"채널을 삭제하지 못했어요."))return;await loadChannels();}));
   }
   async function saveAnnouncement(e) {
-    e.preventDefault();if(!await ensureServer())return;
-    const form=e.currentTarget,submit=form.querySelector('button[type="submit"]');
+    e.preventDefault();
+    const form=e.currentTarget;
+    if(!form){notify("공지 작성 화면을 확인할 수 없어요. 새로고침해 주세요.");return;}
+    if(!await ensureServer())return;
+    const submit=form.querySelector('button[type="submit"]');
     const title=$("#announcement-title").value.trim(),content=$("#announcement-content").value.trim(),channel=$("#announcement-channel").value||null,mention=$("#announcement-mention").value;
     let image=$("#announcement-image").value.trim()||null;
     const file=$("#announcement-image-file").files[0]||null;
@@ -267,7 +270,7 @@
     try {
       const result=await sb.functions.invoke("discord-action",{body:{action:"send_announcement",server_id:sid(),channel_id:channel,title,content,image_url:image,mention,role_ids:roles}});
       if(result.error||result.data?.error)throw new Error(result.data?.error||result.error?.message||"백엔드 연결을 확인해 주세요.");
-      e.target.reset();$("#announcement-role-field").classList.add("hidden");
+      form.reset();$("#announcement-role-field")?.classList.add("hidden");
       notify("공지를 Discord에 전송하고 내역에 저장했어요.");
       await loadAnnouncements();
     } catch(err) {
@@ -276,7 +279,9 @@
     } finally {if(submit){submit.disabled=false;submit.textContent="공지 바로 보내기";}}
   }
   async function loadAnnouncements() {
-    const t=$("#announcements-list"),q=await sb.from("bot_announcements").select("id,title,status,channel_id,created_at,error_message").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50);
+    const t=$("#announcements-list");
+    if(!t)return;
+    const q=await sb.from("bot_announcements").select("id,title,status,channel_id,created_at,error_message").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50);
     if(q.error){console.error("announcement history query failed:",q.error);t.innerHTML='<tr><td colspan="5" class="empty">공지 내역을 불러오지 못했어요. 데이터베이스 설정을 확인해 주세요.</td></tr>';return;}
     const states={queued:["발송 대기","amber"],sent:["발송 완료","green"],failed:["실패","red"],deleted:["삭제됨",""]};
     t.innerHTML=q.data?.length?q.data.map(r=>{const st=states[r.status]||[r.status,""];return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.title||"(제목 없음)")+(r.error_message?'<small class="reason-text">'+escapeHtml(r.error_message)+'</small>':"")+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.channel_id||"기본 채널")+'</td><td>'+(r.status!=="deleted"?'<button class="btn btn-danger" data-announcement-delete="'+r.id+'">삭제</button>':"—")+'</td></tr>';}).join(""):'<tr><td colspan="5" class="empty">등록된 공지가 없습니다.</td></tr>';
@@ -361,7 +366,9 @@
     });
   }
   async function loadFeatures() {
-    const box=$("#feature-settings-list"),q=await sb.from("server_feature_settings").select("feature_key,settings,enabled").eq("server_id",sid());
+    const box=$("#feature-settings-list");
+    if(!box)return;
+    const q=await sb.from("server_feature_settings").select("feature_key,settings,enabled").eq("server_id",sid());
     if(q.error){box.innerHTML='<div class="empty">기능 설정을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return;}
     const rows=new Map((q.data||[]).map(r=>[r.feature_key,r]));
     box.innerHTML=features.map(f=>{const r=rows.get(f[0]),enabled=!!r?.enabled;return '<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>'+escapeHtml(f[1])+'</strong><small>'+escapeHtml(f[2])+'</small></div><span class="badge '+(enabled?"green":"")+'">'+(enabled?"사용 중":"중지")+'</span></div><button type="button" class="btn btn-light" data-feature-edit="'+f[0]+'">자세히 설정 <span>→</span></button></article>';}).join("");
