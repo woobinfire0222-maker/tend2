@@ -59,7 +59,7 @@ const read=(sel,empty)=>{const el=$(sel);if(!el)return empty;const v=(el.innerTe
 let cards=[];
 if(key==="overview")cards=[["관리 상태",read("#bot-status","관리 시작 전")],["서버 정보",read("#managed-server-info","서버 정보가 없어요.")]];
 if(key==="moderation")cards=[["등록된 규칙",read("#moderation-rules-list","아직 등록한 규칙이 없어요.")],["규칙 수",read("#moderation-count","0개")]];
-if(key==="announcements")cards=[["공지 내역",read("#announcements-list","아직 공지가 없어요.")],["채널 목록",read("#announcement-channels-list","등록된 채널이 없어요.")]];
+if(key==="announcements"){const row=$("#announcements-list tr[data-announcement-content]");cards=[["최근 공지",row?.querySelector("td:nth-child(2)")?.textContent||"아직 등록된 공지가 없어요."],["공지 내용",row?.getAttribute("data-announcement-content")||"공지 내용을 작성하면 여기에 표시돼요."],["채널 목록",read("#announcement-channels-list","등록된 채널이 없어요.")]];}
 if(key==="members")cards=[["차단 서버",read("#blacklist-servers-list","등록된 서버가 없어요.")],["차단 사용자",read("#blacklist-users-list","등록된 사용자가 없어요.")]];if(key==="channels")cards=[["등록된 채널",read("#announcement-channels-list","채널 정보가 없어요.")],["공지 발송 채널",read("#announcement-channel","기본 채널")]];
 if(key==="features")cards=[["기능별 설정",read("#feature-settings-list","기능 설정이 없어요.")]];
 if(key==="jobs")cards=[["봇 상태",read("#bot-health","상태 정보가 없어요.")],["최근 작업",read("#bot-jobs-list","작업 기록이 없어요.")]];
