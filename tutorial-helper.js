@@ -2,29 +2,36 @@
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 let step=0,active=null,shade=null,typing=0,finished=false,virtualOpen=false,viewedPages=new Set();
 const steps=[
-["관리 시작","관리 시작을 눌러 가상 서버에서 봇 관리를 시작해 보세요.","#start-management","click"],
-["서버 정보 보기","서버 정보 보기를 눌러 멤버 수와 채널, 역할을 확인해요.","#open-discord-inventory","click"],
-["서버 정보 닫기","정보를 확인했으면 오른쪽 위 X를 눌러 창을 닫아 주세요.",".demo-modal-close","click"],
-["채팅 검열 탭","채팅 검열 탭을 직접 눌러 설정 화면으로 이동해요.",'[data-bot-tab="moderation"]',"click"],
-["금지 단어 입력","금지할 단어를 입력하고 입력란 밖을 눌러주세요.","#moderation-word","change"],
-["금지 단어 추가","금지 단어 추가를 눌러 가상 규칙을 등록해요.","#save-moderation-rule","click"],
-["서버 공지 탭","서버 공지 탭을 직접 눌러 공지 작성 화면을 열어요.",'[data-bot-tab="announcements"]',"click"],
-["공지 내용 작성","공지 내용을 입력하고 입력란 밖을 눌러주세요. 내용은 필수예요.","#announcement-content","change"],
-["공지 보내기","공지 바로 보내기를 눌러 가상 공지를 등록해요.","#announcement-form button[type=submit]","click"],
-["자동 서버 차단","자동 서버 차단 탭을 눌러 서버와 사용자를 관리하는 화면을 살펴봐요.",'[data-bot-tab="blacklist"]',"click"],
-["서버 ID 입력","차단할 서버 ID를 입력해 주세요. 사유는 기본값으로 채워져 있어요.","#blacklist-server-id","change"],
-["서버 차단 등록","입력한 서버를 블랙리스트에 추가해요.","#blacklist-server-form button[type=submit]","click"],
-["사용자 닉네임 입력","차단할 사용자의 닉네임을 입력해 주세요.","#blacklist-user-name","change"],
-["사용자 차단 등록","입력한 사용자를 차단 목록에 추가해요.","#blacklist-user-form button[type=submit]","click"],
-["공지 채널 등록","서버 공지 탭으로 이동해 채널 등록도 체험해요.",'[data-bot-tab="announcements"]',"click"],
-["채널 ID 입력","등록할 공지 채널의 ID를 입력해 주세요.","#announcement-channel-id","change"],
-["채널 추가","채널 ID를 확인하고 채널 추가를 눌러요.","#announcement-channel-form button[type=submit]","click"],
-["추가 기능","추가 기능 14개 탭을 눌러 자동화 기능 목록을 확인해요.",'[data-bot-tab="features"]',"click"],
-["기능 상세 설정 열기","자동 검열의 자세히 설정을 눌러 세부 설정을 확인해요.",'[data-feature-detail="0"]',"click"],
-["기능 상세 설정 닫기","설정 확인이 끝났어요. 창 오른쪽 위 X를 눌러 닫아 주세요.",".demo-modal-close","click"],
-["작업 기록","작업 기록 탭을 눌러 봇 상태와 처리 결과를 확인해요.",'[data-bot-tab="jobs"]',"click"]
+["관리 시작","먼저 체험 서버의 봇 관리를 켜 볼게요. 관리 시작 버튼을 눌러 주세요.","#start-management","click"],
+["서버 정보 확인","서버 정보 보기 버튼을 눌러 멤버·채널·역할 정보를 확인해요.","#open-discord-inventory","click"],
+["서버 정보 닫기","확인이 끝났으면 정보 창 오른쪽 위 X를 눌러 닫아요.",".demo-modal-close","click"],
+["채팅 검열 탭","채팅 검열 탭으로 이동해 금지 단어 규칙을 만들어 볼게요.",'[data-bot-tab="moderation"]',"click"],
+["금지 단어 입력","차단할 단어를 입력하고 입력란 밖을 눌러 주세요.","#moderation-word","change"],
+["검열 방식 선택","단어를 어떤 방식으로 검사할지 선택해요.","#moderation-match","change"],
+["위반 시 조치 선택","규칙에 걸렸을 때 적용할 조치를 선택해요.","#moderation-action","change"],
+["금지 단어 등록","금지 단어 추가를 눌러 규칙을 등록해요.","#save-moderation-rule","click"],
+["서버 공지 탭","이번에는 서버 공지 탭으로 이동해 실제 공지처럼 작성해 볼게요.",'[data-bot-tab="announcements"]',"click"],
+["공지 제목 작성","공지 제목을 입력하고 입력란 밖을 눌러 주세요.","#announcement-title","change"],
+["공지 내용 작성","멤버에게 전달할 공지 내용을 입력해요.","#announcement-content","change"],
+["공지 채널 선택","공지사항을 보낼 채널을 선택해요.","#announcement-channel","change"],
+["멘션 설정","필요하면 멘션 대상을 선택해요. 기본값은 멘션 없음이에요.","#announcement-mention","change"],
+["공지 등록","공지 바로 보내기를 눌러 체험 서버에 공지를 등록해요.","#announcement-form button[type=submit]","click"],
+["자동 서버 차단 탭","자동 서버 차단 탭으로 이동해 서버와 사용자를 관리해요.",'[data-bot-tab="blacklist"]',"click"],
+["차단 서버 등록","차단할 서버 ID를 입력하고 입력란 밖을 눌러 주세요.","#blacklist-server-id","change"],
+["서버 블랙리스트 추가","블랙리스트 서버 추가를 눌러 등록해요.","#blacklist-server-form button[type=submit]","click"],
+["사용자 차단 등록","닉네임을 입력해 차단할 사용자를 지정해요.","#blacklist-user-name","change"],
+["사용자 차단 추가","차단 목록에 추가를 눌러 사용자를 등록해요.","#blacklist-user-form button[type=submit]","click"],
+["공지 채널 등록","다시 서버 공지 탭으로 이동해 채널도 직접 등록해 볼게요.",'[data-bot-tab="announcements"]',"click"],
+["채널 ID 입력","체험용 채널 ID를 입력해 주세요.","#announcement-channel-id","change"],
+["채널 이름 입력","채널 목록에 표시할 이름을 입력해요.","#announcement-channel-name","change"],
+["채널 추가","채널 추가를 눌러 공지 채널 목록에 등록해요.","#announcement-channel-form button[type=submit]","click"],
+["추가 기능 탭","추가 기능 탭에서 자동화 기능을 확인해요.",'[data-bot-tab="features"]',"click"],
+["자동 검열 설정","자동 검열 기능을 켜거나 꺼 보세요.",'[data-feature="0"]',"change"],
+["기능 상세 설정 열기","자세히 설정을 눌러 자동 검열의 세부 설정을 확인해요.",'[data-feature-detail="0"]',"click"],
+["기능 설정 저장","기능 사용 여부를 확인하고 설정 저장을 눌러요.","#save-demo-feature","click"],
+["작업 기록 탭","마지막으로 작업 기록 탭에서 처리 내역을 확인해요.",'[data-bot-tab="jobs"]',"click"],
+["작업 기록 새로고침","작업 기록 새로고침을 눌러 새로운 작업을 기록해요.","#refresh-jobs","click"]
 ];
-const featureSteps=[["자동 검열",0],["공지 자동화",4],["투표 시스템",8]];steps.splice(steps.findIndex(s=>s[0]==="작업 기록"),0,...featureSteps.map(([name,i])=>[name+" 기능 설정",name+" 스위치를 켜거나 꺼 보세요.",'[data-feature="'+i+'"]',"change"]));
 const pages={overview:["서버 개요","멤버 128명 · 채널 12개 · 온라인 34명","서버 정보와 관리 상태를 한눈에 확인해요."],channels:["채널 목록","# 공지사항 · # 일반 채팅 · # 문의 · # 운영진","서버에 등록된 채널과 용도를 살펴봐요."],members:["멤버 관리","서버 블랙리스트 · 사용자 차단 목록","서버와 특정 사용자의 관리 목록이에요."],moderation:["채팅 검열","금지 단어 · 검열 방식 · 위반 시 조치","등록한 검열 규칙과 가상 처리 내역이에요."],announcements:["서버 공지","제목 · 내용 · 발송 채널 · 이미지 · 멘션","공지 작성과 발송 내역을 확인해요."],features:["자동화 기능","환영 메시지 · 자동 역할 · 티켓 · 투표 · 링크 필터 등 14개","자동화 기능별 설정과 작동 상태를 확인해요."],jobs:["작업 기록","봇 상태 · 마지막 응답 · 대기 작업 · 실패 작업","봇의 작업 처리 상태와 최근 기록이에요."]};
 function addStyle(){if($("#tend-guide-css"))return;const s=document.createElement("style");s.id="tend-guide-css";s.textContent=`
 #tend-guide-shade{position:fixed;inset:0;z-index:21000;pointer-events:none}.shade-part{position:fixed;background:rgba(20,27,40,.68);pointer-events:auto}.tend-guide-active{position:relative!important;z-index:21002!important;pointer-events:auto!important}#tend-guide-ring{position:fixed;z-index:21001;border:2px solid #69a0ff;border-radius:11px;box-shadow:0 0 0 4px #6da4ff25,0 0 26px #4383ff55;pointer-events:none;transition:all .22s}
@@ -32,7 +39,7 @@ function addStyle(){if($("#tend-guide-css"))return;const s=document.createElemen
 #tend-helper .helper-orb{width:56px;height:56px;flex:none;border-radius:50%;background:radial-gradient(circle at 30% 22%,#d9f6ff,#78caff 25%,#4389ff 59%,#2548c5);border:3px solid white;box-shadow:0 12px 35px #235dd84a,inset 0 4px 12px #ffffffa8;animation:guideBob 2.4s ease-in-out infinite}
 #tend-helper .helper-card{pointer-events:auto;min-width:0;flex:1;background:#fff;border:1px solid #e3eaf5;border-radius:14px;padding:12px 14px;box-shadow:0 16px 45px #14284b30}#tend-helper .helper-label{font-size:9px;font-weight:900;letter-spacing:.13em;color:#3975ed}#tend-helper h3{font-size:13px;margin:6px 0;color:#202b3c}#tend-helper p{font-size:11px;line-height:1.65;color:#657185;margin:0;min-height:30px}#tend-helper .helper-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px}#tend-helper .helper-foot small{font-size:9px;color:#8b95a5}#tend-helper button{border:0;border-radius:7px;background:#eef2f8;color:#4f5c70;padding:7px 10px;font-size:10px;font-weight:800;cursor:pointer}
 #tend-helper .welcome{display:none}#tend-helper.welcome{inset:0!important;width:100vw;height:100dvh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:radial-gradient(ellipse at 50% 42%,#eaf3ff,#f7f9fd 55%,#fff);pointer-events:auto}#tend-helper.welcome .welcome{display:block}#tend-helper.welcome .helper-orb{width:108px;height:108px}#tend-helper.welcome .helper-card{display:none}#tend-helper.welcome .welcome{display:block;width:min(490px,calc(100vw - 30px));text-align:center;padding:27px 25px;background:white;border:1px solid #e4eaf4;border-radius:21px;box-shadow:0 22px 70px #1b3d7620}#tend-helper .welcome h2{font-size:23px;color:#1e293b;margin:10px 0}#tend-helper .welcome p{font-size:12px;line-height:1.8;color:#687386}#tend-helper .welcome button{margin-top:12px;background:#356df3;color:white;padding:12px 23px;border:0;border-radius:8px}
-#tend-discord-preview{position:fixed;inset:0;z-index:22000;background:#20232b;color:#eef2f8;display:flex;flex-direction:column;transform:translateX(105%);visibility:hidden;transition:transform 1s cubic-bezier(.16,.84,.22,1),visibility 1s;overflow:hidden}#tend-discord-preview.open{transform:translateX(0);visibility:visible}
+#tend-discord-preview{position:fixed;inset:5vh 4vw;z-index:22000;background:#20232b;color:#eef2f8;display:flex;flex-direction:column;border:1px solid #566174;border-radius:18px;box-shadow:0 30px 100px #05091499;transform:translate(110%,18%) scale(.72);transform-origin:25px 50%;visibility:hidden;opacity:.2;transition:transform .85s cubic-bezier(.16,.84,.22,1),opacity .55s ease,visibility .85s;overflow:hidden}#tend-discord-preview.open{transform:translate(0,0) scale(1);visibility:visible;opacity:1}#tend-helper.summoning .helper-orb{animation:guideSummon .85s ease-in-out infinite;box-shadow:0 0 0 12px #5c9cff25,0 0 55px #4389ffbb,inset 0 4px 12px #ffffffa8}#tend-helper.summoning .helper-card{border-color:#7ca8ff;box-shadow:0 16px 55px #3975ed35}@keyframes guideSummon{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}@media(max-width:760px){#tend-discord-preview{inset:10px;border-radius:13px}}
 #tend-discord-preview .vd-top{height:52px;flex:none;background:white;color:#273244;display:flex;align-items:center;justify-content:space-between;padding:0 16px}#tend-discord-preview .vd-top button{border:0;border-radius:8px;background:#edf2fa;padding:8px 11px;font-weight:800;cursor:pointer}
 #tend-discord-preview .vd-body{display:grid;grid-template-columns:58px 190px minmax(0,1fr);min-height:0;flex:1}#tend-discord-preview .vd-servers{background:#191d25;display:flex;align-items:center;flex-direction:column;gap:10px;padding:12px 7px;overflow:auto}#tend-discord-preview .vd-server{width:40px;height:40px;border:0;border-radius:12px;background:#384252;color:white;font-weight:900;cursor:pointer}#tend-discord-preview .vd-side{background:#252b36;padding:12px 8px;overflow:auto}#tend-discord-preview .vd-side small{display:block;color:#8f9aab;font-size:9px;font-weight:900;margin:12px 6px 6px}#tend-discord-preview .vd-side button{display:block;width:100%;text-align:left;border:0;border-radius:7px;background:transparent;color:#b8c2d0;padding:9px 7px;font-size:10px;cursor:pointer}#tend-discord-preview .vd-side button.active{background:#3b4557;color:white}
 #tend-discord-preview .vd-main{display:flex;flex-direction:column;min-width:0;min-height:0;background:#303642}#tend-discord-preview .vd-head{height:48px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 15px;border-bottom:1px solid #424a58;font-size:12px}#tend-discord-preview .vd-head span{font-size:9px;color:#9eabba}#tend-discord-preview .vd-tabs{display:flex;gap:4px;overflow:auto;padding:8px 10px;background:#2a303b;flex:none}#tend-discord-preview .vd-tabs button{white-space:nowrap;border:0;border-radius:7px;background:transparent;color:#b6c0cf;padding:7px 9px;font-size:10px;cursor:pointer}#tend-discord-preview .vd-tabs button.active{background:#43516a;color:white}
@@ -60,7 +67,7 @@ $("#vd-scroll").innerHTML="<h2>"+d[0]+"</h2><p class=\"desc\">튜토리얼에서
 $$("[data-vpage]").forEach(b=>b.classList.toggle("active",b.dataset.vpage===key));$("#vd-scroll").scrollTop=0;$("#guide-title").textContent="우와! "+d[0]+" 결과를 확인했어요.";$("#guide-text").textContent="다른 메뉴도 눌러서 지금까지 만든 결과를 확인해 보세요.";
 }function typeText(el,value){clearTimeout(typing);el.textContent="";let i=0;function tick(){if(i<value.length){el.textContent+=value[i++];typing=setTimeout(tick,20)}}tick()}
 function render(){addStyle();if(active)active.classList.remove('tend-guide-active');active=null;const h=makeHelper();makeVirtual();if(step>=steps.length){openVirtual();return}if(!shade||!shade.isConnected)makeShade();const s=steps[step],target=$(s[2]);if(!target){finish();return}active=target;target.classList.add("tend-guide-active");target.scrollIntoView({behavior:"smooth",block:"center",inline:"nearest"});h.classList.add("visible");$("#guide-title").textContent=s[0];typeText($("#guide-text"),s[1]);$("#guide-count").textContent=(step+1)+' / '+steps.length+' · 강조된 곳을 직접 조작하세요';const place=()=>{if(!active||!active.isConnected)return;const r=active.getBoundingClientRect();shadeAt(r);placeHelper(r)};setTimeout(place,220);window._tendGuidePlace=place}
-function openVirtual(){const h=makeHelper(),p=makeVirtual();shade&&shade.remove();shade=null;h.classList.add("visible");$("#guide-title").textContent="가상 Discord 체험";typeText($("#guide-text"),"우와! 방금 설정한 결과가 Discord 화면에 나타났어요. 왼쪽 메뉴와 위쪽 탭을 눌러 모든 결과를 확인해 보세요.");$("#guide-count").textContent="마지막 단계 · 직접 둘러보기";h.style.left=Math.max(8,innerWidth-390)+'px';h.style.top=Math.max(55,Math.min(innerHeight-150,innerHeight*.3))+'px';setTimeout(()=>{p.classList.add("open");h.style.left="14px";virtualOpen=true;guideVirtual("side",0)},80)}
+function openVirtual(){const h=makeHelper(),p=makeVirtual();shade&&shade.remove();shade=null;h.classList.add("visible","summoning");$("#guide-title").textContent="이제 Discord에 결과를 보여드릴게요!";typeText($("#guide-text"),"방금 등록한 공지와 검열 규칙, 차단 목록을 가상 Discord 창으로 가져오는 중이에요.");$("#guide-count").textContent="TEND HELPER · Discord 연결 연출";h.style.left="18px";h.style.top=Math.max(65,innerHeight-175)+"px";setTimeout(()=>{p.classList.add("open");h.classList.remove("summoning");h.style.left="18px";h.style.top="18px";virtualOpen=true;showVirtual("announcements");guideVirtual("side",0)},950)}
 function guideNextVirtual(b){const keys=["overview","channels","announcements","moderation","members","features","jobs"],key=b.dataset.vpage,i=keys.indexOf(key),side=b.closest(".vd-side");if(active)active.classList.remove("tend-guide-active");active=null;if(side&&i<6)guideVirtual("side",i+1);else if(side)guideVirtual("top",0);else if(i<6)guideVirtual("top",i+1);else guideVirtual("close",0)}
 function guideVirtual(mode,i){const keys=["overview","channels","announcements","moderation","members","features","jobs"],key=keys[i];let el=mode==="close"?$("#vd-close"):$$("[data-vpage]").find(b=>b.dataset.vpage===key&&(mode==="side"?b.closest(".vd-side"):b.closest(".vd-tabs")));if(!el)return;if(active)active.classList.remove("tend-guide-active");active=el;el.classList.add("tend-guide-active");$("#guide-title").textContent=mode==="close"?"Discord 창 닫기":"우와! "+pages[key][0];$("#guide-text").textContent=mode==="close"?"마지막이에요. 오른쪽 위 버튼을 눌러 Discord 창도 닫아 주세요.":pages[key][2]+" 강조된 메뉴를 눌러 결과를 확인해요.";$("#guide-count").textContent=mode==="side"?"왼쪽 메뉴 "+(i+1)+" / 7":mode==="top"?"위쪽 탭 "+(i+1)+" / 7":"마지막 단계"}
 function closeVirtual(){const p=$("#tend-discord-preview"),h=$("#tend-helper");if(active)active.classList.remove("tend-guide-active");active=null;p.classList.remove("open");h.style.left=(innerWidth-390)+"px";$("#guide-title").textContent="확인 완료!";$("#guide-text").textContent="우와! 직접 만든 결과를 모두 확인했어요. Discord 창과 안내를 닫을게요.";$("#guide-count").textContent="완료";setTimeout(()=>{virtualOpen=false;finished=true;locked=false;document.body.classList.remove("tend-tutorial-locked");p.remove();h.remove()},1000)}
