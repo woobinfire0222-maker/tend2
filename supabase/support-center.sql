@@ -4,11 +4,23 @@ create or replace function public.tend_is_support_admin()
 returns boolean
 language sql
 stable
+security definer
+set search_path = public, auth
 as $$
   select
     coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin'
-    or coalesce(auth.jwt() -> 'app_metadata' ->> 'provider_id', '') = '1318120987480424498'
-    or coalesce(auth.jwt() -> 'app_metadata' ->> 'sub', '') = '1318120987480424498';
+    or exists (
+      select 1
+      from auth.identities i
+      where i.user_id = auth.uid()
+        and i.provider = 'discord'
+        and coalesce(
+          i.identity_data ->> 'user_id',
+          i.identity_data ->> 'provider_id',
+          i.identity_data ->> 'id',
+          i.identity_data ->> 'sub'
+        ) = '1318120987480424498'
+    );
 $$;
 
 create table if not exists public.support_tickets (
