@@ -98,7 +98,6 @@
   async function init(options){
     ctx=options;
     $("#support-list-title").textContent=isAdmin()?"전체 문의":"내 문의";
-    $("#support-new-ticket")?.classList.toggle("hidden",isAdmin());
     $("#support-new-ticket")?.addEventListener("click",()=>setHidden("#support-new-box",false));
     $("#support-cancel-new")?.addEventListener("click",()=>setHidden("#support-new-box",true));
     $("#support-new-form")?.addEventListener("submit",createTicket);
