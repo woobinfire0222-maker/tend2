@@ -75,7 +75,7 @@ using (user_id = auth.uid() or public.tend_is_support_admin());
 drop policy if exists "support tickets create own" on public.support_tickets;
 create policy "support tickets create own"
 on public.support_tickets for insert to authenticated
-with check (user_id = auth.uid() and not public.tend_is_support_admin());
+with check (user_id = auth.uid());
 
 drop policy if exists "support tickets update admin" on public.support_tickets;
 create policy "support tickets update admin"
@@ -103,7 +103,6 @@ with check (
     (sender_role = 'admin' and public.tend_is_support_admin())
     or (
       sender_role = 'user'
-      and not public.tend_is_support_admin()
       and exists (
         select 1 from public.support_tickets t
         where t.id = ticket_id and t.user_id = auth.uid() and t.status = 'open'
