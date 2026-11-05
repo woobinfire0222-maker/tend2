@@ -27,15 +27,25 @@
     else if(selectedId&&!tickets.some(t=>t.id===selectedId)){selectedId=null;showEmpty()}
   }
   function showEmpty(){setHidden("#support-chat-empty",false);setHidden("#support-chat-view",true)}
+  let messageCache = [];
   function renderMessages(messages){
+    messageCache=messages||[];
     const box=$("#support-message-list");if(!box)return;
-    if(!messages.length){box.innerHTML='<div class="empty">아직 대화가 없어요. 첫 메시지를 남겨 보세요.</div>';return}
-    box.innerHTML=messages.map(m=>{
+    if(!messageCache.length){box.innerHTML='<div class="empty">아직 대화가 없어요. 첫 메시지를 남겨 보세요.</div>';return}
+    box.innerHTML=messageCache.map(m=>{
       const mine=m.sender_id===ctx.user.id;
       const admin=m.sender_role==="admin";
       return '<article class="support-message '+(mine?'mine':'')+'"><div class="support-message-avatar '+(admin?'admin':'')+'">'+(admin?'T':esc((m.sender_name||"사용자").slice(0,1)))+'</div><div class="support-message-body"><div class="support-message-meta"><strong>'+esc(admin?"TEND 지원팀":(m.sender_name||"사용자"))+'</strong><small>'+esc(new Date(m.created_at).toLocaleString("ko-KR"))+'</small></div><p>'+esc(m.content).replace(/\n/g,"<br>")+'</p></div></article>';
     }).join("");
     box.scrollTop=box.scrollHeight;
+  }
+  async function refreshMessages(id,showLoading=false){
+    if(!id)return;
+    const box=$("#support-message-list");
+    if(showLoading&&box)box.innerHTML='<div class="empty">대화 내용을 불러오는 중…</div>';
+    const {data,error}=await ctx.sb.from("support_messages").select("id,ticket_id,sender_id,sender_role,sender_name,content,created_at").eq("ticket_id",id).order("created_at",{ascending:true}).limit(500);
+    if(error){console.error("support messages refresh failed",error);return}
+    if(selectedId===id)renderMessages(data||[]);
   }
   async function openTicket(id,refreshList=true){
     selectedId=id;const ticket=tickets.find(t=>t.id===id);
@@ -49,10 +59,7 @@
     const toggle=$("#support-ticket-toggle");if(toggle){toggle.textContent=ticket.status==="closed"?"문의 다시 열기":"문의 종료";toggle.dataset.next=ticket.status==="closed"?"open":"closed"}
     const closed=ticket.status==="closed"&&!isAdmin();
     setHidden("#support-reply-form",closed);setHidden("#support-closed-note",!closed);
-    $("#support-message-list").innerHTML='<div class="empty">대화 내용을 불러오는 중…</div>';
-    const {data,error}=await ctx.sb.from("support_messages").select("id,ticket_id,sender_id,sender_role,sender_name,content,created_at").eq("ticket_id",id).order("created_at",{ascending:true}).limit(500);
-    if(error){$("#support-message-list").innerHTML='<div class="empty">대화 내용을 불러오지 못했어요.</div>';showError("대화 내용을 불러오지 못했어요.",error);return}
-    renderMessages(data||[]);
+    await refreshMessages(id,true);
   }
   async function createTicket(event){
     event.preventDefault();if(busy)return;
@@ -71,10 +78,18 @@
     const content=$("#support-reply-input").value.trim();if(!content)return;
     const ticket=tickets.find(t=>t.id===selectedId);if(!ticket)return;
     busy=true;const button=$("#support-send");button.disabled=true;
-    const {error}=await ctx.sb.from("support_messages").insert({ticket_id:selectedId,sender_id:ctx.user.id,sender_role:isAdmin()?"admin":"user",sender_name:isAdmin()?"TEND 지원팀":ctx.profileName,content});
+    const ticketId=selectedId;
+    const optimistic={id:"pending-"+Date.now(),ticket_id:ticketId,sender_id:ctx.user.id,sender_role:isAdmin()?"admin":"user",sender_name:isAdmin()?"TEND 지원팀":ctx.profileName,content,created_at:new Date().toISOString()};
+    renderMessages([...messageCache,optimistic]);
+    $("#support-reply-input").value="";
+    const {error}=await ctx.sb.from("support_messages").insert({ticket_id:ticketId,sender_id:ctx.user.id,sender_role:optimistic.sender_role,sender_name:optimistic.sender_name,content});
     busy=false;button.disabled=false;
-    if(error){console.error("support reply failed",error);toast("메시지를 보내지 못했어요. 권한과 데이터베이스 설정을 확인해 주세요.");return}
-    $("#support-reply-input").value="";await loadTickets(false);await openTicket(selectedId,false);
+    if(error){
+      messageCache=messageCache.filter(m=>m.id!==optimistic.id);renderMessages(messageCache);
+      $("#support-reply-input").value=content;
+      console.error("support reply failed",error);toast("메시지를 보내지 못했어요. 권한과 데이터베이스 설정을 확인해 주세요.");return
+    }
+    await Promise.all([refreshMessages(ticketId,false),loadTickets(false)]);
   }
   async function toggleTicket(){
     if(!isAdmin()||!selectedId)return;
@@ -88,7 +103,9 @@
     if(channel)ctx.sb.removeChannel(channel);
     channel=ctx.sb.channel("tend-support-"+ctx.user.id+(isAdmin()?"-admin":""))
       .on("postgres_changes",{event:"*",schema:"public",table:"support_messages"},payload=>{
-        if(!selectedId||payload.new?.ticket_id===selectedId||payload.old?.ticket_id===selectedId){loadTickets(true)}
+        const changedTicket=payload.new?.ticket_id||payload.old?.ticket_id;
+        if(changedTicket===selectedId)refreshMessages(selectedId,false);
+        loadTickets(false);
       })
       .on("postgres_changes",{event:"*",schema:"public",table:"support_tickets"},()=>loadTickets(true))
       .subscribe();
