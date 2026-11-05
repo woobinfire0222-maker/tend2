@@ -14,12 +14,12 @@ as $$
       from auth.identities i
       where i.user_id = auth.uid()
         and i.provider = 'discord'
-        and coalesce(
-          i.identity_data ->> 'user_id',
-          i.identity_data ->> 'provider_id',
-          i.identity_data ->> 'id',
-          i.identity_data ->> 'sub'
-        ) = '1318120987480424498'
+        and (
+          i.identity_data ->> 'user_id' = '1318120987480424498'
+          or i.identity_data ->> 'provider_id' = '1318120987480424498'
+          or i.identity_data ->> 'id' = '1318120987480424498'
+          or i.identity_data ->> 'sub' = '1318120987480424498'
+        )
     );
 $$;
 
