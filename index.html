@@ -84,6 +84,47 @@ footer{background:#fff}
 .logout-confirm-danger:disabled{opacity:.6;cursor:wait}
 @media(max-width:850px){.hero{padding:70px 0 64px}.hero-grid{gap:42px}.hero h1{font-size:clamp(42px,9vw,58px)}section.content{padding:76px 0}.split{padding:70px 0}}
 @media(max-width:520px){.logout-confirm-modal{padding:24px}.logout-confirm-modal .modal-actions{grid-template-columns:1fr}.hero-actions .btn{flex:1}.trust-inner{gap:15px}}
+
+/* TEND expanded introduction */
+.intro-eyebrow{display:inline-flex;align-items:center;gap:9px;padding:8px 12px;border:1px solid #e5eaff;background:rgba(255,255,255,.78);border-radius:99px;color:#496bd0;font-size:11px;font-weight:800;letter-spacing:.04em;margin-bottom:24px}
+.intro-eyebrow:before{content:"";width:7px;height:7px;border-radius:50%;background:#4d7cff;box-shadow:0 0 0 4px #e8eeff}
+.hero-note{display:flex;align-items:center;gap:9px}.hero-note:before{content:"";width:18px;height:1px;background:#aeb9d2}
+.story-band{padding:34px 0;background:#fff;border-top:1px solid #edf0f5;border-bottom:1px solid #edf0f5}
+.story-band-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.story-stat{padding:4px 18px;border-left:1px solid #e9edf4}.story-stat:first-child{border-left:0;padding-left:0}
+.story-stat strong{display:block;font-size:19px;letter-spacing:-.05em}.story-stat span{display:block;margin-top:6px;color:#858c99;font-size:11px;line-height:1.6}
+.toolkit{padding:100px 0;background:linear-gradient(180deg,#f2f5fb 0%,#f8f9fc 100%)}
+.toolkit-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.toolkit-card{position:relative;overflow:hidden;min-height:220px;padding:29px;border:1px solid #e4e9f2;border-radius:20px;background:#fff;box-shadow:0 12px 35px rgba(29,47,92,.035)}
+.toolkit-card:after{content:"";position:absolute;width:150px;height:150px;right:-60px;bottom:-70px;border-radius:50%;background:radial-gradient(circle,#edf2ff,transparent 70%)}
+.toolkit-number{font-size:10px;font-weight:850;color:#6a87dc;letter-spacing:.12em}
+.toolkit-card h3{font-size:19px;letter-spacing:-.05em;margin:18px 0 9px}
+.toolkit-card p{max-width:470px;color:#747d8c;font-size:13px;line-height:1.85;margin:0}
+.toolkit-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:20px}
+.toolkit-tags span{padding:7px 9px;border-radius:8px;background:#f4f6fa;color:#626c7d;font-size:10px;font-weight:700}
+.workflow{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:45px}
+.workflow-step{position:relative;padding:0 22px}
+.workflow-step:first-child{padding-left:0}
+.workflow-step:not(:last-child):after{content:"";position:absolute;top:18px;left:58px;right:-5px;height:1px;background:#dce3f0}
+.workflow-index{position:relative;z-index:1;width:37px;height:37px;display:grid;place-items:center;border:1px solid #dce5f7;border-radius:12px;background:#fff;color:#356df3;font-size:11px;font-weight:850}
+.workflow-step h3{font-size:14px;margin:17px 0 7px;letter-spacing:-.03em}
+.workflow-step p{font-size:12px;line-height:1.75;color:#858b97;margin:0}
+.principles{background:#20232b;color:#fff;padding:88px 0}
+.principles-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:70px;align-items:center}
+.principles h2{font-size:clamp(31px,4vw,44px);line-height:1.18;letter-spacing:-.07em;margin:14px 0}
+.principles-lead{color:#b7bdc9;font-size:14px;line-height:1.9;margin:0}
+.principle-list{display:grid;gap:0;border-top:1px solid #3a3e48}
+.principle{display:grid;grid-template-columns:42px 1fr;gap:14px;padding:20px 0;border-bottom:1px solid #3a3e48}
+.principle-no{color:#91aaff;font-size:11px;font-weight:850;padding-top:2px}
+.principle strong{display:block;font-size:14px;margin-bottom:6px}
+.principle p{font-size:12px;color:#aeb4c0;line-height:1.75;margin:0}
+.usecases{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+.usecase{padding:23px;border-radius:17px;border:1px solid var(--line);background:#fff}
+.usecase b{display:block;font-size:14px;margin-bottom:8px}
+.usecase p{font-size:12px;line-height:1.8;color:#7b8290;margin:0}
+@media(max-width:850px){.story-band-grid{grid-template-columns:repeat(2,1fr);row-gap:25px}.story-stat:nth-child(3){border-left:0;padding-left:0}.principles-grid{grid-template-columns:1fr;gap:35px}.workflow{grid-template-columns:repeat(2,1fr);gap:28px}.workflow-step:nth-child(3){padding-left:0}.workflow-step:after{display:none}}
+@media(max-width:560px){.toolkit{padding:68px 0}.toolkit-grid,.usecases{grid-template-columns:1fr}.toolkit-card{min-height:0;padding:23px}.story-stat strong{font-size:17px}.workflow{gap:25px 10px}.workflow-step{padding:0 8px}.workflow-step:nth-child(odd){padding-left:0}.principles{padding:65px 0}.principles-grid{gap:28px}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js?v=20261029-2"></script>
@@ -91,13 +132,13 @@ footer{background:#fff}
 <body>
 <nav><div class="wrap nav-inner">
 <a href="#" class="brand"><img class="brand-logo" src="./TEND.png" alt="TEND 로고" width="34" height="34">TEND</a>
-<div class="navlinks"><a href="#features">기능</a><a href="#how">이용 방법</a><a href="#pricing">요금 안내</a><a href="#faq">자주 묻는 질문</a></div>
+<div class="navlinks"><a href="#features">주요 기능</a><a href="#toolkit">운영 도구</a><a href="#how">이용 방법</a><a href="#pricing">요금 안내</a><a href="#faq">FAQ</a></div>
 <div class="navright"><a class="btn btn-light" href="./dashboard.html">대시보드</a><a class="btn btn-light" href="./requests.html">이용권 신청</a><a class="btn btn-light" href="./bot.html">봇 관리</a><a class="btn btn-light" href="./servers.html">서버 관리</a><span id="userChip" class="user-chip" hidden></span><button id="loginBtn" class="btn btn-dark">Discord로 시작하기 <span>↗</span></button></div>
 <div class="mobile-nav" aria-label="주요 메뉴"><a href="./dashboard.html">대시보드</a><a href="./requests.html">이용권 신청</a><a href="./bot.html">봇 관리</a><a href="./servers.html">서버 관리</a></div>
 </div></nav>
 <main>
 <section class="hero"><div class="wrap hero-grid"><div>
-<h1>서버 관리는<br><span>조금 더 간단하게.</span></h1>
+<div class="intro-eyebrow">DISCORD SERVER MANAGEMENT · TEND</div><h1>서버 운영의 흐름을<br><span>한곳에서 정리하다.</span></h1>
 <p>반복되는 관리 업무부터 신고와 기록까지.<br>TEND가 서버 운영에 필요한 일을 도와드릴게요.</p>
 <div class="hero-actions"><button class="btn btn-blue" data-auth-action="purchase">TEND 시작하기 <span>→</span></button><a class="btn btn-light" href="#features">기능 살펴보기</a></div>
 <div class="hero-note">복잡한 설정은 줄이고, 서버 운영에 집중하세요.</div>
@@ -112,7 +153,7 @@ footer{background:#fff}
 <div class="activity"><div class="activity-icon">↻</div><div class="activity-copy"><strong>운영 요청 관리</strong><small>관리자 화면에서 신청 확인</small></div><time>관리자</time></div>
 </div><div class="dash-bottom"><span>로그인 후 이용 가능</span><span>계정 기반 저장</span></div></div>
 </div></section>
-<div class="trust"><div class="wrap trust-inner"><div class="trust-label">TEND가 도와주는 일</div><div class="trust-item"><b>✓</b> 반복 업무 정리</div><div class="trust-item"><b>⌕</b> 신고 및 기록 관리</div><div class="trust-item"><b>↗</b> 공지와 운영 지원</div><div class="trust-item"><b>◷</b> 기간제 이용권</div></div></div>
+<div class="story-band"><div class="wrap story-band-grid"><div class="story-stat"><strong>한곳에서</strong><span>신청부터 이용 현황까지<br>계정에 연결해 관리</span></div><div class="story-stat"><strong>필요한 기간만</strong><span>1일 · 7일 · 30일<br>기간제 이용권 방식</span></div><div class="story-stat"><strong>Discord 연동</strong><span>익숙한 Discord 계정으로<br>간편하게 시작</span></div><div class="story-stat"><strong>명확한 상태</strong><span>신청 및 승인 진행 상황을<br>화면에서 확인</span></div></div></div><div class="trust"><div class="wrap trust-inner"><div class="trust-label">TEND가 도와주는 일</div><div class="trust-item"><b>✓</b> 반복 업무 정리</div><div class="trust-item"><b>⌕</b> 신고 및 기록 관리</div><div class="trust-item"><b>↗</b> 공지와 운영 지원</div><div class="trust-item"><b>◷</b> 기간제 이용권</div></div></div>
 <section class="content" id="features"><div class="wrap"><div class="section-head"><div class="kicker">What TEND does</div><h2>서버 운영에 필요한 기능을<br>한곳에서 관리해요.</h2><p>자주 쓰는 관리 업무를 정리하고, 필요한 요청과 이용 기간을 계정에서 관리할 수 있어요.</p></div>
 <div class="feature-grid">
 <article class="feature"><div class="feature-icon">↻</div><h3>운영 업무 정리</h3><p>반복되는 관리 요청을 모아 운영진이 확인하기 쉽게 정리해요.</p></article>
@@ -131,6 +172,15 @@ footer{background:#fff}
 <article class="price-card featured"><span class="popular">많이 선택하는 기간</span><div class="price-name">7일 이용권</div><div class="price-desc">일주일 동안 이용하고 싶을 때</div><div class="price">₩5,900 <small>/ 7일</small></div><div class="price-note">신청 후 관리자 확인</div><button class="btn btn-blue" data-plan="7일" data-auth-action="purchase">이용권 신청하기</button><ul class="price-features"><li>이용 신청 접수</li><li>신청 상태 확인</li><li>계정에 신청 내역 저장</li></ul></article>
 <article class="price-card"><div class="price-name">30일 이용권</div><div class="price-desc">한 달 동안 운영하고 싶을 때</div><div class="price">₩14,900 <small>/ 30일</small></div><div class="price-note">신청 후 관리자 확인</div><button class="btn btn-light" data-plan="30일" data-auth-action="purchase">이용권 신청하기</button><ul class="price-features"><li>이용 신청 접수</li><li>신청 상태 확인</li><li>계정에 신청 내역 저장</li></ul></article>
 </div><p style="text-align:center;color:#858b97;font-size:12px;line-height:1.8;margin:20px auto 0;max-width:650px">이용권 신청 후 안내된 계좌로 입금해 주세요. 입금 내역 확인이 완료되면 관리자가 이용권을 승인해 드려요.</p></div></section>
+<section class="toolkit" id="toolkit"><div class="wrap"><div class="section-head"><div class="kicker">TOOLS FOR YOUR SERVER</div><h2>운영에 자주 쓰는 도구를<br>목적에 맞게 정리했어요.</h2><p>서버마다 필요한 운영 방식은 달라요. TEND는 기능을 한꺼번에 강요하지 않고, 실제 연결된 기능과 설정을 기준으로 관리할 수 있도록 구성하고 있어요.</p></div><div class="toolkit-grid">
+<article class="toolkit-card"><div class="toolkit-number">01 / MODERATION</div><h3>규칙과 질서를 위한 관리</h3><p>금칙어 기준과 경고 기록 등 반복적인 관리 업무를 정리해 운영진이 일관된 기준으로 대응할 수 있도록 도와요.</p><div class="toolkit-tags"><span>금칙어 관리</span><span>경고 기록</span><span>자동 대응 설정</span></div></article>
+<article class="toolkit-card"><div class="toolkit-number">02 / COMMUNICATION</div><h3>공지와 소통 관리</h3><p>중요한 안내를 전달하고, 공지에 필요한 채널과 대상을 정리해 서버 구성원이 소식을 놓치지 않도록 도와요.</p><div class="toolkit-tags"><span>공지 발송</span><span>채널 설정</span><span>대상 역할</span></div></article>
+<article class="toolkit-card"><div class="toolkit-number">03 / COMMUNITY</div><h3>참여를 만드는 커뮤니티 도구</h3><p>서버의 목적에 따라 티켓, 역할 선택, 투표 등 참여와 문의 흐름을 정리하는 기능을 활용할 수 있어요.</p><div class="toolkit-tags"><span>문의 티켓</span><span>역할 메뉴</span><span>투표</span></div></article>
+<article class="toolkit-card"><div class="toolkit-number">04 / CONTROL CENTER</div><h3>서버 상태와 이용 현황 확인</h3><p>신청한 서버와 이용 기간, 봇 연결 상태를 대시보드에서 확인하고 필요한 운영 요청을 관리할 수 있어요.</p><div class="toolkit-tags"><span>서버 목록</span><span>봇 연결 상태</span><span>이용 기간</span></div></article>
+</div></div></section>
+<section class="content"><div class="wrap"><div class="section-head"><div class="kicker">WHO IS IT FOR</div><h2>이런 서버라면 더 유용해요.</h2><p>서버 규모보다 운영 목적에 맞는 관리 흐름이 중요해요.</p></div><div class="usecases"><article class="usecase"><b>친구·게임 커뮤니티</b><p>멤버가 늘어나면서 공지와 기본 규칙을 정리해야 하는 서버</p></article><article class="usecase"><b>동아리·스터디 서버</b><p>역할과 일정, 질문을 한곳에서 안내하고 싶은 모임</p></article><article class="usecase"><b>크리에이터·팬 커뮤니티</b><p>공지 전달과 문의 접수 흐름을 조금 더 체계적으로 만들고 싶은 서버</p></article></div></div></section>
+<section class="content" id="workflow" style="padding-top:20px"><div class="wrap"><div class="section-head"><div class="kicker">HOW IT WORKS</div><h2>시작부터 운영까지,<br>네 단계로 진행돼요.</h2><p>신청만으로 자동 결제가 발생하지 않으며, 이용 시작 전 확인 절차가 있어요.</p></div><div class="workflow"><article class="workflow-step"><div class="workflow-index">01</div><h3>Discord 로그인</h3><p>Discord 계정 인증으로 TEND 계정을 연결해요.</p></article><article class="workflow-step"><div class="workflow-index">02</div><h3>서버와 기간 선택</h3><p>운영할 서버 정보와 필요한 이용권 기간을 입력해요.</p></article><article class="workflow-step"><div class="workflow-index">03</div><h3>신청 및 확인</h3><p>신청 내역을 저장하고 안내된 절차에 따라 확인을 진행해요.</p></article><article class="workflow-step"><div class="workflow-index">04</div><h3>연결 후 관리</h3><p>봇을 서버에 초대하고 연결 상태와 운영 기능을 확인해요.</p></article></div></div></section>
+<section class="principles"><div class="wrap principles-grid"><div><div class="kicker" style="color:#9eb8ff">TEND PRINCIPLES</div><h2>편리함만큼<br>중요한 건 명확함.</h2><p class="principles-lead">무엇이 가능한지, 어떤 단계인지, 어떤 권한이 필요한지 분명하게 안내하는 서비스를 지향해요.</p></div><div class="principle-list"><article class="principle"><div class="principle-no">01</div><div><strong>Discord 인증 기반 로그인</strong><p>Discord 인증을 통해 계정을 연결하며, 비밀번호를 TEND에 별도로 입력하지 않아요.</p></div></article><article class="principle"><div class="principle-no">02</div><div><strong>계정별 신청 내역 관리</strong><p>일반 사용자는 본인 계정에 연결된 신청 내역을 확인하고, 관리자 기능은 별도 권한으로 구분돼요.</p></div></article><article class="principle"><div class="principle-no">03</div><div><strong>기간제 이용 방식</strong><p>1일·7일·30일 중 필요한 기간을 신청하는 방식으로, 자동 월 구독을 전제로 하지 않아요.</p></div></article><article class="principle"><div class="principle-no">04</div><div><strong>연결 상태를 기준으로 안내</strong><p>봇 초대와 서버 연결, 기능별 설정 상태에 따라 실제 이용 가능한 범위가 달라질 수 있어요.</p></div></article></div></div></section>
 <section class="content" id="faq" style="padding-top:20px"><div class="wrap"><div class="section-head"><div class="kicker">FAQ</div><h2>궁금한 점이 있나요?</h2><p>이용 전에 자주 궁금해하는 내용을 모았어요.</p></div><div class="faq-list">
 <div class="faq"><button aria-expanded="false">Discord 로그인이 안 돼요.<span>＋</span></button><p>잠시 후 다시 시도해 주세요. 계속 문제가 생기면 고객 지원으로 문의해 주세요.</p></div>
 <div class="faq"><button aria-expanded="false">신청하면 바로 결제되나요?<span>＋</span></button><p>아니요. 신청서를 제출한 뒤 안내된 계좌로 입금해 주세요. 입금 확인이 완료되면 이용권이 승인돼요.</p></div>
@@ -221,5 +271,5 @@ footer{background:#fff}
   updateSession();
 })();
 </script>
-<script src="./maintenance-gate.js?v=20261106-2"></script></body>
+<script src="./maintenance-gate.js?v=20261106-3"></script></body>
 </html>
