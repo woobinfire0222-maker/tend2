@@ -50,7 +50,7 @@ function showAccountConfirm(u){
 function showLogoutConfirm(){
  const overlay=document.createElement("div");
  overlay.className="tend-account-confirm";
- overlay.innerHTML='<section class="tend-account-confirm-card" role="dialog" aria-modal="true" aria-labelledby="tend-logout-title"><div class="tend-confirm-kicker">LOG OUT</div><h2 id="tend-logout-title">정말 로그아웃할까요?</h2><p class="tend-confirm-desc">로그아웃하면 TEND 이용을 위해 다시 로그인해야 해요.</p><div class="tend-confirm-profile"><div class="tend-confirm-avatar">↗</div><div class="tend-confirm-info"><strong>로그아웃</strong><small>현재 Discord 계정 연결을 종료합니다.</small></div></div><button type="button" class="btn btn-blue tend-logout-yes">로그아웃</button><button type="button" class="btn btn-light tend-logout-no">취소</button></section>';
+ overlay.innerHTML='<section class="tend-account-confirm-card tend-logout-card" role="dialog" aria-modal="true" aria-labelledby="tend-logout-title"><div class="tend-confirm-kicker">LOG OUT</div><h2 id="tend-logout-title">정말 로그아웃할까요?</h2><p class="tend-confirm-desc">로그아웃하면 TEND 이용을 위해 다시 로그인해야 해요.</p><div class="tend-logout-actions"><button type="button" class="btn tend-logout-yes">로그아웃</button><button type="button" class="btn btn-light tend-logout-no">취소</button></div></section>';
  const cancel=()=>overlay.remove();
  overlay.querySelector(".tend-logout-no").addEventListener("click",cancel);
  overlay.addEventListener("click",e=>{if(e.target===overlay)cancel()});
