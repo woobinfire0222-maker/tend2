@@ -31,6 +31,20 @@ def rows(query):
     return result.data or []
 
 
+def write_system_log(log_type, severity, location, message):
+    try:
+        raw = str(message or "알 수 없는 오류")[:500]
+        db.table("tend_system_logs").insert({
+            "log_type": log_type,
+            "severity": severity,
+            "location": location,
+            "message_ko": raw if any("\uac00" <= ch <= "\ud7a3" for ch in raw) else "봇에서 오류가 발생했습니다: " + log_type,
+            "original_message": raw,
+        }).execute()
+    except Exception as log_exc:
+        print("System log write failed:", repr(log_exc))
+
+
 async def sync_heartbeat():
     global last_heartbeat
     now = utc_now()
@@ -47,7 +61,7 @@ async def sync_heartbeat():
             }).eq("server_id", server_id).execute()
         last_heartbeat = now
     except Exception as exc:
-        print("Heartbeat update failed:", repr(exc))
+        print("Heartbeat update failed:", repr(exc))\n        write_system_log("하트비트 갱신 실패", "error", "봇 연결 상태", exc)
 
 
 @tasks.loop(seconds=30)
@@ -70,7 +84,7 @@ async def management_is_active(server_id):
         )
         return bool(data and data[0].get("is_active"))
     except Exception as exc:
-        print("Management status lookup failed:", repr(exc))
+        print("Management status lookup failed:", repr(exc))\n        write_system_log("관리 상태 조회 실패", "error", "관리 상태 확인", exc)
         return False
 
 
@@ -83,13 +97,13 @@ async def get_moderation_rules(server_id):
             .eq("enabled", True)
         )
     except Exception as exc:
-        print("Moderation rules lookup failed:", repr(exc))
+        print("Moderation rules lookup failed:", repr(exc))\n        write_system_log("자동 검열 규칙 조회 실패", "error", "금칙어 기능", exc)
         return []
 
 
 @bot.event
 async def on_ready():
-    print(f"TEND bot online as {bot.user} ({bot.user.id})")
+    print(f"TEND bot online as {bot.user} ({bot.user.id})")\n    write_system_log("봇 연결", "info", "Discord 봇", "TEND 봇이 Discord에 연결되었습니다.")
     if not heartbeat_loop.is_running():
         heartbeat_loop.start()
     await sync_heartbeat()
@@ -147,9 +161,9 @@ async def on_message(message):
                     continue
                 break
             except discord.Forbidden:
-                print(f"Missing permissions in guild {message.guild.id} for rule {word!r}")
+                print(f"Missing permissions in guild {message.guild.id} for rule {word!r}")\n                write_system_log("봇 권한 부족", "warning", "자동 검열", f"서버 {message.guild.id}에서 필요한 권한이 없습니다.")
             except discord.HTTPException as exc:
-                print(f"Moderation action failed in guild {message.guild.id}:", repr(exc))
+                print(f"Moderation action failed in guild {message.guild.id}:", repr(exc))\n                write_system_log("자동 검열 실행 실패", "error", "자동 검열", exc)
 
     await bot.process_commands(message)
 
@@ -171,7 +185,7 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
         await ctx.reply("이 명령어를 사용할 권한이 없어요.", mention_author=False)
         return
-    print("Command error:", repr(error))
+    print("Command error:", repr(error))\n    write_system_log("명령어 실행 실패", "error", "Discord 명령어", error)
 
 
 bot.run(DISCORD_BOT_TOKEN)
