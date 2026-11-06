@@ -1,18 +1,20 @@
-/* TEND motion system — fluid, restrained and consistent */
+/* TEND motion system — ultra-smooth, lightweight and consistent */
 :root {
-  --tend-motion-fast: 220ms;
-  --tend-motion: 420ms;
-  --tend-motion-slow: 720ms;
-  --tend-ease: cubic-bezier(.22, 1, .36, 1);
+  --tend-motion-fast: 260ms;
+  --tend-motion: 520ms;
+  --tend-motion-slow: 860ms;
+  --tend-ease: cubic-bezier(.2, .85, .25, 1);
   --tend-ease-soft: cubic-bezier(.16, 1, .3, 1);
-  --tend-shadow-hover: 0 18px 48px rgba(25, 36, 70, .10);
+  --tend-ease-spring: cubic-bezier(.18, .9, .22, 1);
+  --tend-shadow-hover: 0 16px 38px rgba(25, 36, 70, .085);
 }
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 24px;
+  scrollbar-gutter: stable;
 }
 body {
-  animation: tend-page-in 780ms var(--tend-ease-soft) both;
+  animation: tend-page-in 900ms var(--tend-ease-soft) both;
   -webkit-font-smoothing: antialiased;
 }
 @keyframes tend-page-in {
@@ -20,105 +22,116 @@ body {
   to { opacity: 1; }
 }
 @keyframes tend-rise-in {
-  0% { opacity: 0; transform: translate3d(0, 24px, 0) scale(.992); }
-  70% { opacity: 1; }
+  0% { opacity: 0; transform: translate3d(0, 18px, 0) scale(.996); }
   100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 @keyframes tend-soft-in {
-  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 @keyframes tend-pop-in {
-  0% { opacity: 0; transform: translate3d(0, 14px, 0) scale(.975); }
-  65% { opacity: 1; }
+  0% { opacity: 0; transform: translate3d(0, 10px, 0) scale(.99); }
   100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 @keyframes tend-sidebar-in {
-  from { opacity: 0; transform: translate3d(-16px, 0, 0); }
+  from { opacity: 0; transform: translate3d(-10px, 0, 0); }
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 @keyframes tend-soft-pulse {
-  0%, 100% { opacity: .72; }
+  0%, 100% { opacity: .78; }
   50% { opacity: 1; }
 }
+/* Native cross-page transitions in browsers that support the View Transitions API */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root) {
+  animation: tend-view-out 260ms ease both;
+}
+::view-transition-new(root) {
+  animation: tend-view-in 560ms var(--tend-ease-soft) both;
+}
+@keyframes tend-view-out {
+  to { opacity: 0; filter: blur(2px); }
+}
+@keyframes tend-view-in {
+  from { opacity: 0; filter: blur(2px); transform: translate3d(0, 5px, 0); }
+  to { opacity: 1; filter: blur(0); transform: translate3d(0, 0, 0); }
+}
 :where(.sidebar) {
-  animation: tend-sidebar-in 720ms var(--tend-ease-soft) both;
+  animation: tend-sidebar-in 780ms var(--tend-ease-soft) both;
 }
 :where(.main, .legal-wrap, .login-page) {
-  animation: tend-soft-in 680ms var(--tend-ease-soft) 70ms both;
+  animation: tend-soft-in 760ms var(--tend-ease-soft) 60ms both;
 }
 :where(.page-head, .dashboard-welcome, .login-card, .legal-head, .not-found .card) {
-  animation: tend-rise-in 760ms var(--tend-ease-soft) 90ms both;
+  animation: tend-rise-in 820ms var(--tend-ease-soft) 80ms both;
 }
 :where(.card, .stat-card, .stats > .card, .quick-links > a, .feature-card, .legal-section, .notice, .login-note, .login-symbol, .support-ticket, .support-chat-view) {
-  animation: tend-pop-in 720ms var(--tend-ease-soft) both;
+  animation: tend-pop-in 760ms var(--tend-ease-soft) both;
   backface-visibility: hidden;
 }
 :where(.stats > .card, .quick-links > a, .feature-card, .legal-section, .card) {
   transform-origin: center;
   transition:
-    transform 520ms var(--tend-ease),
-    box-shadow 520ms var(--tend-ease),
-    border-color 420ms var(--tend-ease),
-    background-color 420ms var(--tend-ease);
+    transform 620ms var(--tend-ease-spring),
+    border-color 500ms var(--tend-ease),
+    background-color 500ms var(--tend-ease);
 }
-:where(.stats > .card, .quick-links > a, .feature-card):nth-child(1) { animation-delay: 90ms; }
-:where(.stats > .card, .quick-links > a, .feature-card):nth-child(2) { animation-delay: 150ms; }
+:where(.stats > .card, .quick-links > a, .feature-card):nth-child(1) { animation-delay: 80ms; }
+:where(.stats > .card, .quick-links > a, .feature-card):nth-child(2) { animation-delay: 145ms; }
 :where(.stats > .card, .quick-links > a, .feature-card):nth-child(3) { animation-delay: 210ms; }
-:where(.stats > .card, .quick-links > a, .feature-card):nth-child(4) { animation-delay: 270ms; }
-:where(.stats > .card, .quick-links > a, .feature-card):nth-child(5) { animation-delay: 330ms; }
-:where(.stats > .card, .quick-links > a, .feature-card):nth-child(6) { animation-delay: 390ms; }
+:where(.stats > .card, .quick-links > a, .feature-card):nth-child(4) { animation-delay: 275ms; }
+:where(.stats > .card, .quick-links > a, .feature-card):nth-child(5) { animation-delay: 340ms; }
+:where(.stats > .card, .quick-links > a, .feature-card):nth-child(6) { animation-delay: 405ms; }
 @media (hover: hover) and (pointer: fine) {
   :where(.stats > .card, .quick-links > a, .feature-card, .legal-section):hover {
-    transform: translate3d(0, -5px, 0) scale(1.008);
-    box-shadow: var(--tend-shadow-hover);
+    transform: translate3d(0, -4px, 0) scale(1.004);
   }
   :where(.brand:hover .brandmark, .brand:hover .brand-logo, .profile-chip:hover .avatar) {
-    transform: scale(1.07) rotate(-2deg);
+    transform: scale(1.045) rotate(-1deg);
   }
   :where(.side-nav a, .legal-nav a):hover {
-    transform: translate3d(4px, 0, 0);
+    transform: translate3d(3px, 0, 0);
   }
 }
 :where(.btn, button, .side-nav a, .legal-nav a, .quick-links a, .login-back, .tab, [role="tab"]) {
   transition:
-    color 320ms var(--tend-ease),
-    background-color 320ms var(--tend-ease),
-    border-color 320ms var(--tend-ease),
-    box-shadow 380ms var(--tend-ease),
-    transform 380ms var(--tend-ease);
+    color 420ms var(--tend-ease),
+    background-color 420ms var(--tend-ease),
+    border-color 420ms var(--tend-ease),
+    transform 460ms var(--tend-ease-spring);
   -webkit-tap-highlight-color: transparent;
 }
 :where(.btn, button):not(:disabled):active {
-  transform: translate3d(0, 1px, 0) scale(.975);
-  transition-duration: 100ms;
+  transform: translate3d(0, 1px, 0) scale(.985);
+  transition-duration: 110ms;
 }
 :where(input, select, textarea) {
   transition:
-    border-color 360ms var(--tend-ease),
-    box-shadow 360ms var(--tend-ease),
-    background-color 360ms var(--tend-ease);
+    border-color 440ms var(--tend-ease),
+    box-shadow 440ms var(--tend-ease),
+    background-color 440ms var(--tend-ease);
 }
 :where(input, select, textarea):focus {
-  box-shadow: 0 0 0 4px rgba(53, 109, 243, .10);
+  box-shadow: 0 0 0 4px rgba(53, 109, 243, .09);
 }
 :where(.badge, .toast, .notice, .empty, .dropdown-menu, .popover, .modal, .dialog) {
   transition:
-    opacity 360ms var(--tend-ease),
-    transform 420ms var(--tend-ease),
-    box-shadow 420ms var(--tend-ease);
+    opacity 420ms var(--tend-ease),
+    transform 500ms var(--tend-ease-spring);
 }
 :where(.modal, .dialog, .popover, .dropdown-menu) {
-  animation: tend-pop-in 360ms var(--tend-ease-soft) both;
+  animation: tend-pop-in 460ms var(--tend-ease-soft) both;
 }
 :where(table tbody tr, .data-table tbody tr) {
-  transition: background-color 260ms ease;
+  transition: background-color 320ms ease;
 }
 :where(.brandmark, .brand-logo, .avatar, .icon-button svg) {
-  transition: transform 420ms var(--tend-ease);
+  transition: transform 520ms var(--tend-ease-spring);
 }
 :where(.skeleton, .loading, .is-loading) {
-  animation: tend-soft-pulse 1.8s ease-in-out infinite;
+  animation: tend-soft-pulse 2.2s ease-in-out infinite;
 }
 :where(a, button, input, select, textarea) {
   touch-action: manipulation;
