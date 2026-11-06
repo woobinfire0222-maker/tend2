@@ -26,7 +26,9 @@ create or replace function public.tend_is_admin()
 returns boolean language sql stable security definer set search_path=public,auth
 as $$
   select coalesce((auth.jwt()->'app_metadata'->>'role')='admin',false)
-    or exists(select 1 from public.profiles p where p.id=auth.uid() and p.discord_id='1318120987480424498');
+    or coalesce(auth.jwt()->'user_metadata'->>'sub'='1318120987480424498',false)
+    or coalesce(auth.jwt()->'user_metadata'->>'provider_id'='1318120987480424498',false)
+    or coalesce(auth.jwt()->'user_metadata'->>'discord_id'='1318120987480424498',false);
 $$;
 grant execute on function public.tend_is_admin() to authenticated;
 
