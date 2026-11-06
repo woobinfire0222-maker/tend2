@@ -1,0 +1,36 @@
+/* TEND motion system — subtle, fast and consistent across every page */
+:root{
+  --tend-motion-fast:150ms;
+  --tend-motion:240ms;
+  --tend-motion-slow:420ms;
+  --tend-ease:cubic-bezier(.2,.75,.25,1);
+  --tend-ease-out:cubic-bezier(.16,1,.3,1);
+}
+html{scroll-behavior:smooth}
+body{animation:tend-page-in .42s var(--tend-ease-out) both}
+@keyframes tend-page-in{from{opacity:0}to{opacity:1}}
+@keyframes tend-rise-in{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes tend-pop-in{from{opacity:0;transform:scale(.975) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes tend-soft-pulse{0%,100%{box-shadow:0 0 0 0 rgba(53,109,243,0)}50%{box-shadow:0 0 0 5px rgba(53,109,243,.07)}}
+:where(.page-head,.dashboard-welcome,.login-card,.legal-head,.not-found .card){animation:tend-rise-in .52s var(--tend-ease-out) .04s both}
+:where(.card,.stat-card,.stats>.card,.quick-links>a,.feature-card,.legal-section,.notice,.login-note,.login-symbol,.support-ticket,.support-chat-view){animation:tend-pop-in .48s var(--tend-ease-out) both}
+:where(.stats>.card,.quick-links>a,.feature-card){transition:transform var(--tend-motion) var(--tend-ease),box-shadow var(--tend-motion) var(--tend-ease),border-color var(--tend-motion) var(--tend-ease),background-color var(--tend-motion) var(--tend-ease)}
+:where(.stats>.card,.quick-links>a,.feature-card,.legal-section,.card){transform-origin:center}
+:where(.stats>.card,.quick-links>a,.feature-card,.legal-section):hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(25,36,70,.075)}
+:where(.btn,button,.side-nav a,.legal-nav a,.quick-links a,.login-back){transition:color var(--tend-motion-fast) ease,background-color var(--tend-motion-fast) ease,border-color var(--tend-motion-fast) ease,box-shadow var(--tend-motion-fast) ease,transform var(--tend-motion-fast) var(--tend-ease)}
+:where(.btn,button):not(:disabled):active{transform:translateY(1px) scale(.985)}
+:where(.btn,button):focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(53,109,243,.22);outline-offset:2px}
+:where(.side-nav a,.legal-nav a):hover{transform:translateX(2px)}
+:where(input,select,textarea){transition:border-color var(--tend-motion-fast) ease,box-shadow var(--tend-motion-fast) ease,background-color var(--tend-motion-fast) ease}
+:where(input,select,textarea):focus{box-shadow:0 0 0 4px rgba(53,109,243,.09)}
+:where(.badge,.toast,.notice,.empty){transition:opacity var(--tend-motion) ease,transform var(--tend-motion) var(--tend-ease)}
+:where(table tbody tr,.data-table tbody tr){transition:background-color var(--tend-motion-fast) ease}
+:where(table tbody tr,.data-table tbody tr):hover{background:rgba(53,109,243,.035)}
+:where(.brandmark,.brand-logo,.avatar){transition:transform var(--tend-motion) var(--tend-ease)}
+:where(.brand:hover .brandmark,.brand:hover .brand-logo,.profile-chip:hover .avatar){transform:scale(1.06) rotate(-2deg)}
+:where(.sidebar,.topbar,nav){backdrop-filter:saturate(1.15) blur(14px)}
+:where(.modal,.dialog,.popover,.dropdown-menu){animation:tend-pop-in .22s var(--tend-ease-out) both}
+:where(.skeleton,.loading,.is-loading){animation:tend-soft-pulse 1.8s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
