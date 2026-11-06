@@ -125,6 +125,40 @@ footer{background:#fff}
 @media(max-width:850px){.story-band-grid{grid-template-columns:repeat(2,1fr);row-gap:25px}.story-stat:nth-child(3){border-left:0;padding-left:0}.principles-grid{grid-template-columns:1fr;gap:35px}.workflow{grid-template-columns:repeat(2,1fr);gap:28px}.workflow-step:nth-child(3){padding-left:0}.workflow-step:after{display:none}}
 @media(max-width:560px){.toolkit{padding:68px 0}.toolkit-grid,.usecases{grid-template-columns:1fr}.toolkit-card{min-height:0;padding:23px}.story-stat strong{font-size:17px}.workflow{gap:25px 10px}.workflow-step{padding:0 8px}.workflow-step:nth-child(odd){padding-left:0}.principles{padding:65px 0}.principles-grid{gap:28px}}
 
+
+/* Theme toggle */
+.theme-toggle{gap:7px;white-space:nowrap}
+html.theme-dark{color-scheme:dark}
+html.theme-dark body{background:#11151d;color:#edf1f7}
+html.theme-dark nav{background:rgba(17,21,29,.92);border-color:#293140;box-shadow:0 8px 30px #0003}
+html.theme-dark .navlinks,html.theme-dark .footer-links{color:#aab3c2}
+html.theme-dark .hero{background:linear-gradient(180deg,#151b27 0%,#11151d 100%)}
+html.theme-dark .hero:before{opacity:.35}
+html.theme-dark .hero p,html.theme-dark .section-head p,html.theme-dark .feature p,html.theme-dark .price-desc,html.theme-dark .price-note,html.theme-dark .faq p,html.theme-dark .cta-box p{color:#aab3c2}
+html.theme-dark .intro-eyebrow{background:#1b2433;border-color:#2b3b59;color:#9eb7ff}
+html.theme-dark .dashboard,html.theme-dark .feature,html.theme-dark .price-card,html.theme-dark .faq,html.theme-dark .trust,html.theme-dark footer,html.theme-dark .modal{background:#1a202b;border-color:#303949;color:#edf1f7}
+html.theme-dark .dash-top,html.theme-dark .dash-bottom,html.theme-dark .metric,html.theme-dark .faq button{background:#202837;border-color:#303949;color:#edf1f7}
+html.theme-dark .metric{border-color:#303949}
+html.theme-dark .metric span,html.theme-dark .activity-copy small,html.theme-dark .activity time,html.theme-dark .dash-bottom,html.theme-dark .trust-label,html.theme-dark .trust-item,html.theme-dark .price-features,html.theme-dark .faq p{color:#aab3c2}
+html.theme-dark .activity{border-color:#303949}
+html.theme-dark .activity-icon,html.theme-dark .feature-icon{background:#263550;color:#9bb5ff}
+html.theme-dark .story-band{background:#171d28;border-color:#303949}
+html.theme-dark .story-stat{border-color:#303949}
+html.theme-dark .story-stat strong,html.theme-dark .feature h3,html.theme-dark .price-name,html.theme-dark .faq button{color:#edf1f7}
+html.theme-dark .cta-box{background:radial-gradient(circle at 15% 0%,#27344b 0%,#1b263a 58%,#182236 100%);border-color:#34445f}
+html.theme-dark .btn-light,html.theme-dark .mobile-nav a{background:#202837;border-color:#394457;color:#e5eaf2}
+html.theme-dark .btn-dark{background:#e8edf5;color:#171b24}
+html.theme-dark .modal-backdrop{background:#05080dbb}
+html.theme-dark .modal h2,html.theme-dark .modal .field label{color:#edf1f7}
+html.theme-dark .modal p{color:#aab3c2}
+html.theme-dark .field input,html.theme-dark .field select{background:#111720;border-color:#394457;color:#edf1f7}
+html.theme-dark .admin-panel{background:linear-gradient(180deg,#151b27,#11151d);border-color:#303949}
+html.theme-dark .admin-table-wrap{background:#1a202b;border-color:#303949}
+html.theme-dark .admin-table th{background:#202837;color:#aab3c2}
+html.theme-dark .admin-table td{border-color:#303949;color:#c7cfdb}
+html.theme-dark .admin-table td:nth-child(2),html.theme-dark .admin-table td:nth-child(3){color:#edf1f7}
+html.theme-dark .mobile-nav{border-color:#303949}
+html.theme-dark .copyright{color:#8792a3}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js?v=20261029-2"></script>
@@ -133,7 +167,7 @@ footer{background:#fff}
 <nav><div class="wrap nav-inner">
 <a href="#" class="brand"><img class="brand-logo" src="./TEND.png" alt="TEND 로고" width="34" height="34">TEND</a>
 <div class="navlinks"><a href="#features">주요 기능</a><a href="#toolkit">운영 도구</a><a href="#how">이용 방법</a><a href="#pricing">요금 안내</a><a href="#faq">FAQ</a></div>
-<div class="navright"><a class="btn btn-light" href="./dashboard.html">대시보드</a><a class="btn btn-light" href="./requests.html">이용권 신청</a><a class="btn btn-light" href="./bot.html">봇 관리</a><a class="btn btn-light" href="./servers.html">서버 관리</a><span id="userChip" class="user-chip" hidden></span><button id="loginBtn" class="btn btn-dark">Discord로 시작하기 <span>↗</span></button></div>
+<div class="navright"><button class="btn btn-light theme-toggle" type="button" data-theme-toggle aria-label="다크 모드로 전환">☾ <span>다크 모드</span></button><a class="btn btn-light" href="./dashboard.html">대시보드</a><a class="btn btn-light" href="./requests.html">이용권 신청</a><a class="btn btn-light" href="./bot.html">봇 관리</a><a class="btn btn-light" href="./servers.html">서버 관리</a><span id="userChip" class="user-chip" hidden></span><button id="loginBtn" class="btn btn-dark">Discord로 시작하기 <span>↗</span></button></div>
 <div class="mobile-nav" aria-label="주요 메뉴"><a href="./dashboard.html">대시보드</a><a href="./requests.html">이용권 신청</a><a href="./bot.html">봇 관리</a><a href="./servers.html">서버 관리</a></div>
 </div></nav>
 <main>
@@ -271,5 +305,7 @@ footer{background:#fff}
   updateSession();
 })();
 </script>
-<script src="./maintenance-gate.js?v=20261106-3"></script></body>
+<script src="./maintenance-gate.js?v=20261106-3"></script><script>
+(()=>{const key='tend-theme';const root=document.documentElement;const button=document.querySelector('[data-theme-toggle]');function apply(theme){const dark=theme==='dark';root.classList.toggle('theme-dark',dark);if(button){button.innerHTML=dark?'☀ <span>라이트 모드</span>':'☾ <span>다크 모드</span>';button.setAttribute('aria-label',dark?'라이트 모드로 전환':'다크 모드로 전환')}}let saved='light';try{saved=localStorage.getItem(key)||'light'}catch{}apply(saved);button?.addEventListener('click',()=>{const next=root.classList.contains('theme-dark')?'light':'dark';try{localStorage.setItem(key,next)}catch{}apply(next)})})();
+</script></body>
 </html>
