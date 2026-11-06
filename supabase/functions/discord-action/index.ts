@@ -29,6 +29,18 @@ Deno.serve(async (request) => {
   const { data: authData, error: authError } = await db.auth.getUser(token);
   if (authError || !authData.user) return json({ error: "Please sign in again." }, 401);
 
+  const { data: maintenance, error: maintenanceError } = await db
+    .from("tend_service_status")
+    .select("enabled")
+    .eq("id", 1)
+    .maybeSingle();
+  if (maintenanceError) return json({ error: "서비스 점검 상태를 확인할 수 없습니다." }, 503);
+  if (maintenance?.enabled) {
+    const { data: profile } = await db.from("profiles").select("discord_id").eq("id", authData.user.id).maybeSingle();
+    const isTendAdmin = authData.user.app_metadata?.role === "admin" || String(profile?.discord_id || "") === "1318120987480424498";
+    if (!isTendAdmin) return json({ error: "TEND 서비스 점검 중입니다. 잠시 후 다시 이용해 주세요." }, 503);
+  }
+
   let body: Record<string, unknown>;
   try { body = await request.json(); } catch { return json({ error: "Invalid JSON body." }, 400); }
   const action = String(body.action || "");
