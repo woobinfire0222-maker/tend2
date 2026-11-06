@@ -226,3 +226,23 @@
 .support-chat-inner{min-width:0;display:flex;flex-direction:column}.support-chat-inner .support-chat-view{min-height:540px}
 @media(max-width:850px){.support-admin-layout{grid-template-columns:1fr}.support-admin-list{border-right:0;border-bottom:1px solid var(--line)}.support-admin-list .support-ticket-list{max-height:250px;grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.support-admin-list .support-ticket-list{grid-template-columns:1fr}}
+
+/* Discord account confirmation and linked profile image */
+.avatar{overflow:hidden;flex:0 0 auto}
+.avatar img{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.tend-account-confirm{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:22px;background:rgba(15,23,42,.42);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:tend-confirm-fade 420ms cubic-bezier(.16,1,.3,1) both}
+.tend-account-confirm-card{width:min(100%,390px);padding:30px;border:1px solid rgba(255,255,255,.72);border-radius:24px;background:rgba(255,255,255,.97);box-shadow:0 28px 90px rgba(15,23,42,.2);animation:tend-confirm-rise 560ms cubic-bezier(.16,1,.3,1) both}
+.tend-confirm-kicker{font-size:10px;font-weight:800;letter-spacing:.14em;color:#7c8799}
+.tend-account-confirm-card h2{margin:10px 0 7px;font-size:24px;letter-spacing:-.055em;color:#171b24}
+.tend-confirm-desc{margin:0;color:#78808d;font-size:13px;line-height:1.6}
+.tend-confirm-profile{display:flex;align-items:center;gap:13px;margin:24px 0;padding:15px;border:1px solid #edf0f4;border-radius:17px;background:#fafbfc}
+.tend-confirm-avatar{width:54px;height:54px;flex:0 0 54px;display:grid;place-items:center;overflow:hidden;border-radius:17px;background:#edf2ff;color:#356df3;font-size:21px;font-weight:800}
+.tend-confirm-avatar img{width:100%;height:100%;object-fit:cover}
+.tend-confirm-info{min-width:0;display:grid;gap:5px}
+.tend-confirm-info strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px;color:#202633}
+.tend-confirm-info small{font-size:11px;color:#8992a0}
+.tend-account-confirm-card .btn{width:100%;min-height:46px;justify-content:center}
+.tend-account-confirm-card .tend-confirm-no{margin-top:9px}
+@keyframes tend-confirm-fade{from{opacity:0}to{opacity:1}}
+@keyframes tend-confirm-rise{from{opacity:0;transform:translate3d(0,16px,0) scale(.985)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.tend-account-confirm,.tend-account-confirm-card{animation:none}}
