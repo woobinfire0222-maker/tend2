@@ -11,11 +11,11 @@ body{animation:tend-page-in .42s var(--tend-ease-out) both}
 @keyframes tend-page-in{from{opacity:0}to{opacity:1}}
 @keyframes tend-rise-in{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 @keyframes tend-pop-in{from{opacity:0;transform:scale(.975) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
-@keyframes tend-soft-pulse{0%,100%{box-shadow:0 0 0 0 rgba(53,109,243,0)}50%{box-shadow:0 0 0 5px rgba(53,109,243,.07)}}
-:where(.page-head,.dashboard-welcome,.login-card,.legal-head,.not-found .card){animation:tend-rise-in .52s var(--tend-ease-out) .04s both}
+@keyframes tend-soft-pulse{0%,100%{box-shadow:0 0 0 0 rgba(53,109,243,0)}50%{box-shadow:0 0 0 5px rgba(53,109,243,.07)}}\n@keyframes tend-sidebar-in{from{opacity:0;transform:translateX(-9px)}to{opacity:1;transform:translateX(0)}}\n@keyframes tend-content-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+:where(.sidebar){animation:tend-sidebar-in .42s var(--tend-ease-out) both}\n:where(.main,.legal-wrap,.login-page){animation:tend-content-in .42s var(--tend-ease-out) both}\n:where(.page-head,.dashboard-welcome,.login-card,.legal-head,.not-found .card){animation:tend-rise-in .52s var(--tend-ease-out) .04s both}
 :where(.card,.stat-card,.stats>.card,.quick-links>a,.feature-card,.legal-section,.notice,.login-note,.login-symbol,.support-ticket,.support-chat-view){animation:tend-pop-in .48s var(--tend-ease-out) both}
 :where(.stats>.card,.quick-links>a,.feature-card){transition:transform var(--tend-motion) var(--tend-ease),box-shadow var(--tend-motion) var(--tend-ease),border-color var(--tend-motion) var(--tend-ease),background-color var(--tend-motion) var(--tend-ease)}
-:where(.stats>.card,.quick-links>a,.feature-card,.legal-section,.card){transform-origin:center}
+:where(.stats>.card,.quick-links>a,.feature-card,.legal-section,.card){transform-origin:center}\n:where(.stats>.card,.quick-links>a,.feature-card):nth-child(1){animation-delay:.05s}\n:where(.stats>.card,.quick-links>a,.feature-card):nth-child(2){animation-delay:.10s}\n:where(.stats>.card,.quick-links>a,.feature-card):nth-child(3){animation-delay:.15s}\n:where(.stats>.card,.quick-links>a,.feature-card):nth-child(4){animation-delay:.20s}
 :where(.stats>.card,.quick-links>a,.feature-card,.legal-section):hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(25,36,70,.075)}
 :where(.btn,button,.side-nav a,.legal-nav a,.quick-links a,.login-back){transition:color var(--tend-motion-fast) ease,background-color var(--tend-motion-fast) ease,border-color var(--tend-motion-fast) ease,box-shadow var(--tend-motion-fast) ease,transform var(--tend-motion-fast) var(--tend-ease)}
 :where(.btn,button):not(:disabled):active{transform:translateY(1px) scale(.985)}
