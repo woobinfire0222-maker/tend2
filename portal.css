@@ -260,3 +260,42 @@
 .tend-logout-actions .tend-logout-yes{background:#e5484d;border:1px solid #e5484d;color:#fff}
 .tend-logout-actions .tend-logout-yes:hover{background:#d9363e;border-color:#d9363e}
 .tend-logout-actions .tend-logout-yes:disabled{opacity:.65;cursor:wait}
+
+/* TEND dark theme */
+html.theme-dark{color-scheme:dark}
+html.theme-dark body{background:#11151d;color:#edf1f7}
+html.theme-dark .sidebar,html.theme-dark .card,html.theme-dark .table-wrap,html.theme-dark .support-list-card,html.theme-dark .support-chat-card{background:#1a202b;border-color:#303949;color:#edf1f7}
+html.theme-dark .sidebar{border-right-color:#303949}
+html.theme-dark .brand,html.theme-dark .page-title,html.theme-dark .card-title,html.theme-dark .stat-value,html.theme-dark .profile-text strong{color:#edf1f7}
+html.theme-dark .topbar,html.theme-dark .sidebar-bottom{border-color:#303949}
+html.theme-dark .crumb,html.theme-dark .page-subtitle,html.theme-dark .stat-label,html.theme-dark .stat-foot,html.theme-dark .card-note,html.theme-dark .profile-text small{color:#aab3c2}
+html.theme-dark .side-nav a{color:#aab3c2}
+html.theme-dark .side-nav a:hover{background:#252e3d;color:#edf1f7}
+html.theme-dark .side-nav a.active{background:#263550;color:#9bb5ff}
+html.theme-dark .btn-light{background:#202837;border-color:#394457;color:#e5eaf2}
+html.theme-dark .btn-dark{background:#e8edf5;color:#171b24}
+html.theme-dark .btn-danger{background:#3a2227;border-color:#583039;color:#ff9ca5}
+html.theme-dark .data-table th,html.theme-dark .admin-table th{background:#202837;color:#aab3c2;border-color:#303949}
+html.theme-dark .data-table td,html.theme-dark .admin-table td{color:#c7cfdb;border-color:#303949}
+html.theme-dark .data-table tbody tr:hover,html.theme-dark .admin-table tbody tr:hover{background:#222c3b}
+html.theme-dark .control,html.theme-dark .data-table select,html.theme-dark .status-select,html.theme-dark input,html.theme-dark select,html.theme-dark textarea{background:#111720;border-color:#394457;color:#edf1f7}
+html.theme-dark .badge{background:#2a3342;color:#c7cfdb}
+html.theme-dark .badge.green{background:#183b31;color:#7ee0b4}
+html.theme-dark .badge.blue{background:#263550;color:#9bb5ff}
+html.theme-dark .badge.amber{background:#42351f;color:#f0c77a}
+html.theme-dark .badge.red{background:#42262b;color:#ff9ca5}
+html.theme-dark .empty,html.theme-dark .empty-state{color:#aab3c2}
+html.theme-dark .payment-summary,html.theme-dark .quick-links a,html.theme-dark .support-ticket-item{background:#202837;border-color:#303949;color:#edf1f7}
+html.theme-dark .support-ticket-item.active{background:#263550;border-color:#526fae}
+html.theme-dark .support-message-list{background:#141a24}
+html.theme-dark .support-message-body p{background:#202837;border-color:#303949;color:#e1e7f0}
+html.theme-dark .support-message.mine .support-message-body p{background:#263550;border-color:#354b70}
+html.theme-dark .support-chat-head,html.theme-dark .support-reply-form{background:#1a202b;border-color:#303949}
+html.theme-dark .support-closed-note{background:#202837;color:#aab3c2}
+html.theme-dark .tend-account-confirm-card{background:#1a202b;border-color:#394457}
+html.theme-dark .tend-account-confirm-card h2,html.theme-dark .tend-confirm-info strong{color:#edf1f7}
+html.theme-dark .tend-confirm-desc,html.theme-dark .tend-confirm-info small{color:#aab3c2}
+html.theme-dark .tend-confirm-profile{background:#202837;border-color:#394457}
+html.theme-dark .toast{background:#e8edf5;color:#171b24}
+.theme-toggle{white-space:nowrap}
+@media(max-width:560px){.topbar-actions .theme-toggle{padding:9px 10px;font-size:11px}.topbar-actions .theme-toggle span{display:none}}
