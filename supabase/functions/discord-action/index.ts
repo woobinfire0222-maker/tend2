@@ -36,8 +36,16 @@ Deno.serve(async (request) => {
     .maybeSingle();
   if (maintenanceError) return json({ error: "서비스 점검 상태를 확인할 수 없습니다." }, 503);
   if (maintenance?.enabled) {
-    const { data: profile } = await db.from("profiles").select("discord_id").eq("id", authData.user.id).maybeSingle();
-    const isTendAdmin = authData.user.app_metadata?.role === "admin" || String(profile?.discord_id || "") === "1318120987480424498";
+    const userMetadata = authData.user.user_metadata || {};
+    const appMetadata = authData.user.app_metadata || {};
+    const discordIds = [
+      userMetadata.sub,
+      userMetadata.provider_id,
+      userMetadata.discord_id,
+      appMetadata.provider_id,
+      appMetadata.discord_id,
+    ].map((value) => String(value || ""));
+    const isTendAdmin = appMetadata.role === "admin" || discordIds.includes("1318120987480424498");
     if (!isTendAdmin) return json({ error: "TEND 서비스 점검 중입니다. 잠시 후 다시 이용해 주세요." }, 503);
   }
 
