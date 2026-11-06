@@ -201,7 +201,7 @@ footer{background:#fff}
   function notify(message){toastEl.textContent=message;toastEl.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),3200)}
   document.querySelectorAll('.faq button').forEach(button=>button.addEventListener('click',()=>{const item=button.parentElement;const open=item.classList.toggle('open');button.setAttribute('aria-expanded',String(open));}));
   const cfg = window.TEND_CONFIG || {};
-  const client = window.supabase && cfg.supabaseUrl && cfg.supabaseAnonKey ? window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}) : null;
+  const client = window.supabase && cfg.supabaseUrl && cfg.supabaseAnonKey ? (window.TEND_SB || (window.TEND_SB = window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}))) : null;
   let currentUser = null;
   const loginBtn=document.getElementById('loginBtn'), ctaLogin=document.getElementById('ctaLogin'), userChip=document.getElementById('userChip');
   const modal=document.getElementById('purchaseModal'), planSelect=document.getElementById('planSelect'), serverName=document.getElementById('serverName'), serverId=document.getElementById('serverId');
