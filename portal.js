@@ -1,6 +1,6 @@
 (() => {
 const cfg=window.TEND_CONFIG||{};
-const sb=window.supabase&&cfg.supabaseUrl&&cfg.supabaseAnonKey?window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
+const sb=window.TEND_SB||(window.supabase&&cfg.supabaseUrl&&cfg.supabaseAnonKey?window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null);if(sb)window.TEND_SB=sb;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let user=null,profileName="사용자";
 const toast=$("#toast");
