@@ -42,6 +42,48 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
 @media(max-width:850px){.hero-grid{grid-template-columns:1fr;gap:45px}.hero{padding-top:65px}.dashboard{max-width:560px;transform:none}.navlinks{display:none}.split-grid{grid-template-columns:1fr;gap:35px}.chat-preview{margin:0;max-width:none}.trust-inner{flex-wrap:wrap;justify-content:center}.trust-label{width:100%;text-align:center}.feature-grid{grid-template-columns:repeat(2,1fr)}.pricing{grid-template-columns:1fr;max-width:500px;margin:auto}.price-desc{min-height:0}}
 @media(max-width:850px){nav{height:auto;min-height:65px}.nav-inner{flex-wrap:wrap;padding:10px 0;row-gap:9px}.navright{margin-left:auto}.mobile-nav{display:flex;order:3;width:100%;gap:7px;padding-top:9px;border-top:1px solid var(--line)}.mobile-nav a{flex:1;min-width:0;text-align:center;padding:10px 4px;background:#fff;border:1px solid var(--line);border-radius:10px;font-size:12px;font-weight:700;color:#4f5664;white-space:nowrap}.mobile-nav a:active{background:var(--soft);color:var(--blue)}}
 @media(max-width:560px){.wrap{width:min(100% - 30px,1120px)}nav{height:65px}.navright .btn-light{display:none}.navright .btn{padding:10px 12px;font-size:12px}.brand{font-size:20px}.brandmark{width:31px;height:31px}.hero{padding:52px 0 55px}.hero h1{font-size:43px}.hero p{font-size:15px}.hero-actions .btn{flex:1}.metrics{gap:7px}.metric{padding:11px 9px}.metric strong{font-size:20px}.dash-body{padding:16px}.activity time{display:none}section.content{padding:68px 0}.section-head{margin-bottom:30px}.feature-grid{grid-template-columns:1fr}.feature{min-height:0;padding:22px}.feature-icon{margin-bottom:17px}.split{padding:60px 0}.cta{padding-bottom:60px}.cta-box{padding:36px 18px}.footer-top{align-items:flex-start;flex-direction:column}.footer-links{flex-wrap:wrap}.trust-item{font-size:12px}.modal{padding:21px}}
+
+/* TEND introduction page refinement */
+nav{box-shadow:0 8px 30px rgba(20,30,55,.035)}
+.hero{padding-top:104px;padding-bottom:94px;background:linear-gradient(180deg,#fbfcff 0%,#f7f8fa 100%)}
+.hero:before{width:680px;height:680px;right:-130px;top:-210px;background:radial-gradient(circle,rgba(83,126,255,.16) 0%,rgba(231,237,255,0) 68%)}
+.hero-grid{gap:68px}
+.hero h1{font-size:clamp(48px,5.5vw,72px);line-height:1.08;letter-spacing:-.082em}
+.hero h1 span{background:linear-gradient(105deg,#356df3 5%,#648cff 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:17px;line-height:1.95;color:#626b7b}
+.hero-actions .btn{min-height:50px;padding:0 21px;border-radius:13px}
+.hero-actions .btn-blue{box-shadow:0 10px 24px rgba(53,109,243,.22)}
+.dashboard{border-radius:23px;box-shadow:0 30px 85px rgba(29,47,92,.13);transform:rotate(.25deg);border-color:#e4e8f1}
+.dash-top{height:62px;background:#fff}
+.dash-body{padding:25px}
+.metric{border-radius:14px;background:linear-gradient(145deg,#fafbfe,#f5f7fb)}
+.activity{padding:14px 0}
+.trust{background:#fff}
+.trust-inner{padding:25px 0}
+section.content{padding:106px 0}
+.section-head{margin-bottom:52px}
+.section-head h2{letter-spacing:-.075em}
+.feature-grid{gap:18px}
+.feature{border-radius:20px;padding:28px;min-height:220px;box-shadow:0 8px 28px rgba(25,36,70,.025)}
+.feature:hover{transform:translateY(-5px);box-shadow:0 20px 45px rgba(25,36,70,.075)}
+.feature-icon{width:46px;height:46px;border-radius:14px;margin-bottom:25px}
+.split{background:linear-gradient(120deg,#1d222d 0%,#252c3a 100%);padding:92px 0}
+.chat-preview{box-shadow:0 24px 65px rgba(0,0,0,.18);border-radius:21px}
+.price-card{border-radius:20px;padding:28px;box-shadow:0 8px 28px rgba(25,36,70,.025)}
+.price-card.featured{box-shadow:0 18px 48px rgba(53,109,243,.12)}
+.cta-box{border-radius:26px;padding:58px 25px;background:radial-gradient(circle at 15% 0%,#fff 0%,#edf2ff 58%,#e8efff 100%)}
+footer{background:#fff}
+.logout-confirm-modal{width:min(100%,410px);padding:30px;border-radius:22px}
+.logout-confirm-kicker{font-size:10px;font-weight:850;letter-spacing:.13em;color:#8991a1;margin-bottom:13px}
+.logout-confirm-modal h2{font-size:24px;letter-spacing:-.06em;margin-bottom:9px}
+.logout-confirm-modal p{line-height:1.8;margin-bottom:24px}
+.logout-confirm-modal .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:0}
+.logout-confirm-modal .modal-actions .btn{min-height:48px;margin:0}
+.logout-confirm-danger{background:#e5484d;color:#fff}
+.logout-confirm-danger:hover{background:#d9363e}
+.logout-confirm-danger:disabled{opacity:.6;cursor:wait}
+@media(max-width:850px){.hero{padding:70px 0 64px}.hero-grid{gap:42px}.hero h1{font-size:clamp(42px,9vw,58px)}section.content{padding:76px 0}.split{padding:70px 0}}
+@media(max-width:520px){.logout-confirm-modal{padding:24px}.logout-confirm-modal .modal-actions{grid-template-columns:1fr}.hero-actions .btn{flex:1}.trust-inner{gap:15px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js?v=20261029-2"></script>
@@ -100,6 +142,7 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
 </main>
 <footer><div class="wrap"><div class="footer-top"><a href="#" class="footer-brand"><img class="brand-logo" src="./TEND.png" alt="TEND 로고" width="29" height="29">TEND</a><div class="footer-links"><a href="#features">기능</a><a href="#pricing">요금 안내</a><a href="#faq">자주 묻는 질문</a><a href="./legal.html#privacy">고객 지원 안내</a><a href="./legal.html#privacy">개인정보처리방침</a><a href="./legal.html#terms">이용약관</a><a href="./legal.html#refund">환불정책</a></div></div><div class="copyright">© 2026 TEND. 간편한 Discord 서버 운영 관리</div></div></footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal-backdrop" id="logoutConfirmModal" role="dialog" aria-modal="true" aria-labelledby="logoutConfirmTitle"><section class="modal logout-confirm-modal"><div class="logout-confirm-kicker">LOG OUT</div><h2 id="logoutConfirmTitle">정말 로그아웃할까요?</h2><p>로그아웃하면 TEND 이용을 위해 다시 로그인해야 해요.</p><div class="modal-actions"><button type="button" class="btn btn-light" id="cancelLogout">취소</button><button type="button" class="btn logout-confirm-danger" id="confirmLogout">로그아웃</button></div></section></div>
 <div class="modal-backdrop" id="purchaseModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><h2 id="modalTitle">이용권 신청</h2><p>아래 정보를 제출하면 신청 내역이 계정에 저장돼요. 이 단계에서는 결제가 진행되지 않아요.</p><form id="purchaseForm"><div class="field"><label for="planSelect">이용권</label><select id="planSelect" required><option value="1일">1일 이용권 · ₩1,500</option><option value="7일">7일 이용권 · ₩5,900</option><option value="30일">30일 이용권 · ₩14,900</option></select></div><div class="field"><label for="serverName">Discord 서버 이름</label><input id="serverName" maxlength="100" required placeholder="예: 우리 서버"></div><div class="field"><label for="serverId">Discord 서버 ID (선택)</label><input id="serverId" maxlength="30" inputmode="numeric" placeholder="서버 ID를 입력해 주세요"></div><div style="padding:15px;background:#f7f9ff;border:1px solid #e3eaff;border-radius:12px;margin-top:12px"><strong style="font-size:13px">입금 안내 · 토스뱅크</strong><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;flex-wrap:wrap"><b style="font-size:15px;letter-spacing:.01em">1908-3953-4245</b><button type="button" class="btn btn-light" id="copyPaymentAccount" style="padding:8px 10px;font-size:12px">계좌번호 복사</button></div><p style="margin:9px 0 0;font-size:11px">신청을 제출한 뒤 위 계좌로 입금해 주세요. 입금 확인 후 이용권이 승인됩니다.</p></div><div class="modal-actions"><button type="button" class="btn btn-light" id="cancelPurchase">취소</button><button type="submit" class="btn btn-blue" id="submitPurchase">신청 접수하기</button></div></form></div></div>
 <script>
 (() => {
@@ -133,7 +176,14 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
       userChip.hidden=true;loginBtn.textContent='Discord로 시작하기 ↗';loginBtn.className='btn btn-dark';adminPanel.classList.remove('show')
     }
   }
-  loginBtn.addEventListener('click',async()=>{if(currentUser&&client){const {error}=await client.auth.signOut();if(error)notify('로그아웃에 실패했어요.');else{notify('로그아웃했어요.');await updateSession()}}else await login()});
+  const logoutModal=document.getElementById('logoutConfirmModal');
+  const cancelLogout=document.getElementById('cancelLogout');
+  const confirmLogout=document.getElementById('confirmLogout');
+  function closeLogoutModal(){logoutModal.classList.remove('show')}
+  loginBtn.addEventListener('click',()=>{if(currentUser&&client){logoutModal.classList.add('show')}else login()});
+  cancelLogout.addEventListener('click',closeLogoutModal);
+  logoutModal.addEventListener('click',e=>{if(e.target===logoutModal)closeLogoutModal()});
+  confirmLogout.addEventListener('click',async()=>{confirmLogout.disabled=true;confirmLogout.textContent='로그아웃 중…';const {error}=await client.auth.signOut();confirmLogout.disabled=false;confirmLogout.textContent='로그아웃';if(error){notify('로그아웃에 실패했어요. 다시 시도해 주세요.');return}closeLogoutModal();notify('로그아웃했어요.');await updateSession()});
   ctaLogin.addEventListener('click',()=>currentUser?openModal():login());
   document.querySelectorAll('[data-auth-action="purchase"]').forEach(btn=>btn.addEventListener('click',()=>{if(!currentUser){login();return}openModal(btn.dataset.plan)}));
   document.getElementById('cancelPurchase').addEventListener('click',closeModal);
