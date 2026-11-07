@@ -309,3 +309,54 @@ html.theme-dark .legal-wrap .legal-footer a,
 html.theme-dark .legal-wrap .legal-head>div{
   color:#9eb7ff!important;
 }
+
+
+/* Dark mode: keep meaningful red and blue accents */
+html.theme-dark :is(.text-blue,.text-primary,.text-link,.link-primary,.accent-blue,.status-blue,.icon-blue,.blue-accent){
+  color:#78a5ff!important;
+}
+html.theme-dark :is(.text-red,.text-danger,.text-error,.accent-red,.status-red,.icon-red,.red-accent){
+  color:#ff858e!important;
+}
+html.theme-dark :is(.text-blue-500,.text-blue-600,.text-blue-700,.text-indigo-500,.text-indigo-600,.text-sky-500){
+  color:#78a5ff!important;
+}
+html.theme-dark :is(.text-red-500,.text-red-600,.text-red-700,.text-rose-500,.text-rose-600){
+  color:#ff858e!important;
+}
+html.theme-dark :is(.bg-blue-500,.bg-blue-600,.bg-primary,.btn-primary,.btn-accent,.button-primary){
+  background:#2855a8!important;
+  border-color:#3f70c9!important;
+  color:#fff!important;
+}
+html.theme-dark :is(.bg-red-500,.bg-red-600,.bg-danger,.btn-red,.button-danger,.btn-outline-danger){
+  background:#762f39!important;
+  border-color:#a34a56!important;
+  color:#fff!important;
+}
+html.theme-dark :is(.border-blue-400,.border-blue-500,.border-primary){
+  border-color:#456fb6!important;
+}
+html.theme-dark :is(.border-red-400,.border-red-500,.border-danger){
+  border-color:#94434d!important;
+}
+html.theme-dark :is(.badge.red,.badge.danger,.status-badge.rejected,.status-badge.error){
+  background:#48262d!important;
+  border-color:#75404a!important;
+  color:#ff9da5!important;
+}
+html.theme-dark :is(.badge.blue,.status-badge.active,.status-badge.approved){
+  background:#243b60!important;
+  border-color:#3b5c91!important;
+  color:#a9c7ff!important;
+}
+html.theme-dark :is(.btn-blue,.login-discord,.hero-actions .btn-blue,.price-card .btn-blue){
+  background:#285bd0!important;
+  border-color:#4679e5!important;
+  color:#fff!important;
+}
+html.theme-dark :is(.btn-danger,.tend-logout-yes){
+  background:#762f39!important;
+  border-color:#a34a56!important;
+  color:#fff!important;
+}
