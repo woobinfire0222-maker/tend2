@@ -1,119 +1,24 @@
 <!doctype html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#10151d">
-<link rel="icon" type="image/png" href="./TEND.png">
+<html lang="ko"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10151d"><link rel="icon" type="image/png" href="./TEND.png">
 <title>실험실 · TEND</title>
 <script>document.documentElement.classList.add("theme-dark");</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js?v=20261029-2"></script>
 <link rel="stylesheet" href="./motion.css?v=20261106-3">
 <style>
-:root{color-scheme:dark;--bg:#10151d;--surface:#1a222e;--surface-soft:#202a38;--ink:#f1f4f9;--muted:#a1acbc;--line:#303b4b;--blue:#78aaff;--blue-soft:#263b5c}
-*{box-sizing:border-box}
-html,body{margin:0;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
-body{min-height:100vh}
-.lab-page{width:min(100% - 48px,1040px);margin:0 auto;padding:34px 0 64px}
-.lab-header{height:58px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:54px}
-.lab-wordmark{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink)}
-.lab-wordmark img{display:block;width:36px;height:36px;object-fit:contain;border-radius:9px}
-.lab-wordmark span{font-size:12px;font-weight:700;letter-spacing:-.02em;color:var(--muted);padding-left:12px;border-left:1px solid var(--line)}
-
-.lab-header-actions{display:flex;align-items:center;gap:9px}
-.lab-button{height:40px;padding:0 15px;border:1px solid var(--line);border-radius:13px;background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
-.lab-button:hover{background:var(--surface-soft);border-color:#d6dce7;transform:translateY(-1px)}
-.lab-back{display:inline-flex;align-items:center;gap:8px;text-decoration:none}
-.lab-back svg{width:15px;height:15px}
-.lab-intro{margin-bottom:27px}
-.lab-eyebrow{display:flex;align-items:center;gap:8px;color:var(--blue);font-size:11px;font-weight:850;letter-spacing:.12em}
-.lab-eyebrow:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px var(--blue-soft)}
-.lab-intro h1{margin:16px 0 9px;font-size:clamp(32px,5vw,45px);line-height:1.13;letter-spacing:-.065em;font-weight:780}
-.lab-intro p{margin:0;color:var(--muted);font-size:14px;line-height:1.7;letter-spacing:-.02em}
-.lab-panel{position:relative;overflow:hidden;min-height:370px;padding:30px;border:1px solid var(--line);border-radius:27px;background:var(--surface);box-shadow:0 8px 32px rgba(31,48,79,.035)}
-.lab-panel-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:22px;border-bottom:1px solid var(--line)}
-.lab-panel-label{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;letter-spacing:-.025em}
-.lab-panel-icon{width:32px;height:32px;display:grid;place-items:center;border-radius:11px;background:var(--blue-soft);color:var(--blue)}
-.lab-panel-icon svg{width:17px;height:17px}
-.lab-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:9px;background:var(--surface-soft);color:var(--muted);font-size:10px;font-weight:750;letter-spacing:.02em}
-.lab-chip:before{content:"";width:6px;height:6px;border-radius:50%;background:#9aa4b4}
-.lab-empty{min-height:275px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:38px 12px}
-.lab-empty-icon{width:68px;height:68px;display:grid;place-items:center;margin-bottom:19px;border-radius:23px;background:linear-gradient(145deg,#eaf2ff,#f2f6ff);color:#2878f0}
-.lab-empty-icon svg{width:30px;height:30px}
-.lab-empty h2{margin:0 0 9px;font-size:21px;letter-spacing:-.05em;font-weight:780}
-.lab-empty p{max-width:360px;margin:0;color:var(--muted);font-size:12px;line-height:1.8}
-.lab-footnote{display:flex;align-items:center;gap:8px;margin-top:18px;color:#8a93a2;font-size:10px}
-.lab-footnote svg{width:14px;height:14px;flex:none}
-#toast{position:fixed;left:50%;bottom:24px;z-index:20;transform:translate(-50%,12px);padding:11px 16px;border-radius:12px;background:#202632;color:#fff;font-size:12px;opacity:0;pointer-events:none;transition:.2s}
-#toast.show{opacity:1;transform:translate(-50%,0)}
-.lab-panel{box-shadow:0 10px 34px rgba(0,0,0,.16)}
-.lab-feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding-top:22px}
-.lab-feature{min-width:0;padding:21px;border:1px solid var(--line);border-radius:19px;background:var(--surface-soft)}
-.lab-feature-icon{width:39px;height:39px;display:grid;place-items:center;margin-bottom:17px;border-radius:13px;background:#263b5c;color:#8db6ff}
-.lab-feature-icon svg{width:20px;height:20px}
-.lab-feature h2{margin:0 0 8px;font-size:16px;letter-spacing:-.045em}
-.lab-feature p{min-height:42px;margin:0;color:var(--muted);font-size:11px;line-height:1.7}
-.lab-feature-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:19px;padding-top:14px;border-top:1px solid var(--line)}
-.lab-feature-tag{font-size:10px;font-weight:750;color:#a9c8ff}
-.lab-feature-status{font-size:10px;color:var(--muted)}
-.lab-feature-status:before{content:"";display:inline-block;width:6px;height:6px;margin-right:6px;border-radius:50%;background:#e0ad58;vertical-align:1px}
-@media(max-width:760px){.lab-feature-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:520px){.lab-feature-grid{grid-template-columns:1fr}.lab-feature p{min-height:0}}
-.lab-button{background:var(--surface);border-color:var(--line);color:var(--ink)}
-.lab-button:hover{background:var(--surface-soft)}
-.lab-empty-icon{background:linear-gradient(145deg,#263b5c,#202f49);color:#8db6ff}
-.lab-chip{background:#222d3b}
-#toast{background:#edf2fa;color:#17202c}
-@media(max-width:600px){.lab-page{width:min(100% - 32px,1040px);padding:19px 0 40px}.lab-header{margin-bottom:42px;height:48px}.lab-wordmark img{width:34px;height:34px}.lab-wordmark span{font-size:11px}.lab-button{height:38px;padding:0 12px}.lab-panel{min-height:350px;padding:19px;border-radius:22px}.lab-panel-top{padding-bottom:17px}.lab-empty{min-height:270px;padding:30px 5px}.lab-intro h1{font-size:34px}.lab-intro p{font-size:13px}.lab-chip{font-size:9px}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
-</style>
-</head>
-<body data-page="lab">
-<main class="lab-page">
-<header class="lab-header">
-<a class="lab-wordmark" href="./index.html" aria-label="TEND 홈"><img src="./TEND.png" alt="TEND 로고"><span>실험실</span></a>
-<div class="lab-header-actions">
-<a class="lab-button lab-back" href="./dashboard.html">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M9 12h11"/></svg>
-대시보드로 돌아가기
-</a>
-</div>
-</header>
-<section class="lab-intro">
-<div class="lab-eyebrow">TEND LAB</div>
-<h1>실험실</h1>
-<p>정식 출시 되지 않은 기능을 미리 체험해볼 수 있어요.</p>
-</section>
-<section class="lab-panel" aria-label="실험실 기능">
-<div class="lab-panel-top">
-<div class="lab-panel-label"><span class="lab-panel-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.64 5.64l2.12 2.12m8.48 8.48 2.12 2.12m0-12.72-2.12 2.12m-8.48 8.48-2.12 2.12"/><circle cx="12" cy="12" r="4"/></svg></span>실험 기능</div>
-<span class="lab-chip">실험 기능 3개</span>
-</div>
-<div class="lab-feature-grid">
-<article class="lab-feature">
-<div class="lab-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6m3-3h-6"/></svg></div>
-<h2>자동 역할 추천</h2>
-<p>가입 기간과 서버 활동 조건을 기준으로 멤버에게 역할을 자동으로 부여하는 기능이에요.</p>
-<div class="lab-feature-meta"><span class="lab-feature-tag">ROLE AUTOMATION</span><span class="lab-feature-status">개발 예정</span></div>
-</article>
-<article class="lab-feature">
-<div class="lab-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-5 5"/><path d="M15 9h4v4"/></svg></div>
-<h2>서버 통계 고급판</h2>
-<p>멤버 증감과 채팅량, 채널별 활동을 일간·주간·월간 단위로 확인해요.</p>
-<div class="lab-feature-meta"><span class="lab-feature-tag">ADVANCED ANALYTICS</span><span class="lab-feature-status">개발 예정</span></div>
-</article>
-<article class="lab-feature">
-<div class="lab-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.4 6.1L21 10l-6.6 1.9L12 18l-2.4-6.1L3 10l6.6-1.9L12 2Z"/><path d="M19 16v6m-3-3h6"/></svg></div>
-<h2>서버 등급 시스템</h2>
-<p>활동 경험치를 쌓아 레벨을 올리고, 레벨 보상 역할과 서버 랭킹을 이용해요.</p>
-<div class="lab-feature-meta"><span class="lab-feature-tag">LEVEL & REWARDS</span><span class="lab-feature-status">개발 예정</span></div>
-</article>
-</div></section>
-</main>
-<div id="toast" class="toast" role="status"></div>
-<script src="./portal.js?v=20261107-lab3"></script>
-<script src="./maintenance-gate.js?v=20261106-3"></script>
-<script src="./cookie-consent.js?v=20261107-1"></script>
-</body>
-</html>
+:root{color-scheme:dark;--bg:#10151d;--surface:#1a222e;--soft:#202a38;--ink:#f1f4f9;--muted:#a1acbc;--line:#303b4b;--blue:#78aaff;--bluebg:#263b5c;--green:#67d5a0;--amber:#e0ad58;--red:#f08080}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.lab-page{width:min(100% - 48px,1080px);margin:auto;padding:30px 0 70px}.lab-header{height:52px;display:flex;align-items:center;justify-content:space-between;margin-bottom:48px}.wordmark{display:flex;align-items:center;gap:12px;color:var(--ink);text-decoration:none}.wordmark img{width:36px;height:36px;object-fit:contain}.wordmark span{border-left:1px solid var(--line);padding-left:12px;color:var(--muted);font-size:12px;font-weight:700}.back,.btn{height:40px;padding:0 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}.btn.primary{background:#315d9e;border-color:#4779bd;color:white}.btn:disabled{opacity:.5;cursor:wait}.intro{margin-bottom:26px}.eyebrow{color:var(--blue);font-size:11px;font-weight:800;letter-spacing:.13em}.intro h1{font-size:clamp(32px,5vw,44px);letter-spacing:-.06em;margin:13px 0 8px}.intro p{color:var(--muted);font-size:13px;margin:0;line-height:1.7}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:24px;margin-top:16px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.toolbar strong{font-size:14px}.server-select{width:min(100%,360px)}select,input,textarea{width:100%;background:#111923;border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:11px 12px;font:inherit;font-size:12px;outline:none}select:focus,input:focus,textarea:focus{border-color:var(--blue)}label{display:block;color:var(--muted);font-size:11px;font-weight:700;margin-bottom:7px}.field{min-width:0}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.form-grid .wide{grid-column:1/-1}.feature-tabs{display:flex;gap:8px;overflow:auto;padding:2px 0 12px}.tab{white-space:nowrap;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--muted);padding:10px 13px;font-size:12px;font-weight:700;cursor:pointer}.tab.active{background:var(--bluebg);border-color:#45658e;color:#cfe0ff}.feature-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:20px}.feature-head h2{font-size:19px;letter-spacing:-.04em;margin:0 0 6px}.feature-head p{font-size:11px;line-height:1.7;color:var(--muted);margin:0}.state{font-size:10px;color:var(--muted);white-space:nowrap}.state:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#707b8b;margin-right:7px}.state.on:before{background:var(--green)}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.hint{color:var(--muted);font-size:10px;line-height:1.7;margin-top:12px}.empty{padding:30px 12px;text-align:center;color:var(--muted);font-size:12px;line-height:1.8}.rule-list{display:grid;gap:9px;margin-top:14px}.rule{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);background:var(--soft);border-radius:12px;padding:12px}.rule small{display:block;color:var(--muted);margin-top:4px;font-size:10px}.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}.metric{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:15px}.metric small{display:block;color:var(--muted);font-size:10px}.metric strong{display:block;font-size:23px;margin-top:7px;letter-spacing:-.04em}.data-table{width:100%;border-collapse:collapse;font-size:11px}.data-table th,.data-table td{text-align:left;padding:11px;border-bottom:1px solid var(--line)}.data-table th{color:var(--muted);font-weight:650}.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,10px);opacity:0;pointer-events:none;background:#edf2fa;color:#17202c;padding:11px 16px;border-radius:12px;font-size:12px;transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:650px){.lab-page{width:calc(100% - 30px);padding:18px 0 45px}.lab-header{margin-bottom:35px}.panel{padding:17px;border-radius:18px}.form-grid{grid-template-columns:1fr}.form-grid .wide{grid-column:auto}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.back{font-size:10px;padding:0 10px}.feature-head{flex-direction:column}}
+</style></head>
+<body data-page="lab"><main class="lab-page">
+<header class="lab-header"><a class="wordmark" href="./index.html"><img src="./TEND.png" alt="TEND"><span>실험실</span></a><a class="back" href="./dashboard.html">← 대시보드로 돌아가기</a></header>
+<section class="intro"><div class="eyebrow">TEND LAB</div><h1>실험실</h1><p>정식 출시 전 기능을 먼저 설정하고 실제 서버에서 테스트할 수 있어요.</p></section>
+<section class="panel"><div class="toolbar"><strong>테스트할 서버</strong><select id="lab-server" class="server-select"><option value="">서버 목록을 불러오는 중…</option></select></div><div class="hint" id="server-hint">승인된 이용권이 있고 봇이 참여 중인 서버만 선택할 수 있어요.</div></section>
+<section class="panel"><div class="feature-tabs" role="tablist"><button class="tab active" data-tab="roles">자동 역할 추천</button><button class="tab" data-tab="stats">서버 통계 고급판</button><button class="tab" data-tab="levels">서버 등급 시스템</button></div>
+<div id="feature-content"><div class="empty">서버를 선택해 주세요.</div></div></section>
+</main><div id="toast" class="toast" role="status"></div>
+<script src="./lab-app.js?v=20261107-1"></script><script src="./portal.js?v=20261107-lab4"></script><script src="./maintenance-gate.js?v=20261106-3"></script><script src="./cookie-consent.js?v=20261107-1"></script></body></html>
