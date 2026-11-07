@@ -281,10 +281,11 @@ async function loadExperimentAdmin(){
 const host=$("#experiment-member-list"),search=$("#experiment-member-search"),countEl=$("#experiment-member-count");
 if(!host)return;
 host.innerHTML='<div class="empty">멤버 목록을 불러오는 중…</div>';
-const [membersResult,experimentsResult]=await Promise.all([
+let membersResult,experimentsResult;
+try{[membersResult,experimentsResult]=await Promise.all([
 withTimeout(sb.from("tend_members").select("user_id,discord_id,display_name,updated_at").order("updated_at",{ascending:false}).limit(500)),
 withTimeout(sb.from("tend_experiment_members").select("user_id,assigned_at").limit(1000))
-]);
+])}catch(e){console.error("Experiment member list timeout:",e);host.innerHTML='<div class="empty">멤버 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return}
 if(membersResult.error||experimentsResult.error){console.error("Experiment member list error:",membersResult.error||experimentsResult.error);host.innerHTML='<div class="empty">멤버 목록을 불러오지 못했어요. Supabase SQL Editor에서 experiment-lab.sql을 먼저 실행해 주세요.</div>';return}
 const members=membersResult.data||[],assigned=new Map((experimentsResult.data||[]).map(x=>[x.user_id,x]));
 if(countEl)countEl.textContent=members.length+"명";
@@ -325,6 +326,7 @@ if(copy)copy.textContent="실험실에 공개된 기능이 아직 없어요. 새
 async function loadAdmin(){
 shell("admin","관리자 대시보드","신청을 승인하거나 거절하고, 처리 사유를 남길 수 있습니다.");
 if(!isAdmin(user)){const t=$("#admin-requests");if(t)t.innerHTML='<tr><td colspan="8" class="empty">이 계정은 관리자 계정이 아닙니다.</td></tr>';notify("관리자 계정만 이용할 수 있어요.");return}
+await loadExperimentAdmin();
 let totals;try{totals=await withTimeout(Promise.all([count("purchase_requests",{}),count("purchase_requests",{status:"pending"}),count("purchase_requests",{status:"rejected"}),count("purchase_requests",{status:"approved"})]));}catch(e){console.error("admin counts timeout:",e);totals=[null,null,null,null]}const [total,pending,unpaid,active]=totals;
 $("#admin-total").textContent=total??"—";$("#admin-pending").textContent=pending??"—";$("#admin-unpaid").textContent=unpaid??"—";$("#admin-active").textContent=active??"—";
 let result;try{result=await withTimeout(sb.from("purchase_requests").select("id,user_id,plan,server_name,server_id,status,payment_status,rejection_reason,created_at,expires_at").order("created_at",{ascending:false}).limit(100));}catch(e){console.error("admin request list timeout:",e);const table=$("#admin-requests");if(table)table.innerHTML='<tr><td colspan="8" class="empty">신청 목록을 불러오지 못했어요. 새로고침 후 다시 시도해 주세요.</td></tr>';return}const {data,error}=result;
@@ -334,7 +336,6 @@ if(!data?.length){table.innerHTML='<tr><td colspan="8" class="empty">신청이 �
 table.innerHTML=data.map(r=>'<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.server_name||"Discord 서버")+'<small>서버 ID: '+escapeHtml(r.server_id||"미등록")+'</small></td><td>'+escapeHtml(r.plan)+'</td><td>'+escapeHtml(r.user_id)+'</td><td>'+statusBadge(r.status)+'</td><td>'+escapeHtml(r.rejection_reason||"—")+'</td><td>'+(r.expires_at?escapeHtml(new Date(r.expires_at).toLocaleString("ko-KR")):"승인 전")+'</td><td>'+(r.status==="pending"?'<button class="btn btn-blue" data-approve="'+r.id+'">승인</button> <button class="btn btn-light" data-reject="'+r.id+'">거절</button>':"처리됨")+'</td></tr>').join("");
 $$("[data-approve]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("이 신청을 승인하고 이용 기간을 시작할까요?"))return;b.disabled=true;const {error}=await sb.from("purchase_requests").update({status:"approved",rejection_reason:"",updated_at:new Date().toISOString()}).eq("id",b.dataset.approve).eq("status","pending");b.disabled=false;if(error){console.error(error);notify("승인하지 못했어요. 다시 시도해 주세요.");return}notify("승인 완료! 이용 기간이 자동으로 시작됐어요.");await loadAdmin()}));
 $$("[data-reject]").forEach(b=>b.addEventListener("click",async()=>{const reason=prompt("거절 사유를 입력해 주세요.");if(reason===null)return;b.disabled=true;const {error}=await sb.from("purchase_requests").update({status:"rejected",rejection_reason:reason.trim()||"신청 거절",updated_at:new Date().toISOString()}).eq("id",b.dataset.reject).eq("status","pending");b.disabled=false;if(error){console.error(error);notify("거절 처리하지 못했어요. 다시 시도해 주세요.");return}notify("신청을 거절했어요.");await loadAdmin()}))
-await loadExperimentAdmin();
 }
 function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 $$("[data-copy-account]").forEach(b=>b.addEventListener("click",async()=>{const account="1908-3953-4245";try{await navigator.clipboard.writeText(account);notify("계좌번호를 복사했어요.");}catch{const input=document.createElement("textarea");input.value=account;document.body.appendChild(input);input.select();const ok=document.execCommand("copy");input.remove();notify(ok?"계좌번호를 복사했어요.":"계좌번호를 직접 선택해 복사해 주세요.");}}));
