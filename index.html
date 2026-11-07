@@ -43,6 +43,25 @@ nav{height:76px;display:flex;align-items:center;border-bottom:1px solid rgba(230
 @media(max-width:850px){nav{height:auto;min-height:65px}.nav-inner{flex-wrap:wrap;padding:10px 0;row-gap:9px}.navright{margin-left:auto}.mobile-nav{display:flex;order:3;width:100%;gap:7px;padding-top:9px;border-top:1px solid var(--line)}.mobile-nav a{flex:1;min-width:0;text-align:center;padding:10px 4px;background:#fff;border:1px solid var(--line);border-radius:10px;font-size:12px;font-weight:700;color:#4f5664;white-space:nowrap}.mobile-nav a:active{background:var(--soft);color:var(--blue)}}
 @media(max-width:560px){.wrap{width:min(100% - 30px,1120px)}nav{height:65px}.navright .btn-light{display:none}.navright .btn{padding:10px 12px;font-size:12px}.brand{font-size:20px}.brandmark{width:31px;height:31px}.hero{padding:52px 0 55px}.hero h1{font-size:43px}.hero p{font-size:15px}.hero-actions .btn{flex:1}.metrics{gap:7px}.metric{padding:11px 9px}.metric strong{font-size:20px}.dash-body{padding:16px}.activity time{display:none}section.content{padding:68px 0}.section-head{margin-bottom:30px}.feature-grid{grid-template-columns:1fr}.feature{min-height:0;padding:22px}.feature-icon{margin-bottom:17px}.split{padding:60px 0}.cta{padding-bottom:60px}.cta-box{padding:36px 18px}.footer-top{align-items:flex-start;flex-direction:column}.footer-links{flex-wrap:wrap}.trust-item{font-size:12px}.modal{padding:21px}}
 
+
+/* Compact introduction-page controls on desktop */
+.nav-inner{gap:18px;min-width:0}
+.navlinks{gap:clamp(12px,1.5vw,22px);font-size:12px;white-space:nowrap}
+.navright{gap:6px;flex:0 0 auto;white-space:nowrap}
+.navright .btn{padding:9px 11px;font-size:12px;line-height:1.2;border-radius:10px;gap:5px;white-space:nowrap;min-height:36px}
+.brand{font-size:20px;flex:0 0 auto}
+.hero-actions{gap:9px}
+.hero-actions .btn{min-height:44px;padding:0 17px;font-size:13px;border-radius:11px}
+.price-card .btn,.cta-box .btn{min-height:42px;padding:0 14px;font-size:13px;border-radius:10px}
+@media(min-width:851px) and (max-width:1120px){
+  .navlinks{display:none}
+  .nav-inner{justify-content:space-between}
+}
+@media(max-width:850px){
+  .navright{gap:5px}
+  .navright .btn{min-height:34px;padding:8px 10px;font-size:11px}
+}
+
 /* TEND introduction page refinement */
 nav{box-shadow:0 8px 30px rgba(20,30,55,.035)}
 .hero{padding-top:104px;padding-bottom:94px;background:linear-gradient(180deg,#fbfcff 0%,#f7f8fa 100%)}
