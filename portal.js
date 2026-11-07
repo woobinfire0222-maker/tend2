@@ -160,7 +160,7 @@ form.addEventListener("submit",async e=>{
   if(clientId){
    const invite="https://discord.com/oauth2/authorize?client_id="+encodeURIComponent(clientId)+"&scope=bot%20applications.commands&permissions="+encodeURIComponent(String(cfg.discordBotPermissions||"0"))+"&guild_id="+encodeURIComponent(serverId)+"&disable_guild_select=true";
    inviteBox.classList.remove("hidden");
-   inviteBox.innerHTML="신청이 접수됐어요. 아래 버튼을 눌러 TEND 봇을 신청한 서버에 초대해 주세요. <a class=\\"btn btn-blue\\" style=\\"margin-top:10px\\" target=\\"_blank\\" rel=\\"noopener noreferrer\\" href=\\""+invite+"\\">Discord 봇 초대하기 ↗</a>";
+   inviteBox.innerHTML='신청이 접수됐어요. 아래 버튼을 눌러 TEND 봇을 신청한 서버에 초대해 주세요. <a class="btn btn-blue" style="margin-top:10px" target="_blank" rel="noopener noreferrer" href="' + invite + '">Discord 봇 초대하기 ↗</a>';
   }else{inviteBox.classList.remove("hidden");inviteBox.textContent="신청은 접수됐어요. 봇 초대 링크를 만들려면 Discord 애플리케이션의 Client ID 설정이 필요해요."}
  }
  form.reset();select.value="";if(nameInput)nameInput.value="";if(idInput)idInput.value="";
