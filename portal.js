@@ -102,6 +102,7 @@ const nameInput=$("#server-name"),idInput=$("#server-id");
 if(!form||!select)return;
 select.disabled=true;
 select.innerHTML='<option value="">서버 목록을 불러오는 중…</option>';
+let manageable=[];
 try{
  const {data:{session},error:sessionError}=await sb.auth.getSession();
  if(sessionError)throw sessionError;
@@ -114,27 +115,48 @@ try{
   const response=await withTimeout(fetch("https://discord.com/api/v10/users/@me/guilds",{headers:{Authorization:"Bearer "+accessToken}}));
   if(!response.ok)throw new Error(response.status===401?"Discord 인증이 만료됐어요. 다시 로그인해 주세요.":response.status===403?"Discord 서버 목록 권한이 필요해요. 로그아웃 후 다시 로그인해 주세요.":"Discord 서버 목록을 불러오지 못했어요. ("+response.status+")");
   const guilds=await response.json();
-  const manageable=(Array.isArray(guilds)?guilds:[]).filter(g=>{
+  manageable=(Array.isArray(guilds)?guilds:[]).filter(g=>{
    if(g.owner)return true;
    try{return (BigInt(g.permissions||"0")&8n)===8n}catch{return false}
   }).sort((a,b)=>String(a.name).localeCompare(String(b.name),"ko"));
-  select.innerHTML='<option value="">신청할 서버를 선택해 주세요</option>';
-  manageable.forEach(g=>{
-   const option=document.createElement("option");
-   option.value=String(g.id);
-   option.textContent=g.name;
-   option.dataset.name=g.name;
-   select.append(option);
-  });
-  if(!manageable.length){
-   select.innerHTML='<option value="">관리자 권한이 있는 서버가 없어요</option>';
-   if(help)help.textContent="Discord에서 서버 소유자이거나 관리자 권한이 있는 계정으로 로그인해 주세요.";
-  }else if(help)help.textContent="총 "+manageable.length+"개 서버 중 신청할 서버를 선택해 주세요. 서버 ID는 자동으로 연결돼요.";
  }
 }catch(error){
  console.error("Discord guild list load failed:",error);
  select.innerHTML='<option value="">서버 목록을 불러오지 못했어요</option>';
  if(help)help.textContent=error.message||"잠시 후 다시 시도해 주세요.";
+}
+let blockedIds=new Set();
+if(manageable.length){
+ const {data:requests,error:requestError}=await withTimeout(sb.from("purchase_requests").select("server_id,status,expires_at").eq("user_id",user.id).in("status",["pending","approved","completed"]).not("server_id","is",null));
+ if(requestError)console.error("Existing server application lookup failed:",requestError);
+ else{
+  const ids=[...new Set((requests||[]).map(r=>r.server_id).filter(Boolean))];
+  let liveMap=new Map();
+  if(ids.length){
+   const {data:live,error:liveError}=await withTimeout(sb.from("managed_servers").select("server_id,expires_at").in("server_id",ids));
+   if(liveError)console.error("Managed server expiry lookup failed:",liveError);
+   else liveMap=new Map((live||[]).map(r=>[r.server_id,r.expires_at]));
+  }
+  const now=Date.now();
+  (requests||[]).forEach(r=>{
+   const expiry=liveMap.get(r.server_id)||r.expires_at;
+   const active=r.status==="pending"||!expiry||new Date(expiry).getTime()>now;
+   if(active)blockedIds.add(String(r.server_id));
+  });
+ }
+ const available=manageable.filter(g=>!blockedIds.has(String(g.id)));
+ select.innerHTML='<option value="">신청할 서버를 선택해 주세요</option>';
+ available.forEach(g=>{
+  const option=document.createElement("option");
+  option.value=String(g.id);
+  option.textContent=g.name;
+  option.dataset.name=g.name;
+  select.append(option);
+ });
+ if(!available.length){
+  select.innerHTML='<option value="">신청 가능한 서버가 없어요</option>';
+  if(help)help.textContent="이미 신청했거나 이용 기간이 남아 있는 서버는 목록에서 숨겨져요. 이용 기간이 끝나면 다시 신청할 수 있어요.";
+ }else if(help)help.textContent="신청 가능한 서버 "+available.length+"개가 표시돼요. 이미 신청했거나 이용 기간이 남은 서버는 표시되지 않아요.";
 }
 select.disabled=false;
 const inviteBox=$("#request-invite-result");
@@ -148,32 +170,26 @@ function updateRequestInvite(){
  inviteBox.replaceChildren();
  if(!serverId||!serverName){inviteBox.classList.add("hidden");return}
  inviteBox.classList.remove("hidden");
- const clientId=String(cfg.discordBotClientId||"").trim();
  const heading=document.createElement("strong");
  heading.textContent="신청 전에 TEND 봇을 초대해 주세요";
  const description=document.createElement("p");
- description.textContent=serverName+" 서버에 봇을 추가한 뒤 이용권 신청을 접수해 주세요. 아래 버튼을 누르면 선택한 서버로 초대 화면이 열려요.";
+ description.textContent=serverName+" 서버에 TEND 봇을 추가한 뒤 이용권 신청을 접수해 주세요.";
  inviteBox.append(heading,description);
- if(clientId){
-  const invite=new URL("https://discord.com/oauth2/authorize");
-  invite.searchParams.set("client_id",clientId);
-  invite.searchParams.set("scope","bot applications.commands");
-  invite.searchParams.set("permissions",String(cfg.discordBotPermissions||"0"));
-  invite.searchParams.set("guild_id",serverId);
-  invite.searchParams.set("disable_guild_select","true");
-  const link=document.createElement("a");
-  link.className="btn btn-blue";
-  link.href=invite.toString();
-  link.target="_blank";
-  link.rel="noopener noreferrer";
-  link.textContent="선택한 서버에 TEND 봇 초대 ↗";
-  link.style.marginTop="8px";
-  inviteBox.append(link);
- }else{
-  const warning=document.createElement("p");
-  warning.textContent="봇 초대 링크를 만들려면 config.js의 discordBotClientId에 Discord 애플리케이션 Client ID를 먼저 설정해야 해요.";
-  inviteBox.append(warning);
- }
+ const invite=new URL("https://discord.com/oauth2/authorize");
+ invite.searchParams.set("client_id","1543239879633412186");
+ invite.searchParams.set("permissions","8");
+ invite.searchParams.set("integration_type","0");
+ invite.searchParams.set("scope","bot");
+ invite.searchParams.set("guild_id",serverId);
+ invite.searchParams.set("disable_guild_select","true");
+ const link=document.createElement("a");
+ link.className="btn btn-blue";
+ link.href=invite.toString();
+ link.target="_blank";
+ link.rel="noopener noreferrer";
+ link.textContent="선택한 서버에 TEND 봇 초대 ↗";
+ link.style.marginTop="8px";
+ inviteBox.append(link);
 }
 select.addEventListener("change",updateRequestInvite);
 updateRequestInvite();
