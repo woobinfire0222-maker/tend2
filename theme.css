@@ -203,3 +203,50 @@ html.theme-dark .dashboard .dash-bottom{
   border-color:#303b4c!important;
   color:#aab4c3!important;
 }
+
+
+/* Homepage content sections: dark theme */
+html.theme-dark .toolkit{
+  background:linear-gradient(180deg,#151d29 0%,#10151e 100%)!important;
+}
+html.theme-dark .toolkit .section-head h2,
+html.theme-dark .content .section-head h2,
+html.theme-dark .workflow-step h3,
+html.theme-dark .toolkit-card h3,
+html.theme-dark .usecase b{
+  color:#edf1f7!important;
+}
+html.theme-dark .toolkit .section-head p,
+html.theme-dark .content .section-head p,
+html.theme-dark .workflow-step p,
+html.theme-dark .toolkit-card p,
+html.theme-dark .usecase p{
+  color:#aab4c3!important;
+}
+html.theme-dark .toolkit-card,
+html.theme-dark .usecase{
+  background:#1a222e!important;
+  border-color:#303b4c!important;
+  color:#edf1f7!important;
+  box-shadow:0 12px 35px rgba(0,0,0,.16)!important;
+}
+html.theme-dark .toolkit-card:after{
+  background:radial-gradient(circle,rgba(70,103,163,.2),transparent 70%)!important;
+}
+html.theme-dark .toolkit-tags span{
+  background:#263142!important;
+  color:#cbd5e2!important;
+  border:1px solid #354255!important;
+}
+html.theme-dark .workflow-index{
+  background:#202b3a!important;
+  border-color:#3a4b66!important;
+  color:#a9c0ff!important;
+}
+html.theme-dark .workflow-step:not(:last-child):after{
+  background:#354255!important;
+}
+html.theme-dark .content{
+  background:#10151e!important;
+  color:#edf1f7!important;
+}
