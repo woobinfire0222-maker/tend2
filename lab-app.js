@@ -44,6 +44,7 @@ html+='<form id="level-form" class="form-grid"><div class="field"><label>메시�
 }
 html+='<div class="actions"><button class="btn" id="toggle-feature">'+(on?"실험 기능 끄기":"실험 기능 켜기")+'</button><button class="btn primary" id="save-feature">설정 저장 및 봇에 적용</button></div><p class="hint">설정은 Supabase에 저장되고 봇 작업 대기열에 전달돼요. 봇 프로그램에 해당 실험 기능 처리 코드가 배포되어 있어야 실제 Discord에서 작동해요.</p>';
 box.innerHTML=html;
+$("#stats-period")?.addEventListener("change",loadStats);
 $("#role-form")?.addEventListener("submit",addRule);
 $$("[data-rule-delete]").forEach(b=>b.addEventListener("click",()=>{const next={...settings(defs.roles.key),rules:(settings(defs.roles.key).rules||[]).filter((_,i)=>i!==Number(b.dataset.ruleDelete))};saveFeature(defs.roles.key,next,enabled(defs.roles.key))}));
 $("#level-form")?.addEventListener("submit",saveLevel);
