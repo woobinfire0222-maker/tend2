@@ -299,3 +299,11 @@ html.theme-dark .tend-confirm-profile{background:#202837;border-color:#394457}
 html.theme-dark .toast{background:#e8edf5;color:#171b24}
 .theme-toggle{white-space:nowrap}
 @media(max-width:560px){.topbar-actions .theme-toggle{padding:9px 10px;font-size:11px}.topbar-actions .theme-toggle span{display:none}}
+
+@media(max-width:760px){
+ .sidebar{height:100dvh;height:100vh;overflow-y:auto;overscroll-behavior:contain;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+ .sidebar-bottom{position:sticky;bottom:0;z-index:5;flex:none;margin-top:auto;padding:12px 0 calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line);box-shadow:0 -8px 20px rgba(15,23,42,.055)}
+ .sidebar-bottom [data-logout]{min-height:46px}
+ [data-side-nav]{flex:1 0 auto}
+}
+html.theme-dark .sidebar-bottom{background:#1a222e!important;border-color:#303b4c!important;box-shadow:0 -8px 20px rgba(0,0,0,.22)}
