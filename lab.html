@@ -3,21 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#f5f7fb">
+<meta name="theme-color" content="#10151d">
+<link rel="icon" type="image/png" href="./TEND.png">
 <title>실험실 · TEND</title>
-<script>(()=>{try{if(localStorage.getItem("tend-theme")==="dark")document.documentElement.classList.add("theme-dark")}catch{}})();</script>
+<script>document.documentElement.classList.add("theme-dark");</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js?v=20261029-2"></script>
 <link rel="stylesheet" href="./motion.css?v=20261106-3">
 <style>
-:root{color-scheme:light;--bg:#f5f7fb;--surface:#fff;--surface-soft:#f8f9fc;--ink:#171a22;--muted:#737b8a;--line:#e8ebf1;--blue:#2878f0;--blue-soft:#eaf2ff}
+:root{color-scheme:dark;--bg:#10151d;--surface:#1a222e;--surface-soft:#202a38;--ink:#f1f4f9;--muted:#a1acbc;--line:#303b4b;--blue:#78aaff;--blue-soft:#263b5c}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
 body{min-height:100vh}
 .lab-page{width:min(100% - 48px,1040px);margin:0 auto;padding:34px 0 64px}
 .lab-header{height:58px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:54px}
-.lab-wordmark{display:flex;align-items:center;gap:11px;font-size:19px;font-weight:800;letter-spacing:-.045em}
-.lab-mark{width:34px;height:34px;display:grid;place-items:center;border-radius:12px;background:#1d6fe8;color:#fff;font-size:17px;font-weight:850;box-shadow:0 4px 12px #2878f033}
+.lab-wordmark{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink)}
+.lab-wordmark img{display:block;width:36px;height:36px;object-fit:contain;border-radius:9px}
+.lab-wordmark span{font-size:12px;font-weight:700;letter-spacing:-.02em;color:var(--muted);padding-left:12px;border-left:1px solid var(--line)}
+
 .lab-header-actions{display:flex;align-items:center;gap:9px}
 .lab-button{height:40px;padding:0 15px;border:1px solid var(--line);border-radius:13px;background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
 .lab-button:hover{background:var(--surface-soft);border-color:#d6dce7;transform:translateY(-1px)}
@@ -44,23 +47,21 @@ body{min-height:100vh}
 .lab-footnote svg{width:14px;height:14px;flex:none}
 #toast{position:fixed;left:50%;bottom:24px;z-index:20;transform:translate(-50%,12px);padding:11px 16px;border-radius:12px;background:#202632;color:#fff;font-size:12px;opacity:0;pointer-events:none;transition:.2s}
 #toast.show{opacity:1;transform:translate(-50%,0)}
-html.theme-dark{color-scheme:dark;--bg:#10151d;--surface:#1a222e;--surface-soft:#202a38;--ink:#f1f4f9;--muted:#a1acbc;--line:#303b4b;--blue:#78aaff;--blue-soft:#263b5c}
-html.theme-dark .lab-panel{box-shadow:0 10px 34px rgba(0,0,0,.16)}
-html.theme-dark .lab-button{background:var(--surface);border-color:var(--line);color:var(--ink)}
-html.theme-dark .lab-button:hover{background:var(--surface-soft)}
-html.theme-dark .lab-empty-icon{background:linear-gradient(145deg,#263b5c,#202f49);color:#8db6ff}
-html.theme-dark .lab-chip{background:#222d3b}
-html.theme-dark #toast{background:#edf2fa;color:#17202c}
-@media(max-width:600px){.lab-page{width:min(100% - 32px,1040px);padding:19px 0 40px}.lab-header{margin-bottom:42px;height:48px}.lab-wordmark{font-size:17px}.lab-mark{width:32px;height:32px}.lab-button{height:38px;padding:0 12px}.lab-panel{min-height:350px;padding:19px;border-radius:22px}.lab-panel-top{padding-bottom:17px}.lab-empty{min-height:270px;padding:30px 5px}.lab-intro h1{font-size:34px}.lab-intro p{font-size:13px}.lab-chip{font-size:9px}}
+.lab-panel{box-shadow:0 10px 34px rgba(0,0,0,.16)}
+.lab-button{background:var(--surface);border-color:var(--line);color:var(--ink)}
+.lab-button:hover{background:var(--surface-soft)}
+.lab-empty-icon{background:linear-gradient(145deg,#263b5c,#202f49);color:#8db6ff}
+.lab-chip{background:#222d3b}
+#toast{background:#edf2fa;color:#17202c}
+@media(max-width:600px){.lab-page{width:min(100% - 32px,1040px);padding:19px 0 40px}.lab-header{margin-bottom:42px;height:48px}.lab-wordmark img{width:34px;height:34px}.lab-wordmark span{font-size:11px}.lab-button{height:38px;padding:0 12px}.lab-panel{min-height:350px;padding:19px;border-radius:22px}.lab-panel-top{padding-bottom:17px}.lab-empty{min-height:270px;padding:30px 5px}.lab-intro h1{font-size:34px}.lab-intro p{font-size:13px}.lab-chip{font-size:9px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
 </style>
 </head>
 <body data-page="lab">
 <main class="lab-page">
 <header class="lab-header">
-<a class="lab-wordmark" href="./index.html" aria-label="TEND 홈"><span class="lab-mark">T</span><span>TEND</span></a>
+<a class="lab-wordmark" href="./index.html" aria-label="TEND 홈"><img src="./TEND.png" alt="TEND 로고"><span>실험실</span></a>
 <div class="lab-header-actions">
-<button class="lab-button" type="button" data-theme-toggle aria-label="테마 전환">☾ <span>다크 모드</span></button>
 <a class="lab-button lab-back" href="./dashboard.html">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M9 12h11"/></svg>
 대시보드로 돌아가기
