@@ -48,6 +48,18 @@ body{min-height:100vh}
 #toast{position:fixed;left:50%;bottom:24px;z-index:20;transform:translate(-50%,12px);padding:11px 16px;border-radius:12px;background:#202632;color:#fff;font-size:12px;opacity:0;pointer-events:none;transition:.2s}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 .lab-panel{box-shadow:0 10px 34px rgba(0,0,0,.16)}
+.lab-feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding-top:22px}
+.lab-feature{min-width:0;padding:21px;border:1px solid var(--line);border-radius:19px;background:var(--surface-soft)}
+.lab-feature-icon{width:39px;height:39px;display:grid;place-items:center;margin-bottom:17px;border-radius:13px;background:#263b5c;color:#8db6ff}
+.lab-feature-icon svg{width:20px;height:20px}
+.lab-feature h2{margin:0 0 8px;font-size:16px;letter-spacing:-.045em}
+.lab-feature p{min-height:42px;margin:0;color:var(--muted);font-size:11px;line-height:1.7}
+.lab-feature-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:19px;padding-top:14px;border-top:1px solid var(--line)}
+.lab-feature-tag{font-size:10px;font-weight:750;color:#a9c8ff}
+.lab-feature-status{font-size:10px;color:var(--muted)}
+.lab-feature-status:before{content:"";display:inline-block;width:6px;height:6px;margin-right:6px;border-radius:50%;background:#e0ad58;vertical-align:1px}
+@media(max-width:760px){.lab-feature-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.lab-feature-grid{grid-template-columns:1fr}.lab-feature p{min-height:0}}
 .lab-button{background:var(--surface);border-color:var(--line);color:var(--ink)}
 .lab-button:hover{background:var(--surface-soft)}
 .lab-empty-icon{background:linear-gradient(145deg,#263b5c,#202f49);color:#8db6ff}
@@ -76,15 +88,28 @@ body{min-height:100vh}
 <section class="lab-panel" aria-label="실험실 기능">
 <div class="lab-panel-top">
 <div class="lab-panel-label"><span class="lab-panel-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.64 5.64l2.12 2.12m8.48 8.48 2.12 2.12m0-12.72-2.12 2.12m-8.48 8.48-2.12 2.12"/><circle cx="12" cy="12" r="4"/></svg></span>실험 기능</div>
-<span class="lab-chip">새로운 기능을 준비 중</span>
+<span class="lab-chip">실험 기능 3개</span>
 </div>
-<div class="lab-empty">
-<div class="lab-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42m0-12.72-1.42 1.42m-9.88 9.88-1.42 1.42"/><circle cx="12" cy="12" r="4.5"/></svg></div>
-<h2 id="lab-empty-title">아직 준비 중이에요</h2>
-<p id="lab-empty-copy">현재 체험할 수 있는 실험 기능이 없어요.<br>새로운 기능이 공개되면 이곳에서 먼저 만나볼 수 있어요.</p>
-<div class="lab-footnote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>실험 기능은 정식 출시 전 변경되거나 종료될 수 있어요.</div>
-</div>
-</section>
+<div class="lab-feature-grid">
+<article class="lab-feature">
+<div class="lab-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6m3-3h-6"/></svg></div>
+<h2>자동 역할 추천</h2>
+<p>가입 기간과 서버 활동 조건을 기준으로 멤버에게 역할을 자동으로 부여하는 기능이에요.</p>
+<div class="lab-feature-meta"><span class="lab-feature-tag">ROLE AUTOMATION</span><span class="lab-feature-status">개발 예정</span></div>
+</article>
+<article class="lab-feature">
+<div class="lab-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-5 5"/><path d="M15 9h4v4"/></svg></div>
+<h2>서버 통계 고급판</h2>
+<p>멤버 증감과 채팅량, 채널별 활동을 일간·주간·월간 단위로 확인해요.</p>
+<div class="lab-feature-meta"><span class="lab-feature-tag">ADVANCED ANALYTICS</span><span class="lab-feature-status">개발 예정</span></div>
+</article>
+<article class="lab-feature">
+<div class="lab-feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.4 6.1L21 10l-6.6 1.9L12 18l-2.4-6.1L3 10l6.6-1.9L12 2Z"/><path d="M19 16v6m-3-3h6"/></svg></div>
+<h2>서버 등급 시스템</h2>
+<p>활동 경험치를 쌓아 레벨을 올리고, 레벨 보상 역할과 서버 랭킹을 이용해요.</p>
+<div class="lab-feature-meta"><span class="lab-feature-tag">LEVEL & REWARDS</span><span class="lab-feature-status">개발 예정</span></div>
+</article>
+</div></section>
 </main>
 <div id="toast" class="toast" role="status"></div>
 <script src="./portal.js?v=20261107-lab3"></script>
