@@ -148,7 +148,7 @@ form.addEventListener("submit",async e=>{
  const plan=$("#plan").value,serverId=select.value;
  const option=select.selectedOptions[0],name=option?.dataset?.name||"";
  if(!serverId||!name){notify("신청할 Discord 서버를 선택해 주세요.");select.focus();return}
- if(!/^\\d{17,20}$/.test(serverId)){notify("서버 정보를 다시 불러와 주세요.");return}
+ if(!/^[0-9]{17,20}$/.test(serverId)){notify("서버 정보를 다시 불러와 주세요.");return}
  const b=$("#submit-request");b.disabled=true;b.textContent="저장 중…";
  const {error}=await sb.from("purchase_requests").insert({user_id:user.id,plan,server_name:name,server_id:serverId,status:"pending",payment_status:"unpaid"});
  b.disabled=false;b.textContent="신청 접수하기";
