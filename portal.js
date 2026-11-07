@@ -13,7 +13,7 @@ function discordIds(u){const m=u?.user_metadata||{},a=u?.app_metadata||{};return
 function isOwnerName(u){return discordNames(u).includes("pengin_hi22")}
 function isAdmin(u){return u?.app_metadata?.role==="admin"||discordIds(u).includes("1318120987480424498")}
 function goto(p){location.href="./"+p+".html"}
-async function login(){if(!sb){notify("로그인 서비스를 사용할 수 없어요. 잠시 후 다시 시도해 주세요.");return}const redirectTo="https://tendsite.kro.kr/login.html";try{const {data,error}=await sb.auth.signInWithOAuth({provider:"discord",options:{redirectTo,skipBrowserRedirect:false}});if(error)throw error;if(data?.url)location.assign(data.url)}catch(error){console.error("Discord OAuth start failed:",error);notify("Discord 로그인 요청 실패: "+(error?.message||"Supabase와 Discord OAuth 설정을 확인해 주세요."))}}
+async function login(){if(!sb){notify("로그인 서비스를 사용할 수 없어요. 잠시 후 다시 시도해 주세요.");return}const redirectTo="https://tendsite.kro.kr/login.html";try{const {data,error}=await sb.auth.signInWithOAuth({provider:"discord",options:{redirectTo,scopes:"identify email guilds",skipBrowserRedirect:false}});if(error)throw error;if(data?.url)location.assign(data.url)}catch(error){console.error("Discord OAuth start failed:",error);notify("Discord 로그인 요청 실패: "+(error?.message||"Supabase와 Discord OAuth 설정을 확인해 주세요."))}}
 function discordAvatar(u){
  const m=u?.user_metadata||{};
  const d=(u?.identities||[]).find(i=>i.provider==="discord")?.identity_data||{};
@@ -94,7 +94,79 @@ if(live.error){console.error("managed_servers load error:",live.error);box.inner
 const byId=new Map((live.data||[]).map(r=>[r.server_id,r]));
 box.innerHTML='<div class="stack-list">'+unique.map(r=>{const s=byId.get(r.server_id);const recent=s?.last_seen_at&&(Date.now()-new Date(s.last_seen_at).getTime()<120000);const connected=!!s?.bot_connected&&!!recent;const state=connected?'<span class="badge green">봇 온라인</span>':'<span class="badge amber">연결 확인 필요</span>';const management=s?.is_active?'<span class="badge blue">관리 시작</span>':'<span class="badge">관리 중지</span>';const seenAt=s?.last_seen_at?new Date(s.last_seen_at).toLocaleString("ko-KR"):"접속 기록 없음";return '<div class="stack-row"><div><strong>'+escapeHtml(s?.server_name||r.server_name||"Discord 서버")+'</strong><small>마지막 응답: '+escapeHtml(seenAt)+'</small></div><div class="stack-actions">'+state+management+'</div></div>'}).join("")+'</div>';
 }
-async function loadRequests(){shell("requests","이용권 신청","필요한 기간을 선택해 운영 지원을 신청하세요.");const form=$("#request-form");form?.addEventListener("submit",async e=>{e.preventDefault();if(!sb||!user)return;const plan=$("#plan").value,name=$("#server-name").value.trim(),serverId=$("#server-id").value.trim();if(!name){notify("서버 이름을 입력해 주세요.");return}if(!/^\d{17,20}$/.test(serverId)){notify("Discord 서버 ID는 필수이며 숫자 17~20자리로 입력해 주세요.");return}const b=$("#submit-request");b.disabled=true;b.textContent="저장 중…";const {error}=await sb.from("purchase_requests").insert({user_id:user.id,plan,server_name:name,server_id:serverId||null,status:"pending",payment_status:"unpaid"});b.disabled=false;b.textContent="신청 접수하기";if(error){console.error(error);notify("신청 저장에 실패했어요. 잠시 후 다시 시도해 주세요.");return}notify("신청이 저장됐어요. 결제 완료 상태는 아닙니다.");const inviteBox=$("#request-invite-result");const clientId=String(cfg.discordBotClientId||"").trim();if(inviteBox){if(clientId){const invite="https://discord.com/oauth2/authorize?client_id="+encodeURIComponent(clientId)+"&scope=bot%20applications.commands&permissions="+encodeURIComponent(String(cfg.discordBotPermissions||"0"))+"&guild_id="+encodeURIComponent(serverId)+"&disable_guild_select=true";inviteBox.classList.remove("hidden");inviteBox.innerHTML="신청이 접수됐어요. 아래 버튼을 눌러 TEND 봇을 신청한 서버에 초대해 주세요. <a class=\"btn btn-blue\" style=\"margin-top:10px\" target=\"_blank\" rel=\"noopener noreferrer\" href=\""+invite+"\">Discord 봇 초대하기 ↗</a>";}else{inviteBox.classList.remove("hidden");inviteBox.textContent="신청은 접수됐어요. 봇 초대 링크를 만들려면 Discord 애플리케이션의 Client ID 설정이 필요해요.";}}form.reset();loadRequestTable()});await loadRequestTable()}
+async function loadRequests(){
+shell("requests","이용권 신청","관리자 권한이 있는 Discord 서버를 선택해 이용권을 신청하세요.");
+const form=$("#request-form"),select=$("#server-select"),help=$("#server-select-help");
+const nameInput=$("#server-name"),idInput=$("#server-id");
+if(!form||!select)return;
+select.disabled=true;
+select.innerHTML='<option value="">서버 목록을 불러오는 중…</option>';
+try{
+ const {data:{session},error:sessionError}=await sb.auth.getSession();
+ if(sessionError)throw sessionError;
+ const accessToken=session?.provider_token;
+ if(!accessToken){
+  select.innerHTML='<option value="">Discord 서버 권한 연결이 필요해요</option>';
+  if(help)help.textContent="서버 목록을 불러오려면 Discord 계정 연결을 다시 진행해 주세요.";
+  notify("Discord 서버 목록 권한이 필요해요. 로그아웃 후 다시 로그인해 주세요.");
+ }else{
+  const response=await withTimeout(fetch("https://discord.com/api/v10/users/@me/guilds",{headers:{Authorization:"Bearer "+accessToken}}));
+  if(!response.ok)throw new Error(response.status===401?"Discord 인증이 만료됐어요. 다시 로그인해 주세요.":"Discord 서버 목록을 불러오지 못했어요. ("+response.status+")");
+  const guilds=await response.json();
+  const manageable=(Array.isArray(guilds)?guilds:[]).filter(g=>{
+   if(g.owner)return true;
+   try{return (BigInt(g.permissions||"0")&8n)===8n}catch{return false}
+  }).sort((a,b)=>String(a.name).localeCompare(String(b.name),"ko"));
+  select.innerHTML='<option value="">신청할 서버를 선택해 주세요</option>';
+  manageable.forEach(g=>{
+   const option=document.createElement("option");
+   option.value=String(g.id);
+   option.textContent=g.name;
+   option.dataset.name=g.name;
+   select.append(option);
+  });
+  if(!manageable.length){
+   select.innerHTML='<option value="">관리자 권한이 있는 서버가 없어요</option>';
+   if(help)help.textContent="Discord에서 서버 소유자이거나 관리자 권한이 있는 계정으로 로그인해 주세요.";
+  }else if(help)help.textContent="총 "+manageable.length+"개 서버 중 신청할 서버를 선택해 주세요. 서버 ID는 자동으로 연결돼요.";
+ }
+}catch(error){
+ console.error("Discord guild list load failed:",error);
+ select.innerHTML='<option value="">서버 목록을 불러오지 못했어요</option>';
+ if(help)help.textContent=error.message||"잠시 후 다시 시도해 주세요.";
+}
+select.disabled=false;
+select.addEventListener("change",()=>{
+ const option=select.selectedOptions[0];
+ const serverId=select.value||"";
+ const serverName=option?.dataset?.name||"";
+ if(nameInput)nameInput.value=serverName;
+ if(idInput)idInput.value=serverId;
+});
+form.addEventListener("submit",async e=>{
+ e.preventDefault();if(!sb||!user)return;
+ const plan=$("#plan").value,serverId=select.value;
+ const option=select.selectedOptions[0],name=option?.dataset?.name||"";
+ if(!serverId||!name){notify("신청할 Discord 서버를 선택해 주세요.");select.focus();return}
+ if(!/^\\d{17,20}$/.test(serverId)){notify("서버 정보를 다시 불러와 주세요.");return}
+ const b=$("#submit-request");b.disabled=true;b.textContent="저장 중…";
+ const {error}=await sb.from("purchase_requests").insert({user_id:user.id,plan,server_name:name,server_id:serverId,status:"pending",payment_status:"unpaid"});
+ b.disabled=false;b.textContent="신청 접수하기";
+ if(error){console.error(error);notify("신청 저장에 실패했어요. 잠시 후 다시 시도해 주세요.");return}
+ notify("신청이 저장됐어요. 결제 완료 상태는 아닙니다.");
+ const inviteBox=$("#request-invite-result"),clientId=String(cfg.discordBotClientId||"").trim();
+ if(inviteBox){
+  if(clientId){
+   const invite="https://discord.com/oauth2/authorize?client_id="+encodeURIComponent(clientId)+"&scope=bot%20applications.commands&permissions="+encodeURIComponent(String(cfg.discordBotPermissions||"0"))+"&guild_id="+encodeURIComponent(serverId)+"&disable_guild_select=true";
+   inviteBox.classList.remove("hidden");
+   inviteBox.innerHTML="신청이 접수됐어요. 아래 버튼을 눌러 TEND 봇을 신청한 서버에 초대해 주세요. <a class=\\"btn btn-blue\\" style=\\"margin-top:10px\\" target=\\"_blank\\" rel=\\"noopener noreferrer\\" href=\\""+invite+"\\">Discord 봇 초대하기 ↗</a>";
+  }else{inviteBox.classList.remove("hidden");inviteBox.textContent="신청은 접수됐어요. 봇 초대 링크를 만들려면 Discord 애플리케이션의 Client ID 설정이 필요해요."}
+ }
+ form.reset();select.value="";if(nameInput)nameInput.value="";if(idInput)idInput.value="";
+ await loadRequestTable();
+});
+await loadRequestTable();
+}
 async function loadRequestTable(){const t=$("#request-table");if(!t)return;let result;try{result=await withTimeout(sb.from("purchase_requests").select("id,plan,server_name,status,payment_status,rejection_reason,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50));}catch(e){console.error("request table timeout:",e);t.innerHTML='<tr><td colspan="5" class="empty">신청 내역을 불러오지 못했어요. 새로고침 후 다시 시도해 주세요.</td></tr>';return}const {data,error}=result;if(error){t.innerHTML='<tr><td colspan="5">신청 내역을 불러오지 못했어요.</td></tr>';return}if(!data?.length){t.innerHTML='<tr><td colspan="5" class="empty">아직 신청 내역이 없어요.</td></tr>';return}t.innerHTML=data.map(r=>'<tr><td>'+escapeHtml(r.server_name)+'</td><td>'+escapeHtml(r.plan)+'</td><td>'+statusBadge(r.status)+(r.rejection_reason?'<small class="reason-text">사유: '+escapeHtml(r.rejection_reason)+'</small>':"")+'</td><td>'+statusBadge(r.payment_status||"unpaid")+'</td><td>'+new Date(r.created_at).toLocaleDateString("ko-KR")+'</td></tr>').join("")}
 async function loadBot(){
 if(window.TEND_BOT_MANAGEMENT){await window.TEND_BOT_MANAGEMENT.init({sb,user,profileName,shell,notify,escapeHtml,discordIds});return}
