@@ -11,6 +11,32 @@ create table if not exists public.tend_experiment_members (
   assigned_at timestamptz not null default now()
 );
 
+insert into public.tend_members (user_id, discord_id, display_name, updated_at)
+select
+  u.id,
+  i.provider_id,
+  coalesce(
+    nullif(u.raw_user_meta_data->>'global_name',''),
+    nullif(u.raw_user_meta_data->>'user_name',''),
+    nullif(u.raw_user_meta_data->>'preferred_username',''),
+    nullif(u.raw_user_meta_data->>'username',''),
+    nullif(u.raw_user_meta_data->>'name',''),
+    '사용자'
+  ),
+  now()
+from auth.users u
+left join lateral (
+  select provider_id
+  from auth.identities
+  where user_id = u.id and provider = 'discord'
+  order by created_at desc
+  limit 1
+) i on true
+on conflict (user_id) do update set
+  discord_id = excluded.discord_id,
+  display_name = excluded.display_name,
+  updated_at = now();
+
 create or replace function public.tend_is_admin()
 returns boolean
 language sql
