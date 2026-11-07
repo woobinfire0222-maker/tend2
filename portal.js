@@ -137,13 +137,46 @@ try{
  if(help)help.textContent=error.message||"잠시 후 다시 시도해 주세요.";
 }
 select.disabled=false;
-select.addEventListener("change",()=>{
+const inviteBox=$("#request-invite-result");
+function updateRequestInvite(){
  const option=select.selectedOptions[0];
  const serverId=select.value||"";
  const serverName=option?.dataset?.name||"";
  if(nameInput)nameInput.value=serverName;
  if(idInput)idInput.value=serverId;
-});
+ if(!inviteBox)return;
+ inviteBox.replaceChildren();
+ if(!serverId||!serverName){inviteBox.classList.add("hidden");return}
+ inviteBox.classList.remove("hidden");
+ const clientId=String(cfg.discordBotClientId||"").trim();
+ const heading=document.createElement("strong");
+ heading.textContent="신청 전에 TEND 봇을 초대해 주세요";
+ const description=document.createElement("p");
+ description.textContent=serverName+" 서버에 봇을 추가한 뒤 이용권 신청을 접수해 주세요. 아래 버튼을 누르면 선택한 서버로 초대 화면이 열려요.";
+ inviteBox.append(heading,description);
+ if(clientId){
+  const invite=new URL("https://discord.com/oauth2/authorize");
+  invite.searchParams.set("client_id",clientId);
+  invite.searchParams.set("scope","bot applications.commands");
+  invite.searchParams.set("permissions",String(cfg.discordBotPermissions||"0"));
+  invite.searchParams.set("guild_id",serverId);
+  invite.searchParams.set("disable_guild_select","true");
+  const link=document.createElement("a");
+  link.className="btn btn-blue";
+  link.href=invite.toString();
+  link.target="_blank";
+  link.rel="noopener noreferrer";
+  link.textContent="선택한 서버에 TEND 봇 초대 ↗";
+  link.style.marginTop="8px";
+  inviteBox.append(link);
+ }else{
+  const warning=document.createElement("p");
+  warning.textContent="봇 초대 링크를 만들려면 config.js의 discordBotClientId에 Discord 애플리케이션 Client ID를 먼저 설정해야 해요.";
+  inviteBox.append(warning);
+ }
+}
+select.addEventListener("change",updateRequestInvite);
+updateRequestInvite();
 form.addEventListener("submit",async e=>{
  e.preventDefault();if(!sb||!user)return;
  const plan=$("#plan").value,serverId=select.value;
@@ -154,16 +187,9 @@ form.addEventListener("submit",async e=>{
  const {error}=await sb.from("purchase_requests").insert({user_id:user.id,plan,server_name:name,server_id:serverId,status:"pending",payment_status:"unpaid"});
  b.disabled=false;b.textContent="신청 접수하기";
  if(error){console.error(error);notify("신청 저장에 실패했어요. 잠시 후 다시 시도해 주세요.");return}
- notify("신청이 저장됐어요. 결제 완료 상태는 아닙니다.");
- const inviteBox=$("#request-invite-result"),clientId=String(cfg.discordBotClientId||"").trim();
- if(inviteBox){
-  if(clientId){
-   const invite="https://discord.com/oauth2/authorize?client_id="+encodeURIComponent(clientId)+"&scope=bot%20applications.commands&permissions="+encodeURIComponent(String(cfg.discordBotPermissions||"0"))+"&guild_id="+encodeURIComponent(serverId)+"&disable_guild_select=true";
-   inviteBox.classList.remove("hidden");
-   inviteBox.innerHTML='신청이 접수됐어요. 아래 버튼을 눌러 TEND 봇을 신청한 서버에 초대해 주세요. <a class="btn btn-blue" style="margin-top:10px" target="_blank" rel="noopener noreferrer" href="' + invite + '">Discord 봇 초대하기 ↗</a>';
-  }else{inviteBox.classList.remove("hidden");inviteBox.textContent="신청은 접수됐어요. 봇 초대 링크를 만들려면 Discord 애플리케이션의 Client ID 설정이 필요해요."}
- }
+ notify("신청이 접수됐어요. 봇 초대와 입금 확인 후 관리가 시작돼요.");
  form.reset();select.value="";if(nameInput)nameInput.value="";if(idInput)idInput.value="";
+ updateRequestInvite();
  await loadRequestTable();
 });
 await loadRequestTable();
