@@ -91,7 +91,7 @@ html.theme-dark ::selection{background:#365b99;color:#fff}
 @media(max-width:560px){.topbar-actions .theme-toggle{padding:9px 10px;font-size:11px}.topbar-actions .theme-toggle span{display:none}}
 
 /* Dark theme component normalization */
-html.theme-dark :is(button,[role="button"],[role="tab"]):not(.btn-blue):not(.btn-danger):not(.tend-logout-yes):not(.switch){background-color:#263142!important;border-color:#3a4659!important;color:#e7edf6!important;box-shadow:none!important}
+html.theme-dark :is(button,[role="button"],[role="tab"]):not(.btn-blue):not(.btn-danger):not(.tend-logout-yes):not(.logout-confirm-danger):not(.switch){background-color:#263142!important;border-color:#3a4659!important;color:#e7edf6!important;box-shadow:none!important}
 html.theme-dark :is(.btn-dark,.btn-light,.theme-toggle,.mobile-menu,.demo-modal-close){background:#263142!important;border:1px solid #3a4659!important;color:#edf1f7!important}
 html.theme-dark :is(.btn-blue,.login-discord,.hero-actions .btn-blue,.price-card .btn-blue){background:#356df3!important;border-color:#356df3!important;color:#fff!important}
 html.theme-dark :is(.btn-danger,.tend-logout-yes){background:#7b3039!important;border-color:#99434d!important;color:#fff!important}
@@ -360,3 +360,10 @@ html.theme-dark :is(.btn-danger,.tend-logout-yes){
   border-color:#a34a56!important;
   color:#fff!important;
 }
+
+
+/* Logout confirmation: keep the destructive action clearly red */
+.logout-confirm-modal .logout-confirm-danger{background:#e5484d!important;border:1px solid #e5484d!important;color:#fff!important}
+.logout-confirm-modal .logout-confirm-danger:hover{background:#d9363e!important;border-color:#d9363e!important}
+html.theme-dark .logout-confirm-modal .logout-confirm-danger{background:#762f39!important;border-color:#a34a56!important;color:#fff!important}
+html.theme-dark .logout-confirm-modal .logout-confirm-danger:hover{background:#8a3944!important;border-color:#b65a65!important}
