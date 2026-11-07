@@ -5,7 +5,8 @@
 ## 업로드
 1. 압축을 풀고 파일들을 GitHub 저장소 최상위에 업로드합니다. `index.html`, `index-DD5tomYs.js`, `index-BSGX77mM.css`, `config.js`는 같은 위치에 있어야 합니다. `supabase/` 폴더도 함께 올립니다.
 2. Settings → Pages → Deploy from a branch → `main` → `/(root)` 선택 후 저장합니다.
-3. `config.js`의 Supabase URL과 anon/publishable 키를 실제 값으로 바꿉니다. 예시 placeholder 그대로면 로그인/데이터 기능은 작동하지 않습니다. `service_role` 키는 절대 넣지 마세요.
+3. `config.js`에는 Supabase URL과 Publishable/anon 키만 둡니다. 이 키는 브라우저에서 사용되는 공개 키이며, RLS 정책으로 데이터 접근을 제한해야 합니다. `service_role` 또는 `sb_secret_...` 키는 `config.js`, HTML, JS, GitHub 저장소에 절대 넣지 마세요.
+4. `discord-action` 같은 Edge Function의 서버 환경변수에만 Secret/service_role 키를 저장합니다. Edge Function은 로그인 JWT와 현재 승인된 이용권을 검증한 뒤 필요한 작업만 수행합니다. Discord Bot Token과 Supabase Secret Key는 봇 호스팅 환경의 비밀 환경변수로만 저장합니다.
 4. 브라우저에서 강력 새로고침(Ctrl+Shift+R)합니다.
 
 ## Supabase / Discord
