@@ -328,5 +328,5 @@ html.theme-dark .copyright{color:#8792a3}
 </script>
 <script src="./maintenance-gate.js?v=20261106-3"></script><script>
 (()=>{const key='tend-theme';const root=document.documentElement;const button=document.querySelector('[data-theme-toggle]');function apply(theme){const dark=theme==='dark';root.classList.toggle('theme-dark',dark);if(button){button.innerHTML=dark?'☀ <span>라이트 모드</span>':'☾ <span>다크 모드</span>';button.setAttribute('aria-label',dark?'라이트 모드로 전환':'다크 모드로 전환')}}let saved='light';try{saved=localStorage.getItem(key)||'light'}catch{}apply(saved);button?.addEventListener('click',()=>{const next=root.classList.contains('theme-dark')?'light':'dark';try{localStorage.setItem(key,next)}catch{}apply(next)})})();
-</script></body>
+</script><script src="./cookie-consent.js?v=20261107-1"></script></body>
 </html>
