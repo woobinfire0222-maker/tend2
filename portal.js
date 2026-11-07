@@ -127,7 +127,7 @@ try{
 }
 let blockedIds=new Set();
 if(manageable.length){
- const {data:requests,error:requestError}=await withTimeout(sb.from("purchase_requests").select("server_id,status,expires_at").eq("user_id",user.id).in("status",["pending","approved","completed"]).not("server_id","is",null));
+ const {data:requests,error:requestError}=await withTimeout(sb.from("purchase_requests").select("server_id,status,expires_at,updated_at,created_at,plan").eq("user_id",user.id).in("status",["pending","approved","completed"]).not("server_id","is",null));
  if(requestError)console.error("Existing server application lookup failed:",requestError);
  else{
   const ids=[...new Set((requests||[]).map(r=>r.server_id).filter(Boolean))];
@@ -140,7 +140,11 @@ if(manageable.length){
   const now=Date.now();
   (requests||[]).forEach(r=>{
    const expiry=liveMap.get(r.server_id)||r.expires_at;
-   const active=r.status==="pending"||!expiry||new Date(expiry).getTime()>now;
+   const durationDays=String(r.plan||"").startsWith("1일")?1:String(r.plan||"").startsWith("7일")?7:String(r.plan||"").startsWith("30일")?30:0;
+   const startAt=r.updated_at||r.created_at;
+   const fallbackExpiry=durationDays&&startAt?new Date(new Date(startAt).getTime()+durationDays*86400000).toISOString():null;
+   const effectiveExpiry=expiry||fallbackExpiry;
+   const active=r.status==="pending"||!effectiveExpiry||new Date(effectiveExpiry).getTime()>now;
    if(active)blockedIds.add(String(r.server_id));
   });
  }
