@@ -89,3 +89,32 @@ html.theme-dark hr{border-color:#303b4c!important}
 html.theme-dark ::selection{background:#365b99;color:#fff}
 .theme-toggle{white-space:nowrap}
 @media(max-width:560px){.topbar-actions .theme-toggle{padding:9px 10px;font-size:11px}.topbar-actions .theme-toggle span{display:none}}
+
+/* Dark theme component normalization */
+html.theme-dark :is(button,[role="button"],[role="tab"]):not(.btn-blue):not(.btn-danger):not(.tend-logout-yes):not(.switch){background-color:#263142!important;border-color:#3a4659!important;color:#e7edf6!important;box-shadow:none!important}
+html.theme-dark :is(.btn-dark,.btn-light,.theme-toggle,.mobile-menu,.demo-modal-close){background:#263142!important;border:1px solid #3a4659!important;color:#edf1f7!important}
+html.theme-dark :is(.btn-blue,.login-discord,.hero-actions .btn-blue,.price-card .btn-blue){background:#356df3!important;border-color:#356df3!important;color:#fff!important}
+html.theme-dark :is(.btn-danger,.tend-logout-yes){background:#7b3039!important;border-color:#99434d!important;color:#fff!important}
+html.theme-dark :is(.btn-blue:hover,.login-discord:hover){background:#285bd0!important}
+html.theme-dark :is(.btn-dark:hover,.btn-light:hover,.theme-toggle:hover,.mobile-menu:hover){background:#334156!important}
+html.theme-dark :is(.bot-tab,.tutorial-steps button,.sim-tabs button,.faq button,.modal-actions button,.support-chat-head-actions button,.support-new-actions button,.support-ticket-item button,.filter-row button,.tab-button){background:#222d3d!important;border-color:#354255!important;color:#dce4ef!important}
+html.theme-dark :is(.bot-tab.active,.tutorial-steps button.active,.sim-tabs button.active,.faq.open button,.tab-button.active){background:#263b5d!important;border-color:#496a9f!important;color:#b8ccff!important}
+html.theme-dark :is(.bot-panel,.feature-setting-card,.feature-editor,.section-intro,.support-chat-inner,.support-admin-list,.support-new-box,.payment-panel,.price-card,.toolkit-card,.principle-list,.faq,.feature,.trust,.story-band,.admin-panel,.admin-table-wrap,.sim-window,.sim-control,.demo-modal,.tour-popover,.modal,.modal-content,.logout-confirm-modal){background:#1a222e!important;border-color:#303b4c!important;color:#edf1f7!important}
+html.theme-dark :is(.bot-panel p,.section-intro p,.feature-setting-card p,.feature-editor p,.toolkit-card p,.faq p,.modal p,.modal label,.field label,.field span,.support-new-heading p,.support-chat-empty p,.support-ticket-item small,.payment-panel p,.price-desc,.price-note,.price-features,.principle-list p){color:#aab4c3!important}
+html.theme-dark :is(.bot-tabs,.tutorial-steps,.support-ticket-list,.support-layout,.support-chat-view,.support-message-list,.feature-editor-fields,.form-grid,.quick-links){background:transparent!important}
+html.theme-dark :is(.setting-row,.feature-setting-row,.feature-editor-row,.support-ticket-item,.support-closed-note,.bank-row,.payment-summary,.quick-links a,.admin-table tbody tr,.data-table tbody tr){background:#202b3a!important;border-color:#354255!important;color:#e5ebf4!important}
+html.theme-dark :is(.field input,.field select,.field textarea,.control,input,select,textarea,.status-select,.data-table select,.support-reply-form textarea,.support-new-box input,.support-new-box textarea,.review-reason){background:#111821!important;border-color:#3a4659!important;color:#edf1f7!important;accent-color:#6f96ff}
+html.theme-dark select option{background:#1a222e!important;color:#edf1f7!important}
+html.theme-dark :is(.switch,.toggle,.feature-switch){background:#465267!important}
+html.theme-dark :is(.switch:checked,.toggle:checked,.feature-switch:checked){background:#356df3!important}
+html.theme-dark :is(.switch:before,.toggle:before){background:#f5f7fb!important}
+html.theme-dark :is(.bot-tabs,.support-chat-head,.support-reply-form,.support-new-heading,.card-head,.topbar,.page-head,.setting-row,.feature-setting-head,.feature-editor>header){border-color:#303b4c!important}
+html.theme-dark :is(.data-table th,.admin-table th){background:#222d3d!important;color:#b8c3d3!important}
+html.theme-dark :is(.data-table td,.admin-table td){background:transparent!important;color:#d0d8e4!important}
+html.theme-dark :is(.data-table tbody tr:hover,.admin-table tbody tr:hover){background:#263142!important}
+html.theme-dark :is(.price-card.featured,.popular){background:#202e43!important;border-color:#496a9f!important}
+html.theme-dark .popular{color:#b8ccff!important}
+html.theme-dark .check-list li{color:#cbd5e2!important}
+html.theme-dark .logout-confirm-modal .modal-actions .btn-light{background:#263142!important;color:#edf1f7!important}
+html.theme-dark [style*="background:#fff"],html.theme-dark [style*="background: #fff"],html.theme-dark [style*="background-color:#fff"],html.theme-dark [style*="background-color: #fff"],html.theme-dark [style*="background:white"],html.theme-dark [style*="background: white"],html.theme-dark [style*="background:#ffffff"],html.theme-dark [style*="background: #ffffff"]{background-color:#1a222e!important;border-color:#303b4c!important}
+html.theme-dark [style*="color:#171"],html.theme-dark [style*="color: #171"],html.theme-dark [style*="color:#202"],html.theme-dark [style*="color: #202"]{color:#edf1f7!important}
