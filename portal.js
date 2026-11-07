@@ -111,7 +111,7 @@ try{
   notify("Discord 서버 목록 권한이 필요해요. 로그아웃 후 다시 로그인해 주세요.");
  }else{
   const response=await withTimeout(fetch("https://discord.com/api/v10/users/@me/guilds",{headers:{Authorization:"Bearer "+accessToken}}));
-  if(!response.ok)throw new Error(response.status===401?"Discord 인증이 만료됐어요. 다시 로그인해 주세요.":"Discord 서버 목록을 불러오지 못했어요. ("+response.status+")");
+  if(!response.ok)throw new Error(response.status===401?"Discord 인증이 만료됐어요. 다시 로그인해 주세요.":response.status===403?"Discord 서버 목록 권한이 필요해요. 로그아웃 후 다시 로그인해 주세요.":"Discord 서버 목록을 불러오지 못했어요. ("+response.status+")");
   const guilds=await response.json();
   const manageable=(Array.isArray(guilds)?guilds:[]).filter(g=>{
    if(g.owner)return true;
