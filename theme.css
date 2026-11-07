@@ -250,3 +250,62 @@ html.theme-dark .content{
   background:#10151e!important;
   color:#edf1f7!important;
 }
+
+
+/* Legal and policy pages dark theme */
+html.theme-dark body:has(.legal-wrap){background:#11151d!important;color:#edf1f7!important}
+html.theme-dark body:has(.legal-wrap)>header{
+  background:#171e29!important;
+  border-color:#303b4c!important;
+}
+html.theme-dark .legal-wrap .legal-head h1,
+html.theme-dark .legal-wrap .legal-section h2,
+html.theme-dark .legal-wrap .legal-section h3{
+  color:#edf1f7!important;
+}
+html.theme-dark .legal-wrap .legal-head p,
+html.theme-dark .legal-wrap .legal-section p,
+html.theme-dark .legal-wrap .legal-section li{
+  color:#b7c1cf!important;
+}
+html.theme-dark .legal-wrap .legal-nav a{
+  background:#202b3a!important;
+  border-color:#354255!important;
+  color:#dce6f5!important;
+}
+html.theme-dark .legal-wrap .legal-nav a:hover{
+  background:#293951!important;
+  border-color:#49658f!important;
+}
+html.theme-dark .legal-wrap .legal-section{
+  background:#1a222e!important;
+  border-color:#303b4c!important;
+  color:#edf1f7!important;
+  box-shadow:0 12px 32px rgba(0,0,0,.14)!important;
+}
+html.theme-dark .legal-wrap .legal-section .date{
+  color:#8996a8!important;
+}
+html.theme-dark .legal-wrap .legal-table th,
+html.theme-dark .legal-wrap .legal-table td{
+  background:#1d2735!important;
+  border-color:#354255!important;
+  color:#cbd5e2!important;
+}
+html.theme-dark .legal-wrap .legal-table th{
+  background:#263142!important;
+  color:#edf1f7!important;
+}
+html.theme-dark .legal-wrap .legal-alert{
+  background:#332b1d!important;
+  border-color:#66502b!important;
+  color:#f0d9a8!important;
+}
+html.theme-dark .legal-wrap .legal-footer{
+  border-color:#303b4c!important;
+  color:#8996a8!important;
+}
+html.theme-dark .legal-wrap .legal-footer a,
+html.theme-dark .legal-wrap .legal-head>div{
+  color:#9eb7ff!important;
+}
