@@ -217,12 +217,15 @@
     if(!await ensureServer())return;
     if(button){button.disabled=true;button.textContent="Discord에서 불러오는 중…";}
     try {
-      const result=await sb.functions.invoke("discord-action",{body:{action:"sync_server_info",server_id:sid()}});
-      if(result.error||result.data?.error)throw new Error(result.data?.error||result.error?.message||"서버 정보를 동기화하지 못했어요.");
+      const result=await sb.functions.invoke("discord-action",{body:{action:"refresh_discord_server",server_id:sid()}});
+      if(result.error||result.data?.error)throw new Error(result.data?.error||result.error?.message||"서버 정보 새로고침을 요청하지 못했어요.");
       await loadServers();
       await loadDiscordInventory();
-      const c=result.data?.counts||{};
-      notify("Discord 서버 정보를 갱신했어요. 채널 "+(c.channels??0)+"개 · 역할 "+(c.roles??0)+"개");
+      if(result.data?.already_running){
+        notify("이미 서버 정보 새로고침을 진행하고 있어요.");
+      }else{
+        notify("서버 정보 새로고침을 요청했어요. 봇이 동기화를 마치면 화면을 다시 열어 확인해 주세요.");
+      }
     } catch(error) {
       console.error("Discord inventory refresh failed:",error);
       notify("봇 정보를 새로고침하지 못했어요: "+(error.message||"잠시 후 다시 시도해 주세요."));
