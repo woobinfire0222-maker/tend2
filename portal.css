@@ -307,3 +307,14 @@ html.theme-dark .toast{background:#e8edf5;color:#171b24}
  [data-side-nav]{flex:1 0 auto}
 }
 html.theme-dark .sidebar-bottom{background:#1a222e!important;border-color:#303b4c!important;box-shadow:0 -8px 20px rgba(0,0,0,.22)}
+
+
+/* Dark theme: payment details and every form control */
+html.theme-dark :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea,.control,.status-select,.review-reason){background-color:#111821!important;color:#edf1f7!important;border-color:#3a4659!important;caret-color:#edf1f7!important;-webkit-text-fill-color:#edf1f7!important;color-scheme:dark;}
+html.theme-dark :is(input,textarea)::placeholder{color:#8995a7!important;opacity:1!important;-webkit-text-fill-color:#8995a7!important;}
+html.theme-dark select option{background:#1a222e!important;color:#edf1f7!important;}
+html.theme-dark input:-webkit-autofill,html.theme-dark input:-webkit-autofill:hover,html.theme-dark input:-webkit-autofill:focus{ -webkit-text-fill-color:#edf1f7!important;-webkit-box-shadow:0 0 0 1000px #111821 inset!important;box-shadow:0 0 0 1000px #111821 inset!important;caret-color:#edf1f7!important;}
+html.theme-dark :is(.bank-row,.payment-summary){background:#202b3a!important;border:1px solid #354255!important;color:#edf1f7!important;}
+html.theme-dark :is(.bank-row,.payment-summary) :is(span,small){color:#aab4c3!important;}
+html.theme-dark :is(.bank-row,.payment-summary) strong{color:#edf1f7!important;}
+html.theme-dark .payment-panel{background:#1a222e!important;border-color:#303b4c!important;color:#edf1f7!important;}
