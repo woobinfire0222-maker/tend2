@@ -319,9 +319,8 @@ async function loadLab(){
 shell("lab","실험실","새로운 기능을 먼저 만나볼 수 있는 공간이에요.");
 const {data,error}=await sb.from("tend_experiment_members").select("user_id").eq("user_id",user.id).maybeSingle();
 if(error||!data){experimentMember=false;notify("실험실 이용 권한이 없어요.");location.replace("./dashboard.html");return}
-const title=$("#lab-empty-title"),copy=$("#lab-empty-copy");
-if(title)title.textContent="아직 준비 중이에요";
-if(copy)copy.textContent="실험실에 공개된 기능이 아직 없어요. 새로운 실험이 시작되면 이곳에서 가장 먼저 확인할 수 있어요.";
+if(window.TEND_LAB){await window.TEND_LAB.init({sb,user,notify,escapeHtml,withTimeout});return}
+notify("실험실 기능 파일을 불러오지 못했어요.");
 }
 async function loadAdmin(){
 shell("admin","관리자 대시보드","신청을 승인하거나 거절하고, 처리 사유를 남길 수 있습니다.");
