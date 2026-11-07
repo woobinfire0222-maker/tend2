@@ -153,3 +153,53 @@ html.theme-dark :is(.text-blue-900,.text-blue-800,.text-sky-900,.text-indigo-900
 html.theme-dark :is(.border-blue-100,.border-blue-200,.border-sky-100,.border-indigo-100){
   border-color:#35465f!important;
 }
+
+
+/* Homepage dashboard preview dark theme */
+html.theme-dark .dashboard{
+  background:#1a222e!important;
+  border-color:#303b4c!important;
+  color:#edf1f7!important;
+  box-shadow:0 30px 85px rgba(0,0,0,.32)!important;
+}
+html.theme-dark .dashboard .dash-top{
+  background:#1a222e!important;
+  border-color:#303b4c!important;
+}
+html.theme-dark .dashboard .dash-state{
+  background:#263550!important;
+  color:#b8ccff!important;
+}
+html.theme-dark .dashboard .server-icon{
+  background:#263550!important;
+  color:#a9c0ff!important;
+}
+html.theme-dark .dashboard .server-head strong,
+html.theme-dark .dashboard .activity-copy strong{
+  color:#edf1f7!important;
+}
+html.theme-dark .dashboard .server-head small,
+html.theme-dark .dashboard .section-label{
+  color:#aab4c3!important;
+}
+html.theme-dark .dashboard .metric{
+  background:#202b3a!important;
+  border-color:#354255!important;
+}
+html.theme-dark .dashboard .metric span,
+html.theme-dark .dashboard .activity-copy small,
+html.theme-dark .dashboard .activity time{
+  color:#aab4c3!important;
+}
+html.theme-dark .dashboard .activity{
+  border-color:#303b4c!important;
+}
+html.theme-dark .dashboard .activity-icon{
+  background:#263550!important;
+  color:#a9c0ff!important;
+}
+html.theme-dark .dashboard .dash-bottom{
+  background:#151c27!important;
+  border-color:#303b4c!important;
+  color:#aab4c3!important;
+}
