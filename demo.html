@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1e1f22">
+<title>TEND 가상 체험</title>
+<link rel="icon" type="image/png" href="./TEND.png">
+<link rel="stylesheet" href="./demo.css?v=20261107-1">
+</head>
+<body>
+<header class="demo-top"><a class="demo-brand" href="./index.html"><img src="./TEND.png" alt="TEND">TEND <span style="font-size:11px;color:#9da3af;font-weight:600">체험</span></a><a class="back" href="./index.html">← 소개 페이지로</a></header>
+<main class="demo-wrap">
+<div class="demo-heading"><div><div class="eyebrow">TRY TEND · INTERACTIVE PREVIEW</div><h1>직접 눌러보고 확인해 보세요.</h1><p>가상 서버에서 TEND 봇의 기능이 어떻게 작동하는지 체험할 수 있어요.</p></div><div class="demo-notice">체험용 화면이에요. 실제 Discord 서버에는 아무것도 전송되지 않아요.</div></div>
+<section class="demo-app" aria-label="가상 Discord 체험 화면">
+<div class="demo-toolbar"><div class="demo-tabs" role="tablist">
+<button class="demo-tab active" data-tab="logs" role="tab" aria-selected="true">▤ 서버 로그 13종</button>
+<button class="demo-tab" data-tab="moderation" role="tab" aria-selected="false">◇ AI 자동 관리</button>
+<button class="demo-tab" data-tab="tickets" role="tab" aria-selected="false">▱ 티켓 템플릿</button>
+</div><div class="demo-live"><i></i> 가상 서버 온라인</div></div>
+<div class="demo-channel"><span>#</span><strong id="channelName">채팅-보존-로그</strong><span style="color:#666a73">|</span><span id="channelDesc">삭제된 메시지와 주요 활동 기록을 확인해요</span></div>
+<div class="demo-layout">
+<aside class="demo-side"><div class="server-label">⌄　TEND 체험 서버</div><div class="side-label">TEXT CHANNELS</div><div class="side-channel selected"><span>#</span> 채팅-보존-로그</div><div class="side-channel"><span>#</span> 공지사항</div><div class="side-channel"><span>#</span> 문의-접수</div><div class="side-label">VOICE CHANNELS</div><div class="side-channel"><span>◖</span> 대기실</div></aside>
+<div class="demo-content">
+<section class="demo-panel active" id="panel-logs" role="tabpanel">
+<div class="panel-title"><div><h2>서버 로그 미리보기</h2><p>기록 종류를 선택하고, 아래 버튼으로 가상 이벤트를 발생시켜 보세요.</p></div><span class="tag">13종 기록</span></div>
+<div class="log-types" id="logTypes"><button class="log-type active" data-log="message">메시지 삭제</button><button class="log-type" data-log="edit">메시지 수정</button><button class="log-type" data-log="member">멤버 입장</button><button class="log-type" data-log="role">역할 변경</button><button class="log-type" data-log="voice">음성 활동</button><button class="log-type" data-log="channel">채널 변경</button><button class="log-type" data-log="ban">차단 기록</button></div>
+<div class="sample-card"><div class="log-entry"><div class="log-avatar">민수</div><div class="log-main"><div class="log-meta"><strong id="logUser">김민수</strong><span id="logTime">오늘 오후 11:20</span><span class="tag" id="logKind">MESSAGE DELETE</span></div><div class="log-box" id="logBody">내일 내전 참여하실 분 3명 더 구합니다</div><div class="log-foot"><span id="logChannel">#내전-모집 · 삭제된 메시지 원문</span><span class="ok">✓ 기록 완료</span></div></div></div></div>
+<div class="demo-actions"><button class="demo-btn primary" id="triggerLog">가상 이벤트 발생시키기</button><button class="demo-btn" id="resetLog">처음 상태로</button></div>
+<div class="sim-result" id="logResult" aria-live="polite">메시지 삭제가 발생하면 작성자, 채널, 원문이 로그 채널에 남는 모습을 보여줘요.</div>
+</section>
+<section class="demo-panel" id="panel-moderation" role="tabpanel">
+<div class="panel-title"><div><h2>AI 자동 관리</h2><p>자동 대응 옵션을 켜고, 예시 문장으로 작동 흐름을 확인해 보세요.</p></div><span class="tag">가상 설정</span></div>
+<div class="sample-card">
+<div class="toggle-row"><div><strong>반복 메시지 감지</strong><small>짧은 시간에 같은 내용이 반복되면 안내해요.</small></div><button class="switch on" data-switch="repeat" aria-label="반복 메시지 감지 전환"></button></div>
+<div class="toggle-row"><div><strong>금칙어 감지</strong><small>서버에서 등록한 단어가 포함된 메시지를 확인해요.</small></div><button class="switch on" data-switch="word" aria-label="금칙어 감지 전환"></button></div>
+<div class="toggle-row"><div><strong>관리자 알림</strong><small>감지된 상황을 운영진 로그에 남겨요.</small></div><button class="switch on" data-switch="alert" aria-label="관리자 알림 전환"></button></div>
+</div>
+<div class="sample-card"><h3>메시지 보내기 체험</h3><p style="margin-bottom:11px">예시 문장을 입력하면 설정에 따라 가상 처리 결과를 보여줘요.</p><input class="sim-input" id="moderationInput" maxlength="120" value="안녕하세요! 안녕하세요! 안녕하세요!" aria-label="체험 메시지"><div class="demo-actions"><button class="demo-btn primary" id="checkMessage">메시지 검사하기</button><button class="demo-btn" id="sampleSpam">반복 예시 넣기</button><button class="demo-btn" id="sampleClean">일반 예시 넣기</button></div><div class="sim-result" id="moderationResult" aria-live="polite">메시지를 검사하면 감지 결과와 봇의 대응을 여기에 표시해요.</div></div>
+</section>
+<section class="demo-panel" id="panel-tickets" role="tabpanel">
+<div class="panel-title"><div><h2>티켓 템플릿</h2><p>문의 유형을 고르면 가상 문의 창이 열려요. 실제 티켓은 생성되지 않아요.</p></div><span class="tag">문의 시스템</span></div>
+<div class="ticket-grid">
+<article class="ticket-card"><h3>일반 문의</h3><p>서비스 이용이나 서버 관련 질문을 접수해요.</p><button class="demo-btn primary" data-ticket="일반 문의">이 템플릿 사용</button></article>
+<article class="ticket-card"><h3>신고 접수</h3><p>상황과 관련 내용을 운영진에게 전달해요.</p><button class="demo-btn primary" data-ticket="신고 접수">이 템플릿 사용</button></article>
+<article class="ticket-card"><h3>제휴 문의</h3><p>서버 간 제휴나 협업 제안을 접수해요.</p><button class="demo-btn primary" data-ticket="제휴 문의">이 템플릿 사용</button></article>
+<article class="ticket-card"><h3>기타 요청</h3><p>위 유형에 해당하지 않는 요청을 남겨요.</p><button class="demo-btn primary" data-ticket="기타 요청">이 템플릿 사용</button></article>
+</div>
+<div class="ticket-detail" id="ticketDetail" aria-live="polite"><h3 id="ticketTitle">문의 채널이 열렸어요.</h3><p id="ticketCopy">가상 티켓 화면</p><input class="sim-input" id="ticketMessage" maxlength="160" placeholder="문의 내용을 입력해 보세요"><div class="demo-actions"><button class="demo-btn primary" id="sendTicket">가상 문의 보내기</button><button class="demo-btn" id="closeTicket">티켓 닫기</button></div><div class="sim-result" id="ticketResult">선택한 템플릿으로 문의 채널이 생성되는 모습을 체험해 보세요.</div></div>
+</section>
+</div></div></section>
+<div class="demo-footer">TEND 가상 체험 · 예시 데이터만 사용해요 · <a href="./index.html">TEND 소개 페이지</a></div>
+</main>
+<div class="demo-toast" id="demoToast" role="status" aria-live="polite"></div>
+<script src="./demo.js?v=20261107-1"></script>
+<script src="./cookie-consent.js?v=20261107-1"></script>
+</body></html>
