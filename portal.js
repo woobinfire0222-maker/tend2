@@ -99,6 +99,7 @@ async function loadRequests(){
 shell("requests","이용권 신청","관리자 권한이 있는 Discord 서버를 선택해 이용권을 신청하세요.");
 const form=$("#request-form"),select=$("#server-select"),help=$("#server-select-help");
 const nameInput=$("#server-name"),idInput=$("#server-id");
+let discordAccessToken="";
 if(!form||!select)return;
 select.disabled=true;
 select.innerHTML='<option value="">서버 목록을 불러오는 중…</option>';
@@ -106,7 +107,8 @@ let manageable=[];
 try{
  const {data:{session},error:sessionError}=await sb.auth.getSession();
  if(sessionError)throw sessionError;
- const accessToken=session?.provider_token;
+ const accessToken=session?.provider_token||"";
+  discordAccessToken=accessToken;
  if(!accessToken){
   select.innerHTML='<option value="">Discord 서버 권한 연결이 필요해요</option>';
   if(help)help.textContent="서버 목록을 불러오려면 Discord 계정 연결을 다시 진행해 주세요.";
@@ -197,6 +199,32 @@ function updateRequestInvite(){
 }
 select.addEventListener("change",updateRequestInvite);
 updateRequestInvite();
+const freeButton=$("#activate-free-plan"),freeStatus=$("#free-plan-status");
+const renderFreeEntitlements=async()=>{
+ if(!freeStatus)return;
+ const result=await sb.from("free_entitlements").select("server_id,server_name,status,created_at").eq("user_id",user.id).eq("status","active").order("created_at",{ascending:false});
+ if(result.error){console.warn("FREE entitlement list unavailable:",result.error);freeStatus.textContent="무료 이용 현황을 불러오지 못했어요.";return;}
+ freeStatus.innerHTML=result.data?.length?'<div class="stack-list">'+result.data.map(x=>'<div class="setting-row"><div><strong>'+escapeHtml(x.server_name)+'</strong><small>FREE · 기간 제한 없음</small></div><span class="badge green">이용 중</span></div>').join("")+'</div>':'<div class="empty">아직 활성화된 무료 서버가 없어요.</div>';
+};
+if(freeButton&&!freeButton.dataset.bound){
+ freeButton.dataset.bound="1";
+ const sync=()=>{freeButton.disabled=!select.value;};
+ select.addEventListener("change",sync);sync();
+ freeButton.addEventListener("click",async()=>{
+  const serverId=select.value,serverName=select.selectedOptions[0]?.dataset?.name||"";
+  if(!serverId||!serverName){notify("먼저 무료로 이용할 서버를 선택해 주세요.");return;}
+  if(!discordAccessToken){notify("Discord 서버 권한 확인이 필요해요. 다시 로그인해 주세요.");return;}
+  freeButton.disabled=true;freeButton.textContent="무료 플랜 활성화 중…";
+  try{
+   const {data,error}=await sb.functions.invoke("discord-action",{body:{action:"activate_free",server_id:serverId,server_name:serverName,provider_token:discordAccessToken}});
+   if(error||data?.error)throw new Error(data?.error||error?.message||"무료 플랜을 활성화하지 못했어요.");
+   notify(data?.already_active?"이미 무료 플랜을 이용 중이에요.":"FREE 플랜을 활성화했어요.");
+   await renderFreeEntitlements();
+  }catch(error){console.error("FREE activation failed:",error);notify(error.message||"무료 플랜을 활성화하지 못했어요.");}
+  finally{freeButton.disabled=!select.value;freeButton.textContent="무료 플랜 바로 시작";}
+ });
+}
+void renderFreeEntitlements();
 form.addEventListener("submit",async e=>{
  e.preventDefault();if(!sb||!user)return;
  const plan=$("#plan").value,serverId=select.value;
