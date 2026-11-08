@@ -218,6 +218,69 @@ html.theme-dark .hero-effects:after{background-image:linear-gradient(rgba(150,17
 @media(max-width:850px){.hero-effects:after{background-size:42px 42px}.dashboard{animation-duration:8s}}
 @media(prefers-reduced-motion:reduce){.hero-effects span,.hero-effects:before,.dashboard,.dash-state:before{animation:none!important}.tend-motion-ready .reveal-item{opacity:1;translate:none;transition:none}.feature,.price-card,.toolkit-card,.usecase,.workflow-step,.principle,.faq{transition:none}}
 
+
+/* Scroll continuity and realistic product showcase */
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+#product-showcase{position:relative;overflow:hidden;padding:112px 0 120px;background:linear-gradient(180deg,#f7f8fa 0%,#eef3ff 48%,#f7f8fa 100%)}
+#product-showcase:before{content:"";position:absolute;width:720px;height:720px;left:50%;top:15%;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(75,120,255,.13),transparent 68%);pointer-events:none}
+.showcase-heading{position:relative;z-index:1;max-width:690px;margin:0 auto 48px;text-align:center}
+.showcase-heading h2{font-size:clamp(32px,4.4vw,49px);line-height:1.16;letter-spacing:-.075em;margin:13px 0}
+.showcase-heading p{color:#737b89;font-size:14px;line-height:1.8;margin:0}
+.showcase-stage{position:relative;max-width:1080px;margin:auto;perspective:1400px}
+.showcase-window{position:relative;z-index:2;overflow:hidden;border:1px solid #dfe4ee;border-radius:20px;background:#fff;box-shadow:0 38px 100px rgba(28,45,88,.17);transform:translateY(36px) scale(.975);opacity:0;transition:transform .9s cubic-bezier(.2,.75,.2,1),opacity .8s ease}
+#product-showcase.is-visible .showcase-window{transform:translateY(0) scale(1);opacity:1}
+.showcase-browserbar{height:47px;display:flex;align-items:center;gap:7px;padding:0 16px;background:#fbfcfe;border-bottom:1px solid #e9edf3}
+.showcase-browserbar i{width:8px;height:8px;border-radius:50%;background:#d8dde7}
+.showcase-browserbar span{margin-left:10px;padding:6px 13px;border:1px solid #e9edf3;border-radius:7px;background:#fff;color:#858d9a;font-size:10px}
+.showcase-app{display:grid;grid-template-columns:66px 205px minmax(0,1fr);min-height:510px;color:#252b37}
+.showcase-rail{display:flex;flex-direction:column;align-items:center;gap:13px;padding:17px 9px;background:#f7f8fb;border-right:1px solid #e9edf3}
+.showcase-logo{width:34px;height:34px;object-fit:contain;margin-bottom:8px}
+.showcase-rail-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:12px;background:#fff;border:1px solid #e8ecf3;color:#788398;font-size:15px}
+.showcase-rail-icon.active{background:#eaf0ff;border-color:#d9e4ff;color:#356df3}
+.showcase-serverlist{padding:20px 14px;background:#fbfcfe;border-right:1px solid #e9edf3}
+.showcase-server-title{font-size:12px;font-weight:850;margin-bottom:5px}
+.showcase-server-sub{font-size:9px;color:#9299a6;margin-bottom:24px}
+.showcase-server-label{font-size:9px;color:#9aa1ad;font-weight:800;letter-spacing:.06em;margin:18px 0 8px}
+.showcase-navitem{display:flex;align-items:center;gap:8px;padding:10px 9px;margin:3px 0;border-radius:8px;color:#6e7787;font-size:10px}
+.showcase-navitem.active{background:#edf2ff;color:#356df3;font-weight:800}
+.showcase-navitem b{font-size:13px;width:15px;text-align:center}
+.showcase-main{min-width:0;padding:24px 25px;background:#fff}
+.showcase-main-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:18px;border-bottom:1px solid #edf0f4}
+.showcase-main-top strong{font-size:16px;letter-spacing:-.04em}
+.showcase-main-top small{display:block;color:#9299a6;font-size:9px;margin-top:5px}
+.showcase-status{padding:7px 10px;border-radius:20px;background:#eaf8f1;color:#23865e;font-size:9px;font-weight:850;white-space:nowrap}
+.showcase-server-card{display:flex;align-items:center;gap:12px;padding:15px;margin:18px 0;background:#fafbfe;border:1px solid #edf0f4;border-radius:12px}
+.showcase-server-avatar{width:39px;height:39px;display:grid;place-items:center;border-radius:12px;background:#5865f2;color:#fff;font-size:16px;font-weight:900}
+.showcase-server-card strong{display:block;font-size:11px}
+.showcase-server-card small{display:block;color:#9098a5;font-size:9px;margin-top:4px}
+.showcase-server-card em{margin-left:auto;font-style:normal;color:#269b68;font-size:9px;font-weight:800}
+.showcase-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.showcase-metric{padding:13px;border:1px solid #edf0f4;border-radius:10px}
+.showcase-metric small{display:block;color:#8992a0;font-size:9px}
+.showcase-metric strong{display:block;font-size:19px;letter-spacing:-.05em;margin-top:8px}
+.showcase-panel-title{display:flex;justify-content:space-between;align-items:center;margin:23px 0 10px;font-size:11px;font-weight:850}
+.showcase-panel-title span{color:#356df3;font-size:9px;font-weight:750}
+.showcase-table{width:100%;border-collapse:collapse;font-size:9px}
+.showcase-table th{text-align:left;padding:9px 7px;background:#f8f9fb;color:#9299a6;font-weight:750}
+.showcase-table td{padding:11px 7px;border-bottom:1px solid #f0f2f5;color:#626b79}
+.showcase-pill{display:inline-block;padding:4px 7px;border-radius:20px;background:#eaf8f1;color:#23865e;font-size:8px;font-weight:800}
+.showcase-pill.wait{background:#fff5e6;color:#a66a17}
+.showcase-floating{position:absolute;z-index:3;right:-27px;bottom:45px;width:270px;padding:16px;border:1px solid #e3e8f2;border-radius:15px;background:rgba(255,255,255,.96);box-shadow:0 22px 55px rgba(28,45,88,.18);opacity:0;transform:translate(24px,18px) rotate(2deg);transition:opacity .7s .35s,transform .8s .35s cubic-bezier(.2,.75,.2,1);backdrop-filter:blur(14px)}
+#product-showcase.is-visible .showcase-floating{opacity:1;transform:translate(0,0) rotate(1deg)}
+.showcase-float-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.showcase-float-top strong{font-size:11px}
+.showcase-float-top small{font-size:8px;color:#9299a6}
+.showcase-notice{padding:12px;border:1px solid #e9edf4;border-radius:10px;background:#fbfcff}
+.showcase-notice b{display:block;font-size:10px;margin-bottom:6px}
+.showcase-notice p{font-size:9px;line-height:1.6;color:#737c8b;margin:0}
+.showcase-float-foot{display:flex;align-items:center;gap:6px;margin-top:11px;color:#269b68;font-size:8px;font-weight:800}
+.showcase-float-foot i{width:6px;height:6px;border-radius:50%;background:#35b982}
+.showcase-caption{position:relative;z-index:1;margin:24px auto 0;text-align:center;color:#858d9a;font-size:10px}
+@media(max-width:900px){.showcase-app{grid-template-columns:54px 160px minmax(0,1fr)}.showcase-floating{right:-8px;bottom:-34px}.showcase-main{padding:19px 16px}}
+@media(max-width:650px){#product-showcase{padding:78px 0 90px}.showcase-heading{margin-bottom:30px}.showcase-stage{width:calc(100% + 8px);margin-left:-4px}.showcase-window{border-radius:14px}.showcase-browserbar{height:38px}.showcase-app{grid-template-columns:42px 105px minmax(0,1fr);min-height:440px}.showcase-rail{padding:13px 4px;gap:10px}.showcase-rail-icon{width:30px;height:30px}.showcase-logo{width:28px;height:28px}.showcase-serverlist{padding:15px 7px}.showcase-server-title{font-size:10px}.showcase-navitem{font-size:9px;padding:9px 5px;gap:5px}.showcase-main{padding:15px 10px}.showcase-main-top strong{font-size:13px}.showcase-status{font-size:8px;padding:6px}.showcase-server-card{padding:9px;gap:7px}.showcase-server-avatar{width:30px;height:30px}.showcase-server-card strong{font-size:9px}.showcase-server-card small{font-size:8px}.showcase-server-card em{display:none}.showcase-metrics{gap:5px}.showcase-metric{padding:8px 6px}.showcase-metric small{font-size:8px}.showcase-metric strong{font-size:15px}.showcase-panel-title{font-size:10px;margin:16px 0 8px}.showcase-table{font-size:8px}.showcase-table th,.showcase-table td{padding:8px 4px}.showcase-floating{width:205px;right:4px;bottom:-54px;padding:12px}.showcase-caption{margin-top:70px}}
+@media(prefers-reduced-motion:reduce){.showcase-window,.showcase-floating{transition:none!important;transform:none!important;opacity:1!important}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js?v=20261029-2"></script>
@@ -257,6 +320,29 @@ html.theme-dark .hero-effects:after{background-image:linear-gradient(rgba(150,17
 <article class="feature"><div class="feature-icon">◎</div><h3>계정 연결</h3><p>Discord 계정으로 로그인하고 본인 신청 내역을 확인해요.</p></article>
 <article class="feature"><div class="feature-icon">◷</div><h3>기간제 이용권</h3><p>자동 구독이 아닌 1일·7일·30일 이용권 신청 방식이에요.</p></article>
 </div></div></section>
+<section id="product-showcase" class="content">
+<div class="wrap">
+<div class="showcase-heading"><div class="kicker">INSIDE TEND</div><h2>운영 화면은 이렇게 구성돼요.</h2><p>서버 상태와 관리 항목을 한 화면에서 확인하는 모습을 담은 예시예요.<br>실제 계정 데이터가 아닌 샘플 화면입니다.</p></div>
+<div class="showcase-stage">
+<div class="showcase-window">
+<div class="showcase-browserbar"><i></i><i></i><i></i><span>app.tendsite.shop / dashboard</span></div>
+<div class="showcase-app">
+<aside class="showcase-rail"><img class="showcase-logo" src="./TEND.png" alt="TEND"><div class="showcase-rail-icon active">⌂</div><div class="showcase-rail-icon">▦</div><div class="showcase-rail-icon">⚙</div><div class="showcase-rail-icon">?</div></aside>
+<aside class="showcase-serverlist"><div class="showcase-server-title">서버 관리</div><div class="showcase-server-sub">연결된 서버와 설정</div><div class="showcase-server-label">WORKSPACE</div><div class="showcase-navitem active"><b>⌂</b> 개요</div><div class="showcase-navitem"><b>♧</b> 서버 목록</div><div class="showcase-navitem"><b>◷</b> 이용권</div><div class="showcase-server-label">MANAGEMENT</div><div class="showcase-navitem"><b>⌕</b> 봇 관리</div><div class="showcase-navitem"><b>▤</b> 관리 기록</div><div class="showcase-navitem"><b>⚙</b> 설정</div></aside>
+<div class="showcase-main">
+<div class="showcase-main-top"><div><strong>서버 대시보드</strong><small>서버 연결 및 이용 현황</small></div><span class="showcase-status">● 연결됨</span></div>
+<div class="showcase-server-card"><div class="showcase-server-avatar">D</div><div><strong>Design Community</strong><small>Discord 서버 · 예시 데이터</small></div><em>정상</em></div>
+<div class="showcase-metrics"><div class="showcase-metric"><small>멤버 수</small><strong>1,284</strong></div><div class="showcase-metric"><small>봇 상태</small><strong style="color:#269b68">온라인</strong></div><div class="showcase-metric"><small>이용 기간</small><strong>23일</strong></div></div>
+<div class="showcase-panel-title">최근 관리 내역 <span>전체 기록 →</span></div>
+<table class="showcase-table"><thead><tr><th>항목</th><th>처리 내용</th><th>상태</th></tr></thead><tbody><tr><td>금칙어 규칙</td><td>규칙 설정 변경</td><td><span class="showcase-pill">완료</span></td></tr><tr><td>공지 관리</td><td>안내 메시지 등록</td><td><span class="showcase-pill">완료</span></td></tr><tr><td>이용권 신청</td><td>관리자 확인 중</td><td><span class="showcase-pill wait">확인 중</span></td></tr></tbody></table>
+</div>
+</div>
+</div>
+<div class="showcase-floating"><div class="showcase-float-top"><strong>공지 미리보기</strong><small>Discord · #공지사항</small></div><div class="showcase-notice"><b>서버 이용 안내</b><p>안녕하세요. 서버 이용 전 공지사항과 기본 규칙을 확인해 주세요. 문의가 있다면 지원 채널을 이용해 주세요.</p></div><div class="showcase-float-foot"><i></i> 미리보기 화면</div></div>
+</div>
+<div class="showcase-caption">화면 구성과 내용은 이해를 돕기 위한 예시이며, 실제 제공 범위는 연결 상태와 이용 권한에 따라 달라질 수 있어요.</div>
+</div>
+</section>
 <section class="split" id="how"><div class="wrap split-grid"><div><div class="kicker" style="color:#9eb8ff">Easy to use</div><h2>신청은 간단하게,<br>진행 상황은 명확하게.</h2><p>Discord 계정으로 로그인하고 이용권과 서버 정보를 제출하면 신청이 접수돼요. 입금 확인이 완료되면 이용권이 승인돼요.</p>
 <div class="check-list"><div class="check"><i>✓</i><span>Discord 로그인으로 계정을 연결해요.</span></div><div class="check"><i>✓</i><span>신청 내용은 내 계정에서 확인할 수 있어요.</span></div><div class="check"><i>✓</i><span>관리자는 전용 권한이 있을 때만 신청 내역을 확인해요.</span></div></div></div>
 <div class="chat-preview"><div class="chat-head"><img class="mini-mark brand-logo" src="./TEND.png" alt="TEND 로고"><div><strong>TEND</strong><small>이용권 신청 안내</small></div></div><div class="chat-bubble"><b>어떤 이용권이 필요하세요?</b>필요한 기간을 선택하고 Discord 서버 이름을 입력해 주세요.</div><div class="chat-bubble blue"><b>신청 내용 저장</b>로그인한 계정에 신청 내역이 연결돼요.<div class="tiny">접수 상태 · 확인 대기</div></div><div class="chat-bubble"><b>입금 확인 후 이용 시작</b>신청 내용을 제출한 뒤 안내된 계좌로 입금해 주세요.<div class="tiny">관리자 확인 후 이용권 승인</div></div></div></div></section>
@@ -368,6 +454,6 @@ html.theme-dark .hero-effects:after{background-image:linear-gradient(rgba(150,17
 <script src="./maintenance-gate.js?v=20261106-3"></script><script>
 (()=>{const key='tend-theme';const root=document.documentElement;const button=document.querySelector('[data-theme-toggle]');function apply(theme){const dark=theme==='dark';root.classList.toggle('theme-dark',dark);if(button){button.innerHTML=dark?'☀ <span>라이트 모드</span>':'☾ <span>다크 모드</span>';button.setAttribute('aria-label',dark?'라이트 모드로 전환':'다크 모드로 전환')}}let saved='light';try{saved=localStorage.getItem(key)||'light'}catch{}apply(saved);button?.addEventListener('click',()=>{const next=root.classList.contains('theme-dark')?'light':'dark';try{localStorage.setItem(key,next)}catch{}apply(next)})})();
 </script><script src="./cookie-consent.js?v=20261107-1"></script><script>
-(()=>{const targets=document.querySelectorAll('.section-head,.feature,.price-card,.toolkit-card,.usecase,.workflow-step,.principle,.faq,.story-stat,.trust-item,.chat-preview');if(!targets.length)return;targets.forEach(el=>el.classList.add('reveal-item'));if(!('IntersectionObserver'in window)){targets.forEach(el=>el.classList.add('is-visible'));return}document.documentElement.classList.add('tend-motion-ready');const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}})},{threshold:.12,rootMargin:'0px 0px -35px 0px'});targets.forEach(el=>observer.observe(el));document.querySelectorAll('.feature,.price-card,.toolkit-card').forEach(card=>{card.addEventListener('pointermove',event=>{const rect=card.getBoundingClientRect();card.style.setProperty('--pointer-x',((event.clientX-rect.left)/rect.width*100)+'%');card.style.setProperty('--pointer-y',((event.clientY-rect.top)/rect.height*100)+'%')},{passive:true})})})();
+(()=>{const targets=document.querySelectorAll('.section-head,.feature,.price-card,.toolkit-card,.usecase,.workflow-step,.principle,.faq,.story-stat,.trust-item,.chat-preview,#product-showcase');if(!targets.length)return;targets.forEach(el=>el.classList.add('reveal-item'));if(!('IntersectionObserver'in window)){targets.forEach(el=>el.classList.add('is-visible'));return}document.documentElement.classList.add('tend-motion-ready');const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}})},{threshold:.12,rootMargin:'0px 0px -35px 0px'});targets.forEach(el=>observer.observe(el));document.querySelectorAll('.feature,.price-card,.toolkit-card').forEach(card=>{card.addEventListener('pointermove',event=>{const rect=card.getBoundingClientRect();card.style.setProperty('--pointer-x',((event.clientX-rect.left)/rect.width*100)+'%');card.style.setProperty('--pointer-y',((event.clientY-rect.top)/rect.height*100)+'%')},{passive:true})})})();
 </script></body>
 </html>
