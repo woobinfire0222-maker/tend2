@@ -231,8 +231,8 @@ form.addEventListener("submit",async e=>{
    const {error}=await sb.from("purchase_requests").insert({user_id:user.id,plan,server_name:name,server_id:serverId,status:"pending",payment_status:"unpaid"});
    if(error)throw error;
    notify("신청이 접수됐어요. 봇 초대와 입금 확인 후 관리가 시작돼요.");
-   await loadRequestTable();
   }
+  await loadRequestTable();
   form.reset();select.value="";if(nameInput)nameInput.value="";if(idInput)idInput.value="";
   updateRequestInvite();syncPlanUI();
  }catch(error){console.error("Plan application failed:",error);notify(error.message||"신청 처리에 실패했어요.");}
