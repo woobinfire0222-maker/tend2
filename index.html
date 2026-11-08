@@ -284,13 +284,13 @@ html{scroll-behavior:smooth;scroll-padding-top:88px}
 
 /* Continuous scroll narrative */
 #product-showcase{padding:105px 0 100px;background:linear-gradient(180deg,#f8f9fc 0%,#edf2fc 50%,#f8f9fc 100%)}
-.scroll-story{display:grid;grid-template-columns:minmax(260px,.72fr) minmax(0,1.5fr);gap:54px;align-items:stretch;max-width:1120px;margin:0 auto}
+.scroll-story{display:grid;grid-template-columns:minmax(260px,.72fr) minmax(0,1.5fr);gap:54px;align-items:stretch;max-width:1120px;margin:0 auto;overflow:visible}
 .story-steps{padding:5vh 0 10vh}
-.story-step{min-height:68vh;display:flex;flex-direction:column;justify-content:center;padding:50px 28px 50px 0;opacity:.32;transform:translateY(24px);transition:opacity .55s,transform .65s}
+.story-step{min-width:0;min-height:68vh;display:flex;flex-direction:column;justify-content:center;padding:50px 28px 50px 0;opacity:.32;transform:translateY(24px);transition:opacity .55s,transform .65s;overflow:visible}
 .story-step.is-active{opacity:1;transform:translateY(0)}
 .story-step-no{font-size:10px;letter-spacing:.14em;font-weight:850;color:#5279e9}
-.story-step h3{font-size:clamp(25px,3vw,35px);line-height:1.25;letter-spacing:-.07em;margin:17px 0 13px;color:#202a3b}
-.story-step p{font-size:14px;line-height:1.9;color:#737d8d;margin:0;max-width:330px}
+.story-step h3{max-width:100%;font-size:clamp(25px,3vw,35px);line-height:1.3;letter-spacing:-.055em;margin:17px 0 13px;color:#202a3b;white-space:normal;overflow-wrap:break-word;word-break:keep-all}
+.story-step p{max-width:100%;font-size:14px;line-height:1.9;color:#737d8d;margin:0;white-space:normal;overflow-wrap:break-word;word-break:keep-all}
 .story-step-hint{display:flex;align-items:center;gap:8px;margin-top:27px;color:#4e6fbe;font-size:11px;font-weight:800}
 .story-step-hint i,.story-live-dot{width:7px;height:7px;border-radius:50%;background:#39b985;box-shadow:0 0 0 4px rgba(57,185,133,.12)}
 .story-visual{min-width:0;position:relative;align-self:stretch}
@@ -304,57 +304,6 @@ html{scroll-behavior:smooth;scroll-padding-top:88px}
 .showcase-float-card{position:absolute;right:-18px;bottom:27px;width:225px;padding:13px;border:1px solid #e3e8f2;border-radius:14px;background:rgba(255,255,255,.97);box-shadow:0 18px 45px rgba(28,45,88,.17)}
 .showcase-float-card .showcase-float-top{margin-bottom:9px}
 .showcase-float-card .showcase-notice{padding:10px}
-.discord-window{overflow:hidden;border:1px solid #303541;border-radius:15px;background:#313338;box-shadow:0 30px 75px rgba(20,25,43,.25);color:#dbdee1}
-.discord-titlebar{height:43px;display:flex;align-items:center;gap:9px;padding:0 13px;background:#27292e;font-size:11px}
-.discord-brand-mark{width:21px;height:21px;border-radius:7px;background:#5865f2;display:grid;place-items:center;color:#fff}
-.discord-titlebar>span{font-size:9px;color:#8d929c}
-.discord-window-dots{margin-left:auto;color:#9ca1aa}
-.discord-app{display:grid;grid-template-columns:54px 168px minmax(0,1fr);min-height:435px}
-.discord-server-rail{display:flex;flex-direction:column;align-items:center;gap:10px;padding:13px 0;background:#1e1f22}
-.discord-server-icon{width:35px;height:35px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:850;color:#fff}
-.discord-home{background:#5865f2;border-radius:12px}
-.discord-rail-sep{width:23px;height:2px;background:#3a3c42}
-.server-purple{background:#7255b7}.server-blue{background:#3979b9}.server-green{background:#328a72}
-.discord-add-server{width:35px;height:35px;border-radius:50%;background:#313338;color:#3ba55c;display:grid;place-items:center}
-.discord-channels{position:relative;padding:14px 9px 58px;background:#2b2d31}
-.discord-server-name{padding:0 5px 15px;border-bottom:1px solid #202125;font-size:10px;font-weight:850;color:#f2f3f5}
-.discord-server-name span{float:right;color:#aeb3bb}
-.discord-channel-category{margin:19px 0 7px 5px;color:#969ba5;font-size:8px;font-weight:850}
-.discord-channel{padding:8px 7px;border-radius:5px;color:#969ba5;font-size:9px}
-.discord-channel b{margin-right:5px;font-size:12px}
-.discord-channel.active{background:#404249;color:#fff}
-.discord-user-area{position:absolute;left:0;right:0;bottom:0;height:48px;display:flex;align-items:center;gap:7px;padding:0 8px;background:#232428}
-.discord-user-avatar,.discord-avatar{width:27px;height:27px;flex:none;border-radius:50%;display:grid;place-items:center;background:#6684c9;color:white;font-size:10px;font-weight:850}
-.discord-user-area b{display:block;font-size:8px}.discord-user-area small{display:block;color:#43b581;font-size:7px}.discord-user-area>span{margin-left:auto;font-size:10px}
-.discord-chat{min-width:0;display:flex;flex-direction:column;background:#313338}
-.discord-chat-head{height:43px;display:flex;align-items:center;gap:7px;padding:0 13px;border-bottom:1px solid #25262a;font-size:11px;font-weight:850}
-.discord-chat-head>b{font-size:16px;color:#969ba5}
-.discord-chat-head span{font-size:8px;font-weight:400;color:#9297a1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.discord-chat-messages{flex:1;padding:18px 13px 8px}
-.discord-date-divider{display:flex;align-items:center;gap:10px;margin:0 0 19px;color:#9297a1;font-size:8px}
-.discord-date-divider:before,.discord-date-divider:after{content:"";height:1px;flex:1;background:#45474e}
-.discord-message{display:flex;gap:9px;margin:0 0 17px}
-.discord-avatar{width:29px;height:29px;background:#5865f2}
-.member-avatar{background:#a879c5}
-.discord-message-body{min-width:0;font-size:9px;line-height:1.6;color:#dbdee1}
-.discord-message-meta{display:flex;align-items:center;gap:6px;margin:0 0 5px}
-.discord-message-meta b{font-size:9px;color:#f2f3f5}
-.discord-message-meta time{font-size:7px;color:#9297a1}
-.discord-bot-tag{padding:1px 4px;border-radius:3px;background:#5865f2;color:#fff;font-size:6px;font-weight:850}
-.discord-embed{position:relative;display:flex;overflow:hidden;max-width:370px;border-radius:4px;background:#2b2d31}
-.discord-embed-accent{width:3px;flex:none;background:#5865f2}
-.discord-embed-content{padding:11px 12px}
-.discord-embed-content strong{font-size:10px;color:#fff}
-.discord-embed-content p{margin:7px 0;color:#c8cbd0;font-size:8px;line-height:1.7}
-.discord-embed-footer{margin-top:10px;padding-top:7px;border-top:1px solid #41434a;color:#9297a1;font-size:7px}
-.member-message p{margin:0;font-size:9px}
-.discord-chat-input{display:flex;align-items:center;gap:10px;margin:0 12px 13px;padding:11px 10px;border-radius:7px;background:#383a40;color:#9297a1;font-size:8px}
-.discord-chat-input div{flex:1}
-.discord-floating-note{display:flex;align-items:center;gap:10px;margin:13px 0 0 auto;width:max-content;max-width:100%;padding:10px 13px;border:1px solid #e1e6f0;border-radius:10px;background:#fff;box-shadow:0 10px 28px rgba(20,30,55,.09)}
-.discord-note-icon{width:27px;height:27px;display:grid;place-items:center;border-radius:8px;background:#eaf0ff;color:#426fe3}
-.discord-floating-note b,.discord-floating-note small{display:block}
-.discord-floating-note b{font-size:9px;color:#30394a}.discord-floating-note small{margin-top:3px;font-size:8px;color:#8791a1}
-.discord-note-check{margin-left:15px;color:#2da878}
 .tools-window{padding:21px;border:1px solid #e2e7f0;border-radius:17px;background:#fff;box-shadow:0 30px 75px rgba(28,45,88,.14)}
 .tools-window-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:19px;padding-bottom:17px;border-bottom:1px solid #edf0f4}
 .tools-window-head b,.tools-window-kicker{display:block}
@@ -371,8 +320,8 @@ html{scroll-behavior:smooth;scroll-padding-top:88px}
 .tools-toggle.on:after{left:16px}
 .tools-footnote{padding-top:16px;color:#8a93a2;font-size:9px;line-height:1.7}
 .showcase-caption{max-width:700px;line-height:1.7}
-@media(max-width:850px){.scroll-story{grid-template-columns:1fr;gap:0}.story-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 0 22px}.story-step{min-height:0;padding:16px 12px;border:1px solid #e4e9f2;border-radius:12px;background:#fff;opacity:.55}.story-step h3{font-size:17px}.story-step p{font-size:11px}.story-step-hint{font-size:9px;margin-top:14px}.story-visual-sticky{position:relative;top:auto;min-height:0}.story-scene{inset:20px 0 auto}.story-scene.is-active{position:relative;inset:auto}.story-step.is-active{border-color:#9bb4fa;box-shadow:0 8px 25px rgba(50,90,180,.08)}}
-@media(max-width:600px){#product-showcase{padding:75px 0}.story-steps{grid-template-columns:1fr;gap:7px}.story-step{padding:13px 14px}.story-step h3{font-size:16px;margin:7px 0}.story-step p{font-size:10px;line-height:1.6}.story-step-hint{display:none}.story-step-no{font-size:8px}.story-visual-sticky{min-height:0}.showcase-app{grid-template-columns:37px 92px minmax(0,1fr);min-height:380px}.showcase-rail{gap:8px}.showcase-rail-icon{width:28px;height:28px}.showcase-serverlist{padding:13px 5px}.showcase-server-title{font-size:9px}.showcase-navitem{font-size:8px;padding:8px 4px}.showcase-main{padding:13px 8px}.showcase-main-top strong{font-size:12px}.showcase-server-card{padding:8px;margin:12px 0}.showcase-metrics{gap:4px}.showcase-metric{padding:7px 5px}.showcase-metric strong{font-size:13px}.showcase-table{font-size:7px}.showcase-table th,.showcase-table td{padding:7px 3px}.showcase-float-card{right:5px;bottom:-35px;width:180px}.discord-app{grid-template-columns:39px 105px minmax(0,1fr);min-height:360px}.discord-server-icon{width:29px;height:29px}.discord-channels{padding:12px 5px 48px}.discord-channel{font-size:8px;padding:7px 4px}.discord-chat-head{padding:0 8px;font-size:9px}.discord-chat-head span{display:none}.discord-chat-messages{padding:13px 7px 6px}.discord-message{gap:6px;margin-bottom:12px}.discord-avatar{width:23px;height:23px}.discord-message-body{font-size:8px}.discord-embed-content{padding:8px}.discord-embed-content p{font-size:7px}.discord-chat-input{margin:0 7px 8px;padding:9px 7px}.discord-titlebar{height:36px}.discord-floating-note{margin-top:9px}.tools-window{padding:14px}.tools-setting{gap:8px;padding:11px 0}.tools-setting small{font-size:8px}.tools-setting b{font-size:10px}}
+@media(max-width:850px){.scroll-story{grid-template-columns:1fr;gap:0}.story-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0 0 22px}.story-step{min-height:0;padding:18px 14px;border:1px solid #e4e9f2;border-radius:12px;background:#fff;opacity:.55}.story-step h3{font-size:17px;line-height:1.35}.story-step p{font-size:12px;line-height:1.7}.story-step-hint{font-size:9px;margin-top:14px}.story-visual-sticky{position:relative;top:auto;min-height:0}.story-scene{inset:20px 0 auto}.story-scene.is-active{position:relative;inset:auto}.story-step.is-active{border-color:#9bb4fa;box-shadow:0 8px 25px rgba(50,90,180,.08)}}
+@media(max-width:600px){#product-showcase{padding:75px 0}.story-steps{grid-template-columns:1fr;gap:7px}.story-step{padding:13px 14px}.story-step h3{font-size:16px;margin:7px 0;line-height:1.4}.story-step p{font-size:11px;line-height:1.7}.story-step-hint{display:none}.story-step-no{font-size:8px}.story-visual-sticky{min-height:0}.showcase-app{grid-template-columns:37px 92px minmax(0,1fr);min-height:380px}.showcase-rail{gap:8px}.showcase-rail-icon{width:28px;height:28px}.showcase-serverlist{padding:13px 5px}.showcase-server-title{font-size:9px}.showcase-navitem{font-size:8px;padding:8px 4px}.showcase-main{padding:13px 8px}.showcase-main-top strong{font-size:12px}.showcase-server-card{padding:8px;margin:12px 0}.showcase-metrics{gap:4px}.showcase-metric{padding:7px 5px}.showcase-metric strong{font-size:13px}.showcase-table{font-size:7px}.showcase-table th,.showcase-table td{padding:7px 3px}.showcase-float-card{right:5px;bottom:-35px;width:180px}.tools-window{padding:14px}.tools-setting{gap:8px;padding:11px 0}.tools-setting small{font-size:8px}.tools-setting b{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.story-step,.story-scene{transition:none!important;transform:none!important}.story-step{opacity:1}}
 
 </style>
@@ -416,12 +365,11 @@ html{scroll-behavior:smooth;scroll-padding-top:88px}
 </div></div></section>
 <section id="product-showcase" class="content">
 <div class="wrap">
-<div class="showcase-heading"><div class="kicker">TEND IN ACTION</div><h2>서버 운영의 흐름이<br>한 화면에서 이어집니다.</h2><p>스크롤을 내리면서 TEND가 서버와 연결되고,<br>운영 화면과 Discord에서 어떻게 이어지는지 살펴보세요.</p></div>
+<div class="showcase-heading"><div class="kicker">TEND IN ACTION</div><h2>서버 운영의 흐름이<br>한 화면에서 이어집니다.</h2><p>스크롤을 내리면 설명 단계가 바뀌고,<br>오른쪽 화면에서는 TEND의 운영 흐름을 이어서 볼 수 있어요.</p></div>
 <div class="scroll-story">
 <div class="story-steps">
 <article class="story-step is-active" data-story-step="0"><span class="story-step-no">01 / CONNECT</span><h3>내 Discord 서버를 연결하고</h3><p>관리할 서버를 선택하면 연결 상태와 이용 정보를 한곳에서 확인할 수 있어요.</p><div class="story-step-hint"><i></i> 서버 연결 상태 확인</div></article>
 <article class="story-step" data-story-step="1"><span class="story-step-no">02 / ORGANIZE</span><h3>필요한 운영 도구를 정리하고</h3><p>서버별 관리 항목과 최근 처리 내역을 확인해 운영 흐름을 놓치지 않도록 도와요.</p><div class="story-step-hint"><i></i> 관리 현황 한눈에 보기</div></article>
-<article class="story-step" data-story-step="2"><span class="story-step-no">03 / DISCORD</span><h3>실제 소통은 Discord에서</h3><p>공지나 관리 기능은 Discord 서버 안에서 구성원에게 전달돼요. 웹 대시보드와 Discord가 이어지는 모습을 확인해 보세요.</p><div class="story-step-hint"><i></i> Discord 메시지 예시</div></article>
 </div>
 <div class="story-visual">
 <div class="story-visual-sticky">
@@ -441,25 +389,7 @@ html{scroll-behavior:smooth;scroll-padding-top:88px}
 </div></div></div>
 <div class="showcase-float-card"><div class="showcase-float-top"><strong>서버 연결 완료</strong><small>방금 전</small></div><div class="showcase-notice"><b>Design Community</b><p>서버가 TEND 계정에 연결되어 관리 대상으로 등록됐어요.</p></div><div class="showcase-float-foot"><i></i> 연결 상태 · 정상</div></div>
 </div>
-<div class="story-scene scene-discord" data-story-scene="1">
-<div class="discord-window">
-<div class="discord-titlebar"><div class="discord-brand-mark">◉</div><strong>Discord</strong><span>서버 화면 미리보기</span><div class="discord-window-dots">−　□　×</div></div>
-<div class="discord-app">
-<aside class="discord-server-rail"><div class="discord-server-icon discord-home">◉</div><div class="discord-rail-sep"></div><div class="discord-server-icon server-purple">D</div><div class="discord-server-icon server-blue">G</div><div class="discord-server-icon server-green">S</div><div class="discord-add-server">＋</div></aside>
-<aside class="discord-channels"><div class="discord-server-name">Design Community <span>⌄</span></div><div class="discord-channel-category">안내</div><div class="discord-channel active"><b>#</b> 공지사항</div><div class="discord-channel"><b>#</b> 서버-규칙</div><div class="discord-channel-category">커뮤니티</div><div class="discord-channel"><b>#</b> 자유채팅</div><div class="discord-channel"><b>#</b> 질문과-답변</div><div class="discord-channel-category">운영</div><div class="discord-channel"><b>♧</b> 문의하기</div><div class="discord-user-area"><div class="discord-user-avatar">U</div><div><b>user</b><small>온라인</small></div><span>⚙</span></div></aside>
-<div class="discord-chat">
-<div class="discord-chat-head"><b>#</b> 공지사항 <span>서버의 중요한 소식을 확인하세요</span></div>
-<div class="discord-chat-messages">
-<div class="discord-date-divider"><span>오늘</span></div>
-<div class="discord-message"><div class="discord-avatar bot-avatar">T</div><div class="discord-message-body"><div class="discord-message-meta"><b>TEND Bot</b><span class="discord-bot-tag">BOT</span><time>오후 4:20</time></div><div class="discord-embed"><div class="discord-embed-accent"></div><div class="discord-embed-content"><strong>서버 이용 안내</strong><p>안녕하세요! Design Community에 오신 것을 환영합니다.</p><p>서버 이용 전 기본 규칙을 확인해 주세요. 문의가 필요한 경우 <b>#문의하기</b> 채널을 이용할 수 있습니다.</p><div class="discord-embed-footer">TEND 관리 도구 · 공지 예시</div></div></div></div></div>
-<div class="discord-message member-message"><div class="discord-avatar member-avatar">M</div><div class="discord-message-body"><div class="discord-message-meta"><b>minseo</b><time>오후 4:23</time></div><p>공지 확인했어요. 감사합니다!</p></div></div>
-<div class="discord-message"><div class="discord-avatar bot-avatar">T</div><div class="discord-message-body"><div class="discord-message-meta"><b>TEND Bot</b><span class="discord-bot-tag">BOT</span><time>오후 4:24</time></div><p>확인해 주셔서 감사합니다. 즐거운 시간 보내세요!</p></div></div>
-</div>
-<div class="discord-chat-input"><span>＋</span><div># 공지사항에 메시지 보내기</div><span>☺</span></div>
-</div></div></div>
-<div class="discord-floating-note"><span class="discord-note-icon">↗</span><div><b>웹에서 설정한 공지</b><small>Discord 채널에 표시되는 모습</small></div><span class="discord-note-check">✓</span></div>
-</div>
-<div class="story-scene scene-tools" data-story-scene="2">
+<div class="story-scene scene-tools" data-story-scene="1">
 <div class="tools-window">
 <div class="tools-window-head"><div><span class="tools-window-kicker">TEND CONTROL CENTER</span><b>운영 기능 설정</b></div><span class="showcase-status">● 설정 예시</span></div>
 <div class="tools-setting"><div class="tools-setting-icon">⌕</div><div><b>금칙어 관리</b><small>등록한 단어와 자동 대응 방식 관리</small></div><span class="tools-toggle on"></span></div>
@@ -472,7 +402,7 @@ html{scroll-behavior:smooth;scroll-padding-top:88px}
 </div>
 </div>
 </div>
-<p class="showcase-caption">모든 창과 메시지는 서비스 흐름을 설명하기 위한 샘플 화면이에요. 실제 서버 데이터나 실시간 Discord 연결을 표시하지 않습니다.</p>
+<p class="showcase-caption">화면과 수치는 서비스 흐름을 설명하기 위한 예시예요. 실제 서버 데이터나 실시간 연결 상태를 표시하지 않습니다.</p>
 </div>
 </div>
 </section>
@@ -589,6 +519,6 @@ html{scroll-behavior:smooth;scroll-padding-top:88px}
 </script><script src="./cookie-consent.js?v=20261107-1"></script><script>
 (()=>{const targets=document.querySelectorAll('.section-head,.feature,.price-card,.toolkit-card,.usecase,.workflow-step,.principle,.faq,.story-stat,.trust-item,.chat-preview,#product-showcase');if(!targets.length)return;targets.forEach(el=>el.classList.add('reveal-item'));if(!('IntersectionObserver'in window)){targets.forEach(el=>el.classList.add('is-visible'));return}document.documentElement.classList.add('tend-motion-ready');const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}})},{threshold:.12,rootMargin:'0px 0px -35px 0px'});targets.forEach(el=>observer.observe(el));document.querySelectorAll('.feature,.price-card,.toolkit-card').forEach(card=>{card.addEventListener('pointermove',event=>{const rect=card.getBoundingClientRect();card.style.setProperty('--pointer-x',((event.clientX-rect.left)/rect.width*100)+'%');card.style.setProperty('--pointer-y',((event.clientY-rect.top)/rect.height*100)+'%')},{passive:true})})})();
 </script><script>
-(()=>{const steps=[...document.querySelectorAll('[data-story-step]')],scenes=[...document.querySelectorAll('[data-story-scene]')],label=document.getElementById('storyVisualLabel');if(!steps.length||!scenes.length)return;const names=['TEND · 서버 연결','TEND · 운영 대시보드','Discord · 공지 전달'];const activate=i=>{steps.forEach((el,n)=>el.classList.toggle('is-active',n===i));scenes.forEach((el,n)=>el.classList.toggle('is-active',n===i));if(label)label.textContent=names[i]};if(!('IntersectionObserver'in window)){activate(0);return}const observer=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(visible)activate(Number(visible.target.dataset.storyStep))},{threshold:[.25,.45,.65],rootMargin:'-12% 0px -20% 0px'});steps.forEach(el=>observer.observe(el));activate(0)})();
+(()=>{const steps=[...document.querySelectorAll('[data-story-step]')],scenes=[...document.querySelectorAll('[data-story-scene]')],label=document.getElementById('storyVisualLabel');if(!steps.length||!scenes.length)return;const names=['TEND · 서버 연결','TEND · 운영 도구'];const activate=i=>{steps.forEach((el,n)=>el.classList.toggle('is-active',n===i));scenes.forEach((el,n)=>el.classList.toggle('is-active',n===i));if(label)label.textContent=names[i]};if(!('IntersectionObserver'in window)){activate(0);return}const observer=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(visible)activate(Number(visible.target.dataset.storyStep))},{threshold:[.25,.45,.65],rootMargin:'-12% 0px -20% 0px'});steps.forEach(el=>observer.observe(el));activate(0)})();
 </script></body>
 </html>
