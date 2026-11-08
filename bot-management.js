@@ -1,7 +1,7 @@
 (() => {
   const $ = s => document.querySelector(s);
   const $$ = s => [...document.querySelectorAll(s)];
-  let ctx, sb, user, notify, escapeHtml, discordIds, serverId = "", managementBusy = false, managementActive = false;
+  let ctx, sb, user, notify, escapeHtml, discordIds, serverId = "", serverPlan = "none", managementBusy = false, managementActive = false;
   const commandGroups = [
     ["관리 및 기능",[
       ["/관리시작","관리 시작","선택한 서버의 관리 기능을 시작하도록 요청합니다.","management_start"],
@@ -87,9 +87,15 @@
   async function ensureServer() {
     const id = sid();
     if (!id) { notify("관리할 서버를 선택해 주세요."); return false; }
-    const p = await sb.from("purchase_requests").select("server_name,server_id,status").eq("user_id",user.id).eq("server_id",id).in("status",["approved","completed"]).limit(1).maybeSingle();
-    if (p.error) { console.error("server ownership query error:",p.error); notify("서버 권한을 확인하지 못했어요. 잠시 후 다시 시도해 주세요."); return false; } if (!p.data) { notify("승인된 이용권 신청에 등록된 서버만 관리할 수 있어요."); return false; }
+    const [paid,free] = await Promise.all([
+      sb.from("purchase_requests").select("server_id").eq("user_id",user.id).eq("server_id",id).eq("status","approved").gt("expires_at",new Date().toISOString()).limit(1).maybeSingle(),
+      sb.from("free_entitlements").select("server_id").eq("user_id",user.id).eq("server_id",id).eq("status","active").maybeSingle()
+    ]);
+    if (paid.error || free.error) { console.error("server entitlement query failed:",paid.error||free.error); notify("서버 권한을 확인하지 못했어요. 잠시 후 다시 시도해 주세요."); return false; }
+    if (!paid.data && !free.data) { notify("이 서버의 이용 권한이 없어요. FREE 플랜을 활성화하거나 이용권을 신청해 주세요."); return false; }
+    serverPlan = paid.data ? "paid" : "free";
     serverId = id;
+    applyPlanRestrictions();
     return true;
   }
   async function init(options) {
@@ -104,6 +110,8 @@
     $("#stop-management").addEventListener("click",()=>management(false));
     $("#refresh-jobs").addEventListener("click",loadJobs);
     $("#moderation-form").addEventListener("submit",saveRule);
+    $("#warning-form")?.addEventListener("submit",saveWarning);
+    $("#reload-server-audit-logs")?.addEventListener("click",loadAuditLogs);
     $("#announcement-channel-form").addEventListener("submit",saveChannel);
     $("#announcement-form").addEventListener("submit",saveAnnouncement);
     $("#blacklist-server-form").addEventListener("submit",saveBlacklistServer);
@@ -133,33 +141,58 @@
   async function loadServers() {
     const select=$("#managed-server-select");
     select.innerHTML='<option value="">서버 목록 불러오는 중…</option>';
-    let q;
+    let results;
     try {
-      q=await Promise.race([
-        sb.from("purchase_requests").select("server_id,server_name,status,created_at").eq("user_id",user.id).in("status",["approved","completed"]).not("server_id","is",null).order("created_at",{ascending:false}),
+      results=await Promise.race([
+        Promise.all([
+          sb.from("purchase_requests").select("server_id,server_name,status,created_at").eq("user_id",user.id).eq("status","approved").gt("expires_at",new Date().toISOString()).not("server_id","is",null).order("created_at",{ascending:false}),
+          sb.from("free_entitlements").select("server_id,server_name,status,created_at").eq("user_id",user.id).eq("status","active").order("created_at",{ascending:false})
+        ]),
         new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout")),12000))
       ]);
     } catch(e) {
-      console.error("approved server list request failed:",e);
+      console.error("entitled server list request failed:",e);
       select.innerHTML='<option value="">서버 목록을 불러오지 못했어요</option>';
       $("#managed-server-info").textContent="서버 목록을 불러오지 못했어요. 새로고침을 눌러 다시 시도해 주세요.";
       notify("서버 목록을 불러오지 못했어요. 다시 시도해 주세요.");
       return;
     }
-    if(q.error){console.error("approved server query error:",q.error);select.innerHTML='<option value="">서버 목록을 불러오지 못했어요</option>';$("#managed-server-info").textContent="서버 목록을 불러오지 못했어요. 다시 시도해 주세요.";notify("서버 목록을 불러오지 못했어요. 다시 시도해 주세요.");return;}
-    const seen=new Set(), rows=[];
-    (q.data||[]).forEach(r=>{if(r.server_id&&!seen.has(r.server_id)){seen.add(r.server_id);rows.push(r);}});
-    if(!rows.length){select.innerHTML='<option value="">승인된 서버가 없습니다.</option>';serverId="";$("#managed-server-info").textContent="이용권 신청 후 승인을 받으면 서버를 관리할 수 있어요.";return;}
+    const paid=results[0],free=results[1];
+    if(paid.error||free.error){console.error("server entitlement query error:",paid.error||free.error);select.innerHTML='<option value="">서버 목록을 불러오지 못했어요</option>';$("#managed-server-info").textContent="서버 권한을 불러오지 못했어요. SQL 적용 상태를 확인해 주세요.";return;}
+    const map=new Map();
+    (free.data||[]).forEach(r=>{if(r.server_id)map.set(String(r.server_id),{...r,plan:"FREE"});});
+    (paid.data||[]).forEach(r=>{if(r.server_id)map.set(String(r.server_id),{...r,plan:r.plan||"유료"});});
+    const rows=[...map.values()];
+    if(!rows.length){select.innerHTML='<option value="">이용 가능한 서버가 없습니다.</option>';serverId="";serverPlan="none";applyPlanRestrictions();$("#managed-server-info").textContent="FREE 플랜을 활성화하거나 이용권을 신청하면 서버가 표시돼요.";return;}
     const inventory=await sb.from("discord_guilds").select("server_id,server_name,icon_url,bot_present,synced_at").in("server_id",rows.map(r=>String(r.server_id)));
     const inventoryReady=!inventory.error;
     const guildMap=new Map((inventory.data||[]).map(g=>[String(g.server_id),g]));
     rows.forEach(r=>{const g=guildMap.get(String(r.server_id));r.botGuild=g||null;if(g?.server_name)r.server_name=g.server_name;});
-    select.innerHTML='<option value="">관리할 서버 선택</option>'+rows.map(r=>'<option value="'+escapeHtml(r.server_id)+'"'+(inventoryReady&&!r.botGuild?' disabled':'')+'>'+escapeHtml(r.server_name||"Discord 서버")+(inventoryReady&&!r.botGuild?' · 봇 미참여':'')+'</option>').join("");
-    const selectable=rows.filter(r=>!inventoryReady||r.botGuild);
+    select.innerHTML='<option value="">관리할 서버 선택</option>'+rows.map(r=>'<option value="'+escapeHtml(r.server_id)+'" data-plan="'+(r.plan==="FREE"?"free":"paid")+'"'+(inventoryReady&&!r.botGuild&&r.plan!=="FREE"?' disabled':'')+'>'+escapeHtml(r.server_name||"Discord 서버")+' · '+(r.plan==="FREE"?"FREE":"유료")+(inventoryReady&&!r.botGuild?' · 봇 미참여':'')+'</option>').join("");
+    const selectable=rows.filter(r=>!inventoryReady||r.botGuild||r.plan==="FREE");
     if(serverId&&selectable.some(r=>String(r.server_id)===String(serverId)))select.value=serverId;
     else{serverId=selectable.length?String(selectable[0].server_id):"";select.value=serverId;}
-    if(!serverId){$("#managed-server-info").textContent=inventoryReady?"승인된 서버에서 봇을 찾지 못했어요. 봇을 초대한 뒤 새로고침해 주세요.":"서버 자동 인식 테이블을 사용할 수 없어요. Supabase 설정을 확인해 주세요.";return;}
-    if(serverId)await loadServerData();
+    serverPlan=select.selectedOptions[0]?.dataset?.plan||"none";
+    applyPlanRestrictions();
+    if(!serverId){$("#managed-server-info").textContent="봇이 참여 중인 서버를 선택해 주세요.";return;}
+    await loadServerData();
+  }
+  function applyPlanRestrictions() {
+    const free=serverPlan==="free";
+    ["blacklist","features","jobs"].forEach(key=>{
+      const tab=$('[data-bot-tab="'+key+'"]'),panel=$('[data-bot-panel="'+key+'"]');
+      if(tab)tab.classList.toggle("hidden",free);
+      if(panel)panel.classList.toggle("hidden",free);
+    });
+    const logTab=$('[data-bot-tab="logs"]');
+    if(logTab)logTab.classList.remove("hidden");
+    ["start-management","stop-management"].forEach(id=>{const el=$("#"+id);if(el)el.classList.toggle("hidden",free);});
+    ["announcement-image-file","announcement-image","announcement-mention"].forEach(id=>{
+      const el=$("#"+id);if(el)el.closest(".field")?.classList.toggle("hidden",free);
+    });
+    $("#announcement-role-field")?.classList.toggle("hidden",true);
+    const limit=$("#moderation-count");
+    if(limit&&free&&!limit.textContent.includes("/ 5"))limit.textContent=limit.textContent+" / 5";
   }
   function renderManagementControls(stateText) {
     const start=$("#start-management"),stop=$("#stop-management"),badge=$("#bot-status");
@@ -169,6 +202,7 @@
   }
   let managementTarget=false;
   async function management(active) {
+    if(serverPlan==="free"){notify("관리 시작/종료는 유료 이용권에서 사용할 수 있어요.");return;}
     if(managementBusy){notify("이미 관리 상태를 변경하고 있어요.");return;}
     if(active===managementActive){notify(active?"이미 관리 중인 서버예요.":"이미 관리가 종료된 서버예요.");return;}
     if(!await ensureServer())return;
@@ -188,18 +222,45 @@
   }
   async function loadServerData() {
     const id=sid();
-    const [q] = await Promise.all([
-      sb.from("managed_servers").select("*").eq("server_id",id).maybeSingle(),
-      Promise.all([loadRules(),loadChannels(),loadAnnouncements(),loadBlacklists(),loadFeatures(),loadJobs(),loadDiscordInventory()])
+    const [paid,free,q] = await Promise.all([
+      sb.from("purchase_requests").select("server_id").eq("user_id",user.id).eq("server_id",id).eq("status","approved").gt("expires_at",new Date().toISOString()).limit(1).maybeSingle(),
+      sb.from("free_entitlements").select("server_id").eq("user_id",user.id).eq("server_id",id).eq("status","active").maybeSingle(),
+      sb.from("managed_servers").select("*").eq("server_id",id).maybeSingle()
     ]);
-    if(failed(q.error,"서버 상태를 불러오지 못했어요."))return;
+    if(paid.error||free.error||q.error){notify("서버 권한 또는 상태를 불러오지 못했어요.");return;}
+    if(!paid.data&&!free.data){notify("서버 이용 권한이 만료되었거나 해제되었어요.");return;}
+    serverPlan=paid.data?"paid":"free";
+    applyPlanRestrictions();
     const s=q.data||{};
     managementActive=s.is_active===true;
     renderManagementControls();
     $("#bot-health").textContent=s.bot_connected?"온라인":"응답 대기";
     $("#bot-health").className="badge "+(s.bot_connected?"green":"amber");
     $("#bot-last-seen").textContent=s.last_seen_at?new Date(s.last_seen_at).toLocaleString("ko-KR"):"—";
-    $("#managed-server-info").textContent=($("#managed-server-select").selectedOptions[0]?.textContent||id)+" · "+(managementActive?"관리 중":"관리 종료");
+    $("#managed-server-info").textContent=($("#managed-server-select").selectedOptions[0]?.textContent||id)+" · "+(serverPlan==="free"?"FREE · 무제한":"유료 이용권")+" · "+(managementActive?"관리 중":"관리 종료");
+    if(serverPlan==="free") await Promise.all([loadRules(),loadWarnings(),loadChannels(),loadAnnouncements(),loadDiscordInventory(),loadAuditLogs()]);
+    else await Promise.all([loadRules(),loadWarnings(),loadChannels(),loadAnnouncements(),loadBlacklists(),loadFeatures(),loadJobs(),loadDiscordInventory(),loadAuditLogs()]);
+  }
+  async function loadAuditLogs() {
+    const body=$("#server-audit-logs-list");if(!body||!sid())return;
+    const q=await sb.from("server_audit_logs").select("actor_id,event_type,details,created_at").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50);
+    if(q.error){body.innerHTML='<tr><td colspan="4" class="empty">서버 로그를 불러오지 못했어요.</td></tr>';return;}
+    body.innerHTML=q.data?.length?q.data.map(r=>'<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.event_type||"기록")+'</td><td>'+escapeHtml(r.actor_id||"시스템")+'</td><td>'+escapeHtml(JSON.stringify(r.details||{}).slice(0,300))+'</td></tr>').join(""):'<tr><td colspan="4" class="empty">기록된 서버 로그가 없어요.</td></tr>';
+  }
+  async function saveWarning(e) {
+    e.preventDefault();if(!await ensureServer())return;
+    const target=$("#warning-user-id").value.trim(),reason=$("#warning-reason").value.trim();
+    if(!/^\d{5,30}$/.test(target)){notify("Discord 사용자 ID를 숫자로 입력해 주세요.");return;}
+    if(!reason){notify("경고 사유를 입력해 주세요.");return;}
+    const q=await sb.from("server_warnings").insert({server_id:sid(),user_id:target,moderator_id:(discordIds(user)||[])[0]||null,reason,active:true});
+    if(failed(q.error,"경고를 등록하지 못했어요."))return;
+    $("#warning-user-id").value="";$("#warning-reason").value="";notify("경고를 등록했어요.");await loadWarnings();
+  }
+  async function loadWarnings() {
+    const body=$("#server-warnings-list");if(!body||!sid())return;
+    const q=await sb.from("server_warnings").select("user_id,moderator_id,reason,created_at,active,expires_at").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50);
+    if(q.error){body.innerHTML='<tr><td colspan="5" class="empty">경고 내역을 불러오지 못했어요.</td></tr>';return;}
+    body.innerHTML=q.data?.length?q.data.map(r=>'<tr><td>'+escapeHtml(r.user_id)+'</td><td>'+escapeHtml(r.reason)+'</td><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.moderator_id||"시스템")+'</td><td>'+(r.active?"유효":"취소됨")+'</td></tr>').join(""):'<tr><td colspan="5" class="empty">등록된 경고가 없어요.</td></tr>';
   }
   function openDiscordInventory() {
     if(!sid()){notify("먼저 관리 대상 서버를 선택해 주세요.");return;}
@@ -271,6 +332,7 @@
     const word=$("#moderation-word").value.trim(), match=$("#moderation-match").value, action=$("#moderation-action").value;
     const seconds=action==="timeout"?Number($("#moderation-timeout").value):null;
     if(!word){notify("금지 단어를 입력해 주세요.");return;}
+    if(serverPlan==="free"){const count=await sb.from("moderation_rules").select("id",{count:"exact",head:true}).eq("server_id",sid());if(count.error){notify("금칙어 개수를 확인하지 못했어요.");return;}if((count.count||0)>=5){notify("FREE 플랜은 금칙어를 최대 5개까지 등록할 수 있어요.");return;}}
     if(action==="timeout"&&(!Number.isInteger(seconds)||seconds<1||seconds>2419200)){notify("타임아웃은 1~2419200초로 입력해 주세요.");return;}
     const q=await sb.from("moderation_rules").insert({server_id:sid(),word,match_type:match,action_type:action,timeout_seconds:seconds,enabled:true,created_by:user.id});
     if(failed(q.error,"금지 단어를 저장하지 못했어요."))return;
@@ -281,7 +343,7 @@
     const q=await sb.from("moderation_rules").select("id,word,match_type,action_type,timeout_seconds,enabled,created_at").eq("server_id",id).order("created_at",{ascending:false});
     if(q.error){t.innerHTML='<tr><td colspan="6" class="empty">규칙을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</td></tr>';return;}
     const labels={exact:"완전 일치",contains:"단어 포함",delete:"메시지 삭제",timeout:"타임아웃",ban:"영구 차단"};
-    $("#moderation-count").textContent=(q.data||[]).length+"개";
+    $("#moderation-count").textContent=(q.data||[]).length+(serverPlan==="free"?" / 5개":"개");
     t.innerHTML=q.data?.length?q.data.map(r=>'<tr><td>'+escapeHtml(r.word)+'</td><td>'+labels[r.match_type]+'</td><td>'+labels[r.action_type]+'</td><td>'+(r.timeout_seconds?r.timeout_seconds+"초":"—")+'</td><td><button class="btn btn-light" data-rule-toggle="'+r.id+'" data-enabled="'+r.enabled+'">'+(r.enabled?"사용 중":"중지됨")+'</button></td><td><button class="btn btn-danger" data-rule-delete="'+r.id+'">삭제</button></td></tr>').join(""):'<tr><td colspan="6" class="empty">등록된 금지 단어가 없습니다.</td></tr>';
     $$("[data-rule-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("이 금지 단어를 삭제할까요?"))return;const r=await sb.from("moderation_rules").delete().eq("id",b.dataset.ruleDelete).eq("server_id",id);if(failed(r.error,"삭제하지 못했어요."))return;notify("금지 단어를 삭제했어요.");await loadRules();}));
     $$("[data-rule-toggle]").forEach(b=>b.addEventListener("click",async()=>{const r=await sb.from("moderation_rules").update({enabled:b.dataset.enabled!=="true",updated_at:new Date().toISOString()}).eq("id",b.dataset.ruleToggle).eq("server_id",id);if(failed(r.error,"상태를 변경하지 못했어요."))return;await loadRules();}));
@@ -356,7 +418,7 @@
     const q=await sb.from("bot_announcements").select("id,title,status,channel_id,created_at,error_message").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50);
     if(q.error){console.error("announcement history query failed:",q.error);t.innerHTML='<tr><td colspan="5" class="empty">공지 내역을 불러오지 못했어요. 데이터베이스 설정을 확인해 주세요.</td></tr>';return;}
     const states={queued:["발송 대기","amber"],sent:["발송 완료","green"],failed:["실패","red"],deleted:["삭제됨",""]};
-    t.innerHTML=q.data?.length?q.data.map(r=>{const st=states[r.status]||[r.status,""];return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.title||"(제목 없음)")+(r.error_message?'<small class="reason-text">'+escapeHtml(r.error_message)+'</small>':"")+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.channel_id||"기본 채널")+'</td><td>'+(r.status!=="deleted"?'<button class="btn btn-danger" data-announcement-delete="'+r.id+'">삭제</button>':"—")+'</td></tr>';}).join(""):'<tr><td colspan="5" class="empty">등록된 공지가 없습니다.</td></tr>';
+    t.innerHTML=q.data?.length?q.data.map(r=>{const st=states[r.status]||[r.status,""];return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.title||"(제목 없음)")+(r.error_message?'<small class="reason-text">'+escapeHtml(r.error_message)+'</small>':"")+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.channel_id||"기본 채널")+'</td><td>'+(r.status!=="deleted"&&serverPlan!=="free"?'<button class="btn btn-danger" data-announcement-delete="'+r.id+'">삭제</button>':"—")+'</td></tr>';}).join(""):'<tr><td colspan="5" class="empty">등록된 공지가 없습니다.</td></tr>';
     $$("[data-announcement-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("사이트의 공지 내역에서 삭제할까요?"))return;const id=b.dataset.announcementDelete;const u=await sb.from("bot_announcements").update({status:"deleted",updated_at:new Date().toISOString()}).eq("id",id).eq("server_id",sid());if(failed(u.error,"공지 내역을 삭제하지 못했어요."))return;notify("공지 내역을 삭제했어요.");await loadAnnouncements();}));
   }
   async function saveBlacklistServer(e) {
