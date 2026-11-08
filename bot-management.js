@@ -479,15 +479,15 @@
   async function loadFeatures() {
     const box=$("#feature-settings-list");
     if(!box)return;
-    const q=await sb.from("server_feature_settings").select("feature_key,settings,enabled").eq("server_id",sid());
-    if(q.error){box.innerHTML='<div class="empty">기능 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return;}
-    const rows=new Map((q.data||[]).map(r=>[r.feature_key,r]));
     if(serverPlan==="free"){
       const warning=await sb.from("server_warnings").select("user_id",{count:"exact",head:true}).eq("server_id",sid()).eq("active",true);
       const count=warning.error?null:(warning.count||0);
       box.innerHTML='<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>경고 시스템</strong><small>등록된 경고 내역과 현재 상태를 확인할 수 있어요.</small></div><span class="badge">조회 전용</span></div><div class="setting-row"><div><strong>유효 경고</strong><small>현재 서버에 등록된 경고</small></div><strong>'+ (count===null?'확인 불가':count.toLocaleString("ko-KR")+'건') +'</strong></div></article>';
       return;
     }
+    const q=await sb.from("server_feature_settings").select("feature_key,settings,enabled").eq("server_id",sid());
+    if(q.error){box.innerHTML='<div class="empty">기능 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return;}
+    const rows=new Map((q.data||[]).map(r=>[r.feature_key,r]));
     box.innerHTML=features.map(f=>{const r=rows.get(f[0]),enabled=!!r?.enabled;return '<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>'+escapeHtml(f[1])+'</strong><small>'+escapeHtml(f[2])+'</small></div><span class="badge '+(enabled?"green":"")+'">'+(enabled?"사용 중":"중지")+'</span></div><button type="button" class="btn btn-light" data-feature-edit="'+f[0]+'">자세히 설정 <span>→</span></button></article>';}).join("");
     $$("[data-feature-edit]").forEach(btn=>btn.addEventListener("click",()=>{const key=btn.dataset.featureEdit,feature=features.find(f=>f[0]===key),r=rows.get(key);openFeatureEditor(key,feature,r?.settings||{},!!r?.enabled);}));
   }
