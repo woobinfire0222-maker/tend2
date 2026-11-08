@@ -97,7 +97,7 @@
     $$("[data-bot-tab]").forEach(b=>b.addEventListener("click",()=>{const key=b.dataset.botTab;$$("[data-bot-tab]").forEach(x=>x.classList.toggle("active",x===b));$$("[data-bot-panel]").forEach(p=>p.classList.toggle("active",p.dataset.botPanel===key));}));
     $("#moderation-action").addEventListener("change",()=>$("#timeout-field").classList.toggle("hidden",$("#moderation-action").value!=="timeout"));
     $("#announcement-mention").addEventListener("change",()=>$("#announcement-role-field").classList.toggle("hidden",$("#announcement-mention").value!=="role"));
-    $("#managed-server-select").addEventListener("change",async()=>{serverId=$("#managed-server-select").value;if(await ensureServer())await loadServerData();});
+    $("#managed-server-select").addEventListener("change",async()=>{serverId=$("#managed-server-select").value;if(serverId)await loadServerData();});
     $("#reload-bot-data").addEventListener("click",loadServers);
     $("#open-discord-inventory").addEventListener("click",openDiscordInventory);
     $("#start-management").addEventListener("click",()=>management(true));
@@ -159,7 +159,7 @@
     if(serverId&&selectable.some(r=>String(r.server_id)===String(serverId)))select.value=serverId;
     else{serverId=selectable.length?String(selectable[0].server_id):"";select.value=serverId;}
     if(!serverId){$("#managed-server-info").textContent=inventoryReady?"승인된 서버에서 봇을 찾지 못했어요. 봇을 초대한 뒤 새로고침해 주세요.":"서버 자동 인식 테이블을 사용할 수 없어요. Supabase 설정을 확인해 주세요.";return;}
-    if(await ensureServer())await loadServerData();
+    if(serverId)await loadServerData();
   }
   function renderManagementControls(stateText) {
     const start=$("#start-management"),stop=$("#stop-management"),badge=$("#bot-status");
@@ -188,7 +188,10 @@
   }
   async function loadServerData() {
     const id=sid();
-    const q=await sb.from("managed_servers").select("*").eq("server_id",id).maybeSingle();
+    const [q] = await Promise.all([
+      sb.from("managed_servers").select("*").eq("server_id",id).maybeSingle(),
+      Promise.all([loadRules(),loadChannels(),loadAnnouncements(),loadBlacklists(),loadFeatures(),loadJobs(),loadDiscordInventory()])
+    ]);
     if(failed(q.error,"서버 상태를 불러오지 못했어요."))return;
     const s=q.data||{};
     managementActive=s.is_active===true;
@@ -197,7 +200,6 @@
     $("#bot-health").className="badge "+(s.bot_connected?"green":"amber");
     $("#bot-last-seen").textContent=s.last_seen_at?new Date(s.last_seen_at).toLocaleString("ko-KR"):"—";
     $("#managed-server-info").textContent=($("#managed-server-select").selectedOptions[0]?.textContent||id)+" · "+(managementActive?"관리 중":"관리 종료");
-    await Promise.all([loadRules(),loadChannels(),loadAnnouncements(),loadBlacklists(),loadFeatures(),loadJobs(),loadDiscordInventory()]);
   }
   function openDiscordInventory() {
     if(!sid()){notify("먼저 관리 대상 서버를 선택해 주세요.");return;}
