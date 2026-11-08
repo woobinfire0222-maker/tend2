@@ -68,7 +68,6 @@
     ["link_filter","링크 필터","허용 도메인, 초대 링크 및 위반 조치"],
     ["anti_spam","도배 방지","반복 메시지와 연속 전송 제한"],
     ["account_security","계정 보안","신규 계정 기준과 제한 정책"],
-    ["server_logs","서버 로그","입퇴장, 메시지 및 역할 변경 기록"],
     ["warnings","경고 시스템","경고 사유, 누적 기준 및 자동 제재"],
     ["temporary_voice","임시 음성 채널","자동 생성, 인원 제한 및 자동 삭제"],
     ["server_backup","서버 백업","지원되는 역할·채널 구조 설정 내보내기"]
@@ -110,8 +109,6 @@
     $("#stop-management").addEventListener("click",()=>management(false));
     $("#refresh-jobs").addEventListener("click",loadJobs);
     $("#moderation-form").addEventListener("submit",saveRule);
-    $("#warning-form")?.addEventListener("submit",saveWarning);
-    $("#reload-server-audit-logs")?.addEventListener("click",loadAuditLogs);
     $("#announcement-channel-form").addEventListener("submit",saveChannel);
     $("#announcement-form").addEventListener("submit",saveAnnouncement);
     $("#blacklist-server-form").addEventListener("submit",saveBlacklistServer);
@@ -179,13 +176,14 @@
   }
   function applyPlanRestrictions() {
     const free=serverPlan==="free";
-    ["blacklist","features","jobs"].forEach(key=>{
+    ["blacklist","jobs"].forEach(key=>{
       const tab=$('[data-bot-tab="'+key+'"]'),panel=$('[data-bot-panel="'+key+'"]');
       if(tab)tab.classList.toggle("hidden",free);
       if(panel)panel.classList.toggle("hidden",free);
     });
-    const logTab=$('[data-bot-tab="logs"]');
-    if(logTab)logTab.classList.remove("hidden");
+    const featureTab=$('[data-bot-tab="features"]'),featurePanel=$('[data-bot-panel="features"]');
+    if(featureTab)featureTab.classList.remove("hidden");
+    if(featurePanel)featurePanel.classList.remove("hidden");
     ["start-management","stop-management"].forEach(id=>{const el=$("#"+id);if(el)el.classList.toggle("hidden",free);});
     ["announcement-image-file","announcement-image","announcement-mention"].forEach(id=>{
       const el=$("#"+id);if(el)el.closest(".field")?.classList.toggle("hidden",free);
@@ -238,29 +236,8 @@
     $("#bot-health").className="badge "+(s.bot_connected?"green":"amber");
     $("#bot-last-seen").textContent=s.last_seen_at?new Date(s.last_seen_at).toLocaleString("ko-KR"):"—";
     $("#managed-server-info").textContent=($("#managed-server-select").selectedOptions[0]?.textContent||id)+" · "+(serverPlan==="free"?"FREE · 무제한":"유료 이용권")+" · "+(managementActive?"관리 중":"관리 종료");
-    if(serverPlan==="free") await Promise.all([loadRules(),loadWarnings(),loadChannels(),loadAnnouncements(),loadDiscordInventory(),loadAuditLogs()]);
-    else await Promise.all([loadRules(),loadWarnings(),loadChannels(),loadAnnouncements(),loadBlacklists(),loadFeatures(),loadJobs(),loadDiscordInventory(),loadAuditLogs()]);
-  }
-  async function loadAuditLogs() {
-    const body=$("#server-audit-logs-list");if(!body||!sid())return;
-    const q=await sb.from("server_audit_logs").select("actor_id,event_type,details,created_at").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50);
-    if(q.error){body.innerHTML='<tr><td colspan="4" class="empty">서버 로그를 불러오지 못했어요.</td></tr>';return;}
-    body.innerHTML=q.data?.length?q.data.map(r=>'<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.event_type||"기록")+'</td><td>'+escapeHtml(r.actor_id||"시스템")+'</td><td>'+escapeHtml(JSON.stringify(r.details||{}).slice(0,300))+'</td></tr>').join(""):'<tr><td colspan="4" class="empty">기록된 서버 로그가 없어요.</td></tr>';
-  }
-  async function saveWarning(e) {
-    e.preventDefault();if(!await ensureServer())return;
-    const target=$("#warning-user-id").value.trim(),reason=$("#warning-reason").value.trim();
-    if(!/^\d{5,30}$/.test(target)){notify("Discord 사용자 ID를 숫자로 입력해 주세요.");return;}
-    if(!reason){notify("경고 사유를 입력해 주세요.");return;}
-    const q=await sb.from("server_warnings").insert({server_id:sid(),user_id:target,moderator_id:(discordIds(user)||[])[0]||null,reason,active:true});
-    if(failed(q.error,"경고를 등록하지 못했어요."))return;
-    $("#warning-user-id").value="";$("#warning-reason").value="";notify("경고를 등록했어요.");await loadWarnings();
-  }
-  async function loadWarnings() {
-    const body=$("#server-warnings-list");if(!body||!sid())return;
-    const q=await sb.from("server_warnings").select("user_id,moderator_id,reason,created_at,active,expires_at").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50);
-    if(q.error){body.innerHTML='<tr><td colspan="5" class="empty">경고 내역을 불러오지 못했어요.</td></tr>';return;}
-    body.innerHTML=q.data?.length?q.data.map(r=>'<tr><td>'+escapeHtml(r.user_id)+'</td><td>'+escapeHtml(r.reason)+'</td><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.moderator_id||"시스템")+'</td><td>'+(r.active?"유효":"취소됨")+'</td></tr>').join(""):'<tr><td colspan="5" class="empty">등록된 경고가 없어요.</td></tr>';
+    if(serverPlan==="free") await Promise.all([loadRules(),loadChannels(),loadAnnouncements(),loadDiscordInventory(),loadFeatures()]);
+    else await Promise.all([loadRules(),loadChannels(),loadAnnouncements(),loadBlacklists(),loadFeatures(),loadJobs(),loadDiscordInventory()]);
   }
   function openDiscordInventory() {
     if(!sid()){notify("먼저 관리 대상 서버를 선택해 주세요.");return;}
@@ -503,8 +480,14 @@
     const box=$("#feature-settings-list");
     if(!box)return;
     const q=await sb.from("server_feature_settings").select("feature_key,settings,enabled").eq("server_id",sid());
-    if(q.error){box.innerHTML='<div class="empty">기능 설정을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return;}
+    if(q.error){box.innerHTML='<div class="empty">기능 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return;}
     const rows=new Map((q.data||[]).map(r=>[r.feature_key,r]));
+    if(serverPlan==="free"){
+      const warning=await sb.from("server_warnings").select("user_id",{count:"exact",head:true}).eq("server_id",sid()).eq("active",true);
+      const count=warning.error?null:(warning.count||0);
+      box.innerHTML='<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>경고 시스템</strong><small>등록된 경고 내역과 현재 상태를 확인할 수 있어요.</small></div><span class="badge">조회 전용</span></div><div class="setting-row"><div><strong>유효 경고</strong><small>현재 서버에 등록된 경고</small></div><strong>'+ (count===null?'확인 불가':count.toLocaleString("ko-KR")+'건') +'</strong></div></article>';
+      return;
+    }
     box.innerHTML=features.map(f=>{const r=rows.get(f[0]),enabled=!!r?.enabled;return '<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>'+escapeHtml(f[1])+'</strong><small>'+escapeHtml(f[2])+'</small></div><span class="badge '+(enabled?"green":"")+'">'+(enabled?"사용 중":"중지")+'</span></div><button type="button" class="btn btn-light" data-feature-edit="'+f[0]+'">자세히 설정 <span>→</span></button></article>';}).join("");
     $$("[data-feature-edit]").forEach(btn=>btn.addEventListener("click",()=>{const key=btn.dataset.featureEdit,feature=features.find(f=>f[0]===key),r=rows.get(key);openFeatureEditor(key,feature,r?.settings||{},!!r?.enabled);}));
   }
