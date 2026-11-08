@@ -13,7 +13,7 @@ function discordIds(u){const m=u?.user_metadata||{},a=u?.app_metadata||{};return
 function isOwnerName(u){return discordNames(u).includes("pengin_hi22")}
 function isAdmin(u){return u?.app_metadata?.role==="admin"||discordIds(u).includes("1318120987480424498")}
 function goto(p){location.href="./"+p+".html"}
-async function login(){if(!sb){notify("로그인 서비스를 사용할 수 없어요. 잠시 후 다시 시도해 주세요.");return}const redirectTo="https://tendsite.kro.kr/login.html";try{const {data,error}=await sb.auth.signInWithOAuth({provider:"discord",options:{redirectTo,scopes:"identify email guilds",skipBrowserRedirect:false}});if(error)throw error;if(data?.url)location.assign(data.url)}catch(error){console.error("Discord OAuth start failed:",error);notify("Discord 로그인 요청 실패: "+(error?.message||"Supabase와 Discord OAuth 설정을 확인해 주세요."))}}
+async function login(){if(!sb){notify("로그인 서비스를 사용할 수 없어요. 잠시 후 다시 시도해 주세요.");return}const redirectTo="https://tendsite.shop/login.html";try{const {data,error}=await sb.auth.signInWithOAuth({provider:"discord",options:{redirectTo,scopes:"identify email guilds",skipBrowserRedirect:false}});if(error)throw error;if(data?.url)location.assign(data.url)}catch(error){console.error("Discord OAuth start failed:",error);notify("Discord 로그인 요청 실패: "+(error?.message||"Supabase와 Discord OAuth 설정을 확인해 주세요."))}}
 function discordAvatar(u){
  const m=u?.user_metadata||{};
  const d=(u?.identities||[]).find(i=>i.provider==="discord")?.identity_data||{};
