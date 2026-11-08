@@ -22,8 +22,8 @@
     const {data,error}=await q;
     if(error){if(box)box.innerHTML='<div class="empty">문의 목록을 불러오지 못했어요. 데이터베이스 설정과 권한을 확인해 주세요.</div>';showError("문의 목록을 불러오지 못했어요.",error);return}
     tickets=data||[];renderTickets();
-    if(keep&&selectedId&&tickets.some(t=>t.id===selectedId))await openTicket(selectedId,false);
-    else if(!selectedId&&tickets.length&&!isAdmin())await openTicket(tickets[0].id,false);
+    if(keep&&selectedId&&tickets.some(t=>t.id===selectedId))void openTicket(selectedId,false);
+    else if(!selectedId&&tickets.length&&!isAdmin())void openTicket(tickets[0].id,false);
     else if(selectedId&&!tickets.some(t=>t.id===selectedId)){selectedId=null;showEmpty()}
   }
   function showEmpty(){setHidden("#support-chat-empty",false);setHidden("#support-chat-view",true)}
