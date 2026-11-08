@@ -156,6 +156,9 @@ if(manageable.length){
    if(active)blockedIds.add(String(r.server_id));
   });
  }
+ const freeRows=await withTimeout(sb.from("free_entitlements").select("server_id,status").eq("user_id",user.id).eq("status","active"));
+ if(freeRows.error)console.error("FREE entitlement lookup failed:",freeRows.error);
+ else (freeRows.data||[]).forEach(r=>blockedIds.add(String(r.server_id)));
  const available=manageable.filter(g=>!blockedIds.has(String(g.id)));
  select.innerHTML='<option value="">신청할 서버를 선택해 주세요</option>';
  available.forEach(g=>{
@@ -239,6 +242,7 @@ form.addEventListener("submit",async e=>{
  finally{b.disabled=false;syncPlanUI();}
 });
 await loadRequestTable();
+}
 async function loadRequestTable(){
  const t=$("#request-table");if(!t)return;
  let result;
