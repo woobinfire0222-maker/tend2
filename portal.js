@@ -89,6 +89,9 @@ box.innerHTML='<div class="empty">서버 상태를 확인하는 중…</div>';
 let req;try{req=await withTimeout(sb.from("purchase_requests").select("server_id,server_name,status,plan").eq("user_id",user.id).in("status",["approved","completed"]).not("server_id","is",null).order("created_at",{ascending:false}));}catch(e){console.error("dashboard server requests timeout:",e);box.innerHTML='<div class="empty">서버 정보를 불러오지 못했어요. 새로고침해 주세요.</div>';return;}
 if(req.error){console.error("dashboard server requests error:",req.error);box.innerHTML='<div class="empty">이용권 조회 오류: '+escapeHtml(req.error.message||req.error.code||"알 수 없는 오류")+'</div>';return;}
 const unique=[];const seen=new Set();(req.data||[]).forEach(r=>{if(r.server_id&&!seen.has(r.server_id)){seen.add(r.server_id);unique.push(r)}});
+const freeResult=await withTimeout(sb.from("free_entitlements").select("server_id,server_name,status").eq("user_id",user.id).eq("status","active"));
+if(freeResult.error){console.error("FREE server status query failed:",freeResult.error);box.innerHTML="<div class=\"empty\">무료 서버 상태를 불러오지 못했어요.</div>";return;}
+(freeResult.data||[]).forEach(r=>{if(r.server_id&&!seen.has(r.server_id)){seen.add(r.server_id);unique.push({...r,plan:"FREE"})}});
 if(!unique.length){box.innerHTML='<div class="empty">아직 승인된 서버가 없어요. 이용권 신청 후 승인을 받아 주세요.</div>';return;}
 let live;try{live=await withTimeout(sb.from("managed_servers").select("server_id,server_name,is_active,bot_connected,last_seen_at,updated_at").in("server_id",unique.map(r=>r.server_id)));}catch(e){console.error("managed servers timeout:",e);box.innerHTML='<div class="empty">봇 상태를 불러오지 못했어요. 새로고침해 주세요.</div>';return;}
 if(live.error){console.error("managed_servers load error:",live.error);box.innerHTML='<div class="empty">봇 상태 조회 오류: '+escapeHtml(live.error.message||live.error.code||"알 수 없는 오류")+'</div>';return;}
@@ -291,19 +294,27 @@ const states={queued:["대기 중","amber"],processing:["처리 중","blue"],com
 t.innerHTML=data.map(r=>{const st=states[r.status]||[r.status,""];return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(names[r.command_type]||r.command_type)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.result||"—")+'</td></tr>'}).join("");
 }
 async function loadServers(){
-shell("servers","서버 관리","승인된 서버와 이용 기간, 봇 연결 상태를 확인하세요.");
+shell("servers","서버 관리","FREE 플랜과 유료 이용권으로 연결한 서버를 확인하세요.");
 const box=$("#server-list");if(!box)return;box.innerHTML='<div class="empty">서버 목록을 불러오는 중…</div>';
-let result;try{result=await withTimeout(sb.from("purchase_requests").select("id,server_name,server_id,plan,status,created_at,expires_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(100));}catch(e){console.error("server list timeout:",e);box.innerHTML='<div class="empty">서버 목록을 불러오지 못했어요. 새로고침 후 다시 시도해 주세요.</div>';return}
-const {data,error}=result;if(error){console.error("server list error:",error);box.innerHTML='<div class="empty">서버 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return}
-const rows=(data||[]).filter(r=>r.status==="approved"||r.status==="completed");if(!rows.length){box.innerHTML='<div class="empty">승인된 서버가 아직 없어요. 이용권 신청 후 승인을 기다려 주세요.</div>';return}
+let paid,free;
+try{[paid,free]=await withTimeout(Promise.all([
+sb.from("purchase_requests").select("id,server_name,server_id,plan,status,created_at,expires_at").eq("user_id",user.id).eq("status","approved").gt("expires_at",new Date().toISOString()).order("created_at",{ascending:false}).limit(100),
+sb.from("free_entitlements").select("server_name,server_id,status,created_at").eq("user_id",user.id).eq("status","active").order("created_at",{ascending:false})
+]));}catch(e){console.error("server list timeout:",e);box.innerHTML='<div class="empty">서버 목록을 불러오지 못했어요. 새로고침해 주세요.</div>';return}
+if(paid.error||free.error){console.error("server entitlement list error:",paid.error||free.error);box.innerHTML='<div class="empty">서버 권한을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return}
+const map=new Map();
+(free.data||[]).forEach(r=>{if(r.server_id)map.set(r.server_id,{...r,plan:"FREE",free:true})});
+(paid.data||[]).forEach(r=>{if(r.server_id)map.set(r.server_id,{...r,free:false})});
+const rows=[...map.values()];
+if(!rows.length){box.innerHTML='<div class="empty">아직 연결된 서버가 없어요. FREE 플랜을 활성화하거나 이용권을 신청해 주세요.</div>';return}
 const ids=[...new Set(rows.map(r=>r.server_id).filter(Boolean))];let liveRows=[];
 if(ids.length){try{const live=await withTimeout(sb.from("managed_servers").select("server_id,server_name,bot_connected,management_available,is_active,expires_at,last_seen_at").in("server_id",ids));if(live.error)console.error("managed server status error:",live.error);else liveRows=live.data||[]}catch(e){console.error("managed server status timeout:",e)}}
-const liveMap=new Map(liveRows.map(s=>[s.server_id,s]));const clientId=String(cfg.discordBotClientId||"").trim();
-box.innerHTML=rows.map(r=>{const s=liveMap.get(r.server_id),expiry=s?.expires_at||r.expires_at,expired=expiry&&new Date(expiry).getTime()<=Date.now(),available=!!s?.management_available&&!!s?.bot_connected&&!expired;
-const invite=clientId&&r.server_id&&!expired?'https://discord.com/oauth2/authorize?client_id='+encodeURIComponent(clientId)+'&scope=bot%20applications.commands&permissions='+encodeURIComponent(String(cfg.discordBotPermissions||"0"))+'&guild_id='+encodeURIComponent(r.server_id)+'&disable_guild_select=true':"";
-const state=expired?'<span class="badge red">기간 만료</span>':available?'<span class="badge green">관리 가능</span>':'<span class="badge amber">관리 불가능</span>';
-const until=expiry?new Date(expiry).toLocaleString("ko-KR"):"승인 후 이용 기간 적용";
-return '<div class="setting-row"><div><strong>'+escapeHtml(s?.server_name||r.server_name||"Discord 서버")+'</strong><small>서버 ID: '+escapeHtml(r.server_id||"미등록")+'</small><small>'+escapeHtml(r.plan)+' · 만료: '+escapeHtml(until)+'</small><small>'+(s?.bot_connected?"봇 연결됨":"봇 미연결")+'</small></div><div class="stack-actions">'+state+(invite?'<a class="btn btn-blue" target="_blank" rel="noopener noreferrer" href="'+invite+'">봇 초대</a>':"")+'</div></div>';}).join("");
+const liveMap=new Map(liveRows.map(x=>[x.server_id,x]));const clientId=String(cfg.discordBotClientId||"1543239879633412186").trim();
+box.innerHTML=rows.map(r=>{const s=liveMap.get(r.server_id),expiry=s?.expires_at||r.expires_at,expired=!r.free&&expiry&&new Date(expiry).getTime()<=Date.now(),available=r.free?!!s?.bot_connected:!!s?.management_available&&!!s?.bot_connected&&!expired;
+const invite=clientId&&r.server_id&&!s?.bot_connected?'https://discord.com/oauth2/authorize?client_id='+encodeURIComponent(clientId)+'&scope=bot%20applications.commands&permissions='+encodeURIComponent(String(cfg.discordBotPermissions||"0"))+'&guild_id='+encodeURIComponent(r.server_id)+'&disable_guild_select=true':"";
+const state=expired?'<span class="badge red">기간 만료</span>':available?'<span class="badge green">이용 가능</span>':'<span class="badge amber">봇 연결 확인</span>';
+const until=r.free?"기간 제한 없음":expiry?new Date(expiry).toLocaleString("ko-KR"):"이용 기간 확인 중";
+return '<div class="setting-row"><div><strong>'+escapeHtml(s?.server_name||r.server_name||"Discord 서버")+'</strong><small>서버 ID: '+escapeHtml(r.server_id||"미등록")+'</small><small>'+(r.free?"FREE · 무제한":escapeHtml(r.plan)+" · 만료: "+escapeHtml(until))+'</small><small>'+(s?.bot_connected?"봇 연결됨":"봇 미연결")+'</small></div><div class="stack-actions">'+state+(invite?'<a class="btn btn-blue" target="_blank" rel="noopener noreferrer" href="'+invite+'">봇 초대</a>':"")+'</div></div>';}).join("");
 }
 async function loadExperimentAdmin(){
 const host=$("#experiment-member-list"),search=$("#experiment-member-search"),countEl=$("#experiment-member-count");
