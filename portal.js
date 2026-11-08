@@ -239,7 +239,21 @@ form.addEventListener("submit",async e=>{
  finally{b.disabled=false;syncPlanUI();}
 });
 await loadRequestTable();
-async function loadRequestTable(){const t=$("#request-table");if(!t)return;let result;try{result=await withTimeout(sb.from("purchase_requests").select("id,plan,server_name,status,payment_status,rejection_reason,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50));}catch(e){console.error("request table timeout:",e);t.innerHTML='<tr><td colspan="5" class="empty">신청 내역을 불러오지 못했어요. 새로고침 후 다시 시도해 주세요.</td></tr>';return}const {data,error}=result;if(error){t.innerHTML='<tr><td colspan="5">신청 내역을 불러오지 못했어요.</td></tr>';return}if(!data?.length){t.innerHTML='<tr><td colspan="5" class="empty">아직 신청 내역이 없어요.</td></tr>';return}t.innerHTML=data.map(r=>'<tr><td>'+escapeHtml(r.server_name)+'</td><td>'+escapeHtml(r.plan)+'</td><td>'+statusBadge(r.status)+(r.rejection_reason?'<small class="reason-text">사유: '+escapeHtml(r.rejection_reason)+'</small>':"")+'</td><td>'+statusBadge(r.payment_status||"unpaid")+'</td><td>'+new Date(r.created_at).toLocaleDateString("ko-KR")+'</td></tr>').join("")}
+async function loadRequestTable(){
+ const t=$("#request-table");if(!t)return;
+ let result;
+ try{
+  const [paid,free]=await withTimeout(Promise.all([
+   sb.from("purchase_requests").select("id,plan,server_name,status,payment_status,rejection_reason,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50),
+   sb.from("free_entitlements").select("server_id,server_name,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(50)
+  ]));
+  if(paid.error)throw paid.error;
+  if(free.error)throw free.error;
+  const rows=[...(paid.data||[]),...(free.data||[]).map(r=>({id:"free-"+r.server_id,plan:"FREE",server_name:r.server_name,status:r.status==="active"?"approved":"rejected",payment_status:"무료",created_at:r.created_at,rejection_reason:null}))].sort((x,y)=>new Date(y.created_at)-new Date(x.created_at)).slice(0,50);
+  if(!rows.length){t.innerHTML='<tr><td colspan="5" class="empty">아직 신청 내역이 없어요.</td></tr>';return;}
+  t.innerHTML=rows.map(r=>'<tr><td>'+escapeHtml(r.server_name)+'</td><td>'+escapeHtml(r.plan)+'</td><td>'+statusBadge(r.status)+'</td><td>'+(r.plan==="FREE"?'<span class="badge green">무료 · 자동 승인</span>':escapeHtml(r.payment_status||"확인 필요"))+(r.rejection_reason?'<small class="reason-text">'+escapeHtml(r.rejection_reason)+'</small>':"")+'</td><td>'+new Date(r.created_at).toLocaleDateString("ko-KR")+'</td></tr>').join("");
+ }catch(e){console.error("request table load failed:",e);t.innerHTML='<tr><td colspan="5" class="empty">신청 내역을 불러오지 못했어요.</td></tr>';}
+}
 async function loadBot(){
 if(window.TEND_BOT_MANAGEMENT){await window.TEND_BOT_MANAGEMENT.init({sb,user,profileName,shell,notify,escapeHtml,discordIds});return}
 shell("bot","봇 관리","서버 운영에 필요한 기능을 설정하세요.");
