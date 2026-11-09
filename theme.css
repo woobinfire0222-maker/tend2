@@ -501,3 +501,31 @@ html.theme-dark #product-showcase .story-step-hint{
     border-color:#496a9f!important;
   }
 }
+
+
+/* Server connection page: fix the light root canvas in dark mode */
+html.theme-dark:has(body[data-page="servers"]){
+  background:#11151d!important;
+  color:#edf1f7!important;
+  color-scheme:dark;
+}
+html.theme-dark body[data-page="servers"]{
+  background:#11151d!important;
+  color:#edf1f7!important;
+}
+html.theme-dark body[data-page="servers"] .main{
+  background:transparent!important;
+}
+html.theme-dark body[data-page="servers"] .card{
+  background:#1a202b!important;
+  border-color:#303949!important;
+  color:#edf1f7!important;
+}
+html.theme-dark body[data-page="servers"] .notice{
+  background:#202b3a!important;
+  border-color:#35465f!important;
+  color:#cbd8ea!important;
+}
+html.theme-dark body[data-page="servers"] .empty{
+  color:#aab3c2!important;
+}
