@@ -21,7 +21,7 @@
 </aside>
 <main class="main">
 <header class="topbar"><div style="display:flex;align-items:center;gap:12px"><button class="btn btn-light mobile-menu" data-mobile-menu>☰</button><span class="crumb">Workspace / <b data-page-title>봇 관리</b></span></div><div class="topbar-actions"><span class="crumb" data-top-user></span></div></header>
-<section class="page-head"><div><h1 class="page-title" data-page-title>봇 관리</h1><p class="page-subtitle" data-page-subtitle>서버별 검열·공지·자동화 설정을 관리하세요.</p></div><span id="bot-status" class="badge amber">서버 선택 필요</span></section>
+<section class="page-head"><div><h1 class="page-title" data-page-title>봇 관리</h1><p class="page-subtitle" data-page-subtitle>서버별 기본 관리 기능과 운영 기록을 확인하세요.</p></div><span id="bot-status" class="badge amber">서버 선택 필요</span></section><div id="plan-access-notice" class="notice hidden" style="margin-top:14px" role="status"></div>
 
 <section class="card bot-server-card" style="margin-top:16px">
 <div class="card-head"><div><div class="card-title">관리 대상 서버</div><p class="page-subtitle">이용 권한이 있는 서버와 봇 연결 상태를 표시합니다.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-light" id="reload-bot-data" type="button">목록 새로고침</button><button class="btn btn-blue" id="open-discord-inventory" type="button">서버 정보 보기</button></div></div>
@@ -33,9 +33,9 @@
 <button class="bot-tab active" data-bot-tab="moderation" type="button">채팅 검열</button>
 <button class="bot-tab" data-bot-tab="announcements" type="button">서버 공지</button>
 <button class="bot-tab" data-bot-tab="blacklist" type="button">자동 서버 차단</button>
-<button class="bot-tab" data-bot-tab="features" type="button">추가 기능 13개</button>
+<button class="bot-tab" data-bot-tab="features" type="button">기능 설정</button>
 
-<button class="bot-tab" data-bot-tab="jobs" type="button">작업 기록</button>
+<button class="bot-tab" data-bot-tab="jobs" type="button">서버 로그</button>
 </div>
 <section class="bot-panel active" data-bot-panel="moderation">
 <div class="section-intro"><strong>채팅 검열은 이렇게 작동해요</strong><p>금지할 단어와 검열 방식을 정해 보세요. 위반 메시지에 어떤 조치를 할지도 직접 선택할 수 있어요.</p></div>
