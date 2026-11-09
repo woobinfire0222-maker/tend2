@@ -1,9 +1,10 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": "https://tendsite.shop",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Vary": "Origin",
 };
 
 function json(body: unknown, status = 200) {
@@ -20,34 +21,12 @@ Deno.serve(async (request) => {
   const auth = request.headers.get("Authorization") || "";
   const token = auth.match(/^Bearer\s+(.+)$/i)?.[1];
   const url = Deno.env.get("SUPABASE_URL");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const botToken = Deno.env.get("DISCORD_BOT_TOKEN");
+  const serviceKey = Deno.env.get("SUPABASE_SECRET_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!token || !url || !serviceKey) return json({ error: "Backend configuration is incomplete." }, 503);
-  if (!botToken) return json({ error: "DISCORD_BOT_TOKEN secret is not configured." }, 503);
 
   const db = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const { data: authData, error: authError } = await db.auth.getUser(token);
   if (authError || !authData.user) return json({ error: "Please sign in again." }, 401);
-
-  const { data: maintenance, error: maintenanceError } = await db
-    .from("tend_service_status")
-    .select("enabled")
-    .eq("id", 1)
-    .maybeSingle();
-  if (maintenanceError) return json({ error: "서비스 점검 상태를 확인할 수 없습니다." }, 503);
-  if (maintenance?.enabled) {
-    const userMetadata = authData.user.user_metadata || {};
-    const appMetadata = authData.user.app_metadata || {};
-    const discordIds = [
-      userMetadata.sub,
-      userMetadata.provider_id,
-      userMetadata.discord_id,
-      appMetadata.provider_id,
-      appMetadata.discord_id,
-    ].map((value) => String(value || ""));
-    const isTendAdmin = appMetadata.role === "admin" || discordIds.includes("1318120987480424498");
-    if (!isTendAdmin) return json({ error: "TEND 서비스 점검 중입니다. 잠시 후 다시 이용해 주세요." }, 503);
-  }
 
   let body: Record<string, unknown>;
   try { body = await request.json(); } catch { return json({ error: "Invalid JSON body." }, 400); }
@@ -55,162 +34,145 @@ Deno.serve(async (request) => {
   const serverId = String(body.server_id || "");
   if (!/^\d{5,30}$/.test(serverId)) return json({ error: "Invalid Discord server ID." }, 400);
 
+  if (action === "activate_free") {
+    const providerToken = String(body.provider_token || "");
+    if (!providerToken) return json({ error: "Discord 서버 권한을 확인할 수 없어요. 다시 로그인해 주세요." }, 400);
+    let guildResponse: Response;
+    try {
+      guildResponse = await fetch("https://discord.com/api/v10/users/@me/guilds", {
+        headers: { Authorization: `Bearer ${providerToken}` },
+      });
+    } catch {
+      return json({ error: "Discord 서버 목록을 확인하지 못했어요." }, 502);
+    }
+    if (!guildResponse.ok) return json({ error: "Discord 인증이 만료됐어요. 다시 로그인해 주세요." }, 401);
+    const guilds = await guildResponse.json();
+    const guild = Array.isArray(guilds) ? guilds.find((g: any) => String(g.id) === serverId) : null;
+    if (!guild) return json({ error: "이 Discord 계정에서 해당 서버를 찾을 수 없어요." }, 403);
+    let isManager = guild.owner === true;
+    try { isManager = isManager || (BigInt(guild.permissions || "0") & 8n) === 8n; } catch {}
+    if (!isManager) return json({ error: "서버 소유자 또는 관리자 권한이 필요해요." }, 403);
+    const serverName = String(guild.name || body.server_name || "Discord 서버").trim().slice(0, 100);
+    const { data: paidRows, error: paidError } = await db.from("purchase_requests")
+      .select("id").eq("server_id", serverId).eq("status", "approved").gt("expires_at", new Date().toISOString()).limit(1);
+    if (paidError) return json({ error: "기존 이용권을 확인하지 못했어요." }, 500);
+    if (paidRows?.length) return json({ error: "이미 유료 이용권이 활성화된 서버예요." }, 409);
+    const { data: existing, error: existingError } = await db.from("free_entitlements")
+      .select("id,user_id,status").eq("server_id", serverId).maybeSingle();
+    if (existingError) return json({ error: "무료 이용 상태를 확인하지 못했어요." }, 500);
+    if (existing?.status === "active") {
+      if (existing.user_id === authData.user.id) return json({ ok: true, already_active: true, plan: "FREE" });
+      return json({ error: "이 서버는 이미 다른 계정에서 무료 플랜을 사용 중이에요." }, 409);
+    }
+    if (existing && existing.user_id !== authData.user.id) {
+      return json({ error: "이 서버의 무료 이용 권한을 활성화할 수 없어요. 관리자에게 문의해 주세요." }, 409);
+    }
+    const { error: activateError } = await db.from("free_entitlements").upsert({
+      user_id: authData.user.id,
+      server_id: serverId,
+      server_name: serverName,
+      status: "active",
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "server_id" });
+    if (activateError) return json({ error: "무료 플랜을 활성화하지 못했어요." }, 500);
+    return json({ ok: true, plan: "FREE", server_id: serverId, server_name: serverName });
+  }
+
+  const now = new Date().toISOString();
   const { data: purchase, error: purchaseError } = await db
     .from("purchase_requests")
-    .select("id")
+    .select("id,approved_at,created_at,expires_at")
     .eq("user_id", authData.user.id)
     .eq("server_id", serverId)
-    .in("status", ["approved", "completed"])
+    .eq("status", "approved")
+    .gt("expires_at", now)
+    .order("approved_at", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (purchaseError) return json({ error: "Unable to verify server access." }, 500);
-  if (!purchase) return json({ error: "An approved plan is required for this server." }, 403);
 
-  if (action === "sync_server_info") {
-    const discord = async (path: string) => {
-      const response = await fetch("https://discord.com/api/v10" + path, {
-        headers: { Authorization: "Bot " + botToken, "Content-Type": "application/json" },
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        const detail = typeof payload?.message === "string" ? payload.message : "Discord API request failed.";
-        throw new Error(detail + " (HTTP " + response.status + ")");
-      }
-      return payload;
-    };
+  let hasPaidAccess = false;
+  if (purchase) {
+    const { data: currentPurchase, error: currentPurchaseError } = await db
+      .from("purchase_requests")
+      .select("id")
+      .eq("server_id", serverId)
+      .eq("status", "approved")
+      .gt("expires_at", now)
+      .order("approved_at", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (currentPurchaseError) return json({ error: "Unable to verify the current server entitlement." }, 500);
+    hasPaidAccess = !!currentPurchase && currentPurchase.id === purchase.id;
+  }
 
-    try {
-      const [guild, channels, roles, emojiResult, stickerResult] = await Promise.all([
-        discord("/guilds/" + serverId + "?with_counts=true"),
-        discord("/guilds/" + serverId + "/channels"),
-        discord("/guilds/" + serverId + "/roles"),
-        discord("/guilds/" + serverId + "/emojis").catch(() => []),
-        discord("/guilds/" + serverId + "/stickers").catch(() => []),
-      ]);
-      const emojis = Array.isArray(emojiResult) ? emojiResult : [];
-      const stickers = Array.isArray(stickerResult) ? stickerResult : [];
-      if (!Array.isArray(channels) || !Array.isArray(roles) || !Array.isArray(emojis) || !Array.isArray(stickers)) {
-        return json({ error: "Discord returned an unexpected inventory response." }, 502);
-      }
-
-      const now = new Date().toISOString();
-      const channelRows = channels.map((c: Record<string, unknown>) => ({
-        channel_id: String(c.id),
-        server_id: serverId,
-        channel_name: String(c.name || "이름 없는 채널"),
-        channel_type: String(c.type),
-        can_send: [0, 5].includes(Number(c.type)),
-        position: Number(c.position || 0),
-        parent_id: c.parent_id ? String(c.parent_id) : null,
-        topic: typeof c.topic === "string" ? c.topic : null,
-        is_nsfw: c.nsfw === true,
-        bitrate: typeof c.bitrate === "number" ? c.bitrate : null,
-        user_limit: typeof c.user_limit === "number" ? c.user_limit : null,
-        synced_at: now,
-      }));
-      const roleRows = roles.map((r: Record<string, unknown>) => ({
-        role_id: String(r.id),
-        server_id: serverId,
-        role_name: String(r.name || "이름 없는 역할"),
-        color: Number(r.color || 0),
-        position: Number(r.position || 0),
-        permissions: String(r.permissions || "0"),
-        hoist: r.hoist === true,
-        mentionable: r.mentionable === true,
-        managed: r.managed === true,
-        synced_at: now,
-      }));
-
-      const guildRow = {
-        server_id: serverId,
-        server_name: String(guild.name || "Discord 서버"),
-        icon_url: guild.icon ? "https://cdn.discordapp.com/icons/" + serverId + "/" + String(guild.icon) + ".png?size=256" : null,
-        bot_present: true,
-        owner_id: String(guild.owner_id || ""),
-        description: typeof guild.description === "string" ? guild.description : null,
-        approximate_member_count: Number(guild.approximate_member_count || 0),
-        approximate_presence_count: Number(guild.approximate_presence_count || 0),
-        verification_level: Number(guild.verification_level || 0),
-        preferred_locale: String(guild.preferred_locale || ""),
-        premium_tier: Number(guild.premium_tier || 0),
-        premium_subscription_count: Number(guild.premium_subscription_count || 0),
-        features: Array.isArray(guild.features) ? guild.features : [],
-        channel_count: channelRows.length,
-        role_count: roleRows.length,
-        emoji_count: emojis.length,
-        sticker_count: stickers.length,
-        synced_at: now,
-      };
-
-      const { error: guildError } = await db.from("discord_guilds").upsert(guildRow, { onConflict: "server_id" });
-      if (guildError) return json({ error: "Unable to save server information: " + guildError.message }, 500);
-
-      if (channelRows.length) {
-        const { error } = await db.from("discord_channels").upsert(channelRows, { onConflict: "channel_id" });
-        if (error) return json({ error: "Unable to save channel information: " + error.message }, 500);
-        const ids = channelRows.map(c => c.channel_id);
-        const { error: pruneError } = await db.from("discord_channels").delete().eq("server_id", serverId).not("channel_id", "in", "(" + ids.join(",") + ")");
-        if (pruneError) return json({ error: "Unable to remove outdated channels: " + pruneError.message }, 500);
-      } else {
-        const { error } = await db.from("discord_channels").delete().eq("server_id", serverId);
-        if (error) return json({ error: "Unable to clear outdated channels: " + error.message }, 500);
-      }
-
-      if (roleRows.length) {
-        const { error } = await db.from("discord_roles").upsert(roleRows, { onConflict: "role_id" });
-        if (error) return json({ error: "Unable to save role information: " + error.message }, 500);
-        const ids = roleRows.map(r => r.role_id);
-        const { error: pruneError } = await db.from("discord_roles").delete().eq("server_id", serverId).not("role_id", "in", "(" + ids.join(",") + ")");
-        if (pruneError) return json({ error: "Unable to remove outdated roles: " + pruneError.message }, 500);
-      } else {
-        const { error } = await db.from("discord_roles").delete().eq("server_id", serverId);
-        if (error) return json({ error: "Unable to clear outdated roles: " + error.message }, 500);
-      }
-
-      return json({
-        ok: true,
-        server_id: serverId,
-        server_name: guildRow.server_name,
-        synced_at: now,
-        counts: {
-          channels: channelRows.length,
-          text_channels: channelRows.filter(c => [0, 5, 15, 16].includes(Number(c.channel_type))).length,
-          voice_channels: channelRows.filter(c => [2, 13].includes(Number(c.channel_type))).length,
-          categories: channelRows.filter(c => Number(c.channel_type) === 4).length,
-          roles: roleRows.length,
-          members: guildRow.approximate_member_count,
-          online: guildRow.approximate_presence_count,
-          emojis: emojis.length,
-          stickers: stickers.length,
-        },
-      });
-    } catch (error) {
-      return json({ error: error instanceof Error ? error.message : "Unable to sync Discord server information." }, 502);
-    }
+  let hasFreeAccess = false;
+  if (!hasPaidAccess) {
+    const { data: freeEntitlement, error: freeError } = await db.from("free_entitlements")
+      .select("user_id,status").eq("server_id", serverId).eq("user_id", authData.user.id).eq("status", "active").maybeSingle();
+    if (freeError) return json({ error: "Unable to verify FREE access." }, 500);
+    hasFreeAccess = !!freeEntitlement;
+  }
+  if (!hasPaidAccess && !hasFreeAccess) {
+    return json({ error: "An active TEND plan is required for this server." }, 403);
+  }
+  if (hasFreeAccess && !["send_announcement", "refresh_discord_server", "refresh_status"].includes(action)) {
+    return json({ error: "This feature requires a paid TEND plan." }, 403);
   }
 
   if (action === "send_announcement") {
     const title = String(body.title || "").trim().slice(0, 200);
     const content = String(body.content || "").trim();
-    const image = String(body.image_url || "").trim();
-    const mention = String(body.mention || "none");
-    const roleIds = Array.isArray(body.role_ids) ? body.role_ids.map(String).filter((id) => /^\d{5,30}$/.test(id)) : [];
     if (!content) return json({ error: "Announcement content is required." }, 400);
     if (content.length > 4000) return json({ error: "Announcement content must be 4000 characters or fewer." }, 400);
-    if (image && !/^https?:\\/\\//i.test(image)) return json({ error: "Image URL must start with http or https." }, 400);
-    const { data: record, error: recordError } = await db.from("bot_announcements").insert({
-      user_id: authData.user.id, server_id: serverId, title: title || null, content, image_url: image || null,
-      channel_id: String(body.channel_id || "") || null, status: "queued"
-    }).select("id").single();
-    if (recordError) return json({ error: "Unable to save the announcement record: " + recordError.message }, 500);
+    const image = String(body.image_url || "").trim();
+    if (image && !/^https?:\/\//i.test(image)) return json({ error: "Image URL must start with http or https." }, 400);
+    const mention = String(body.mention || "none");
+    if (!["none", "everyone", "here", "role"].includes(mention)) return json({ error: "Invalid mention type." }, 400);
+    if (hasFreeAccess && (mention !== "none" || image)) {
+      return json({ error: "FREE 플랜에서는 기본 공지만 사용할 수 있어요." }, 403);
+    }
+
+    const requestedRoleIds = Array.isArray(body.role_ids)
+      ? [...new Set(body.role_ids.map(String).filter((id) => /^\d{5,30}$/.test(id)))]
+      : [];
+    let roleIds = requestedRoleIds;
+
+    if (mention === "role") {
+      if (!requestedRoleIds.length) return json({ error: "Select at least one role to mention." }, 400);
+      const { data: catalogRows, error: catalogError } = await db
+        .from("discord_server_roles")
+        .select("role_id,role_name,mentionable,is_everyone")
+        .eq("server_id", serverId);
+      if (catalogError) return json({ error: "Unable to load the Discord role catalog." }, 500);
+      const catalog = new Map((catalogRows || []).map((r) => [String(r.role_id), r]));
+      if (catalog.size === 0) return json({ error: "Role catalog is not synced yet. Wait for the bot to sync roles and retry." }, 409);
+      roleIds = [];
+      const unmentionable: string[] = [];
+      for (const id of requestedRoleIds) {
+        const row = catalog.get(id);
+        if (!row) continue;
+        if (!row.mentionable && !row.is_everyone) unmentionable.push(String(row.role_name));
+        else roleIds.push(id);
+      }
+      if (unmentionable.length) {
+        return json({ error: "These roles cannot be mentioned by the bot: " + unmentionable.slice(0, 5).join(", ") }, 422);
+      }
+      if (!roleIds.length) return json({ error: "None of the selected roles exist in this server anymore." }, 422);
+    }
+
     let channelId = String(body.channel_id || "");
-    if (!channelId) {
-      const { data: channel, error } = await db.from("announcement_channels")
+    if (!/^\d{5,30}$/.test(channelId)) {
+      const { data: defChannel, error } = await db.from("announcement_channels")
         .select("channel_id").eq("server_id", serverId).eq("enabled", true)
         .order("is_default", { ascending: false }).order("created_at", { ascending: true }).limit(1).maybeSingle();
       if (error) return json({ error: "Unable to load announcement channels." }, 500);
-      channelId = String(channel?.channel_id || "");
-      if (!channelId) {
+      channelId = String(defChannel?.channel_id || "");
+      if (!/^\d{5,30}$/.test(channelId)) {
         const { data: discovered, error: discoveredError } = await db.from("discord_channels")
           .select("channel_id").eq("server_id", serverId).eq("can_send", true)
           .order("channel_name", { ascending: true }).limit(1).maybeSingle();
@@ -219,77 +181,120 @@ Deno.serve(async (request) => {
       }
     }
     if (!/^\d{5,30}$/.test(channelId)) return json({ error: "Choose or register an announcement channel first." }, 400);
-    const { data: allowedChannel, error: channelCheckError } = await db.from("announcement_channels")
-      .select("channel_id").eq("server_id", serverId).eq("channel_id", channelId).eq("enabled", true).maybeSingle();
-    if (channelCheckError) return json({ error: "Unable to verify the announcement channel." }, 500);
-    let canUseDiscoveredChannel = false;
-    if (!allowedChannel) {
-      const { data: discovered, error: discoveredError } = await db.from("discord_channels")
-        .select("channel_id,can_send").eq("server_id", serverId).eq("channel_id", channelId).maybeSingle();
-      if (discoveredError) return json({ error: "Unable to verify the automatically detected channel." }, 500);
-      canUseDiscoveredChannel = !!discovered && discovered.can_send === true;
-    }
-    if (!allowedChannel && !canUseDiscoveredChannel) return json({ error: "This channel is not registered or the bot cannot send messages there." }, 403);
 
-    let messageContent = "";
-    const parse: Record<string, unknown> = {};
-    if (mention === "everyone" || mention === "here") {
-      messageContent = mention === "everyone" ? "@everyone" : "@here";
-      parse.parse = [mention];
-    } else if (mention === "role" && roleIds.length) {
-      messageContent = roleIds.map((id) => "<@&" + id + ">").join(" ");
-      parse.roles = roleIds;
-    } else {
-      parse.parse = [];
+    const { data: queuedCommand, error: commandError } = await db.from("bot_commands")
+      .insert({
+        user_id: authData.user.id,
+        server_id: serverId,
+        command_type: "post_announcement",
+        payload: {
+          source: "website",
+          website: true,
+          title: title || "공지",
+          content,
+          body: content,
+          image_url: image || null,
+          channel_id: channelId,
+          mention,
+          role_ids: roleIds,
+        },
+        status: "queued",
+      })
+      .select("id")
+      .single();
+    if (commandError) {
+      return json({ error: "Unable to queue the announcement: " + commandError.message }, 500);
     }
-    const embed: Record<string, unknown> = { description: content };
-    if (title) embed.title = title;
-    if (image) embed.image = { url: image };
-    const discordResponse = await fetch("https://discord.com/api/v10/channels/" + channelId + "/messages", {
-      method: "POST",
-      headers: { Authorization: "Bot " + botToken, "Content-Type": "application/json" },
-      body: JSON.stringify({ content: messageContent || undefined, embeds: [embed], allowed_mentions: parse }),
-    });
-    const responseBody = await discordResponse.json().catch(() => ({}));
-    if (!discordResponse.ok) {
-      const detail = typeof responseBody?.message === "string" ? responseBody.message : "Discord rejected the message.";
-      await db.from("bot_announcements").update({status:"failed",error_message:detail,updated_at:new Date().toISOString()}).eq("id",record.id);
-      return json({ error: detail, discord_status: discordResponse.status }, 502);
+    return json({ ok: true, queued: true, command_id: queuedCommand.id, command_type: "post_announcement" });
+  }
+
+  if (action === "refresh_discord_server") {
+    // v7: 사이트 "Discord 정보 새로고침" 버튼. 이 서버만 동기화하도록
+    // bot_jobs 큐잉. 봇이 직접 Discord 정보를 읽어 서버 측 테이블에 저장하고
+    // Discord Bot Token / Service Key는 프런트엔드에 노출되지 않는다.
+    // 소유권·이용권 검증은 위 purchase 쿼리와 bot_jobs RLS(insert_owned)로 이중 보호.
+    const { data: existingJob, error: dupError } = await db.from("bot_jobs")
+      .select("id,status,updated_at")
+      .eq("server_id", serverId)
+      .eq("job_type", "guild_snapshot.publish")
+      .in("status", ["pending", "processing"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (dupError) return json({ error: "Unable to check for an in-progress refresh." }, 500);
+    if (existingJob) {
+      // 중복 요청 방지: 진행 중인 동기화가 있으면 그 작업을 재사용한다.
+      return json({ ok: true, queued: true, job_id: existingJob.id, already_running: true });
     }
-    const { error: logError } = await db.from("bot_announcements").update({
-      status:"sent",channel_id:channelId,discord_message_id:responseBody.id,updated_at:new Date().toISOString()
-    }).eq("id",record.id);
-    if (logError) return json({ error: "The announcement was sent, but its history could not be updated: " + logError.message, sent: true, message_id: responseBody.id }, 500);
-    return json({ ok: true, message_id: responseBody.id, channel_id: channelId, announcement_id: record.id });
+    const { data: snapJob, error: snapJobError } = await db.from("bot_jobs")
+      .insert({
+        server_id: serverId,
+        job_type: "guild_snapshot.publish",
+        payload: { source: "website" },
+        status: "pending",
+      })
+      .select("id")
+      .limit(1)
+      .maybeSingle();
+    if (snapJobError) return json({ error: "Unable to queue the Discord server refresh." }, 500);
+    return json({ ok: true, queued: true, job_id: snapJob?.id });
+  }
+
+  if (action === "refresh_status") {
+    // 사이트 폴링용: 이 서버의 최근 스냅샷 상태와 마지막 동기화 시각.
+    const { data: snap, error: snapError } = await db.from("discord_guilds")
+      .select("synced_at")
+      .eq("server_id", serverId)
+      .maybeSingle();
+    if (snapError) return json({ error: "Unable to read snapshot status." }, 500);
+    const { data: lastJob } = await db.from("bot_jobs")
+      .select("id,status,error_message,updated_at")
+      .eq("server_id", serverId)
+      .eq("job_type", "guild_snapshot.publish")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    return json({ ok: true, synced_at: snap?.synced_at || null, last_job: lastJob || null });
   }
 
   if (action === "set_management") {
-    if (typeof body.active !== "boolean") return json({ error: "Management state must be true or false." }, 400);
-    const active = body.active;
-    const { data: purchaseRow, error: purchaseLookupError } = await db.from("purchase_requests")
-      .select("server_name").eq("server_id",serverId).eq("user_id",authData.user.id)
-      .in("status",["approved","completed"]).order("created_at",{ascending:false}).limit(1).maybeSingle();
-    if (purchaseLookupError || !purchaseRow) return json({ error: "Unable to verify approved server access." }, 403);
-    const { error: seedError } = await db.from("managed_servers").upsert({
-      server_id:serverId,server_name:purchaseRow.server_name || "Discord 서버",owner_id:authData.user.id,is_active:false
-    },{onConflict:"server_id",ignoreDuplicates:true});
-    if (seedError) return json({ error: "Unable to initialize server management status: " + seedError.message }, 500);
+    const active = body.active === true;
     const { data: server, error } = await db.from("managed_servers")
-      .select("server_id,bot_connected,last_seen_at,is_active").eq("server_id",serverId).maybeSingle();
-    if (error || !server) return json({ error: "Unable to read bot status." }, 500);
-    if (server.is_active === active) {
-      return json({ error: active ? "이 서버는 이미 관리 중입니다." : "이 서버는 이미 관리 종료 상태입니다.", active:server.is_active }, 409);
-    }
-    const recent = !!server.last_seen_at && (Date.now() - new Date(server.last_seen_at).getTime() < 120000);
+      .select("server_id,bot_connected,last_seen_at,is_active,management_blocked,expires_at")
+      .eq("server_id", serverId).maybeSingle();
+    if (error) return json({ error: "Unable to read bot status." }, 500);
+    const recent = !!server?.last_seen_at && (Date.now() - new Date(server.last_seen_at).getTime() < 120000);
+    if (!server || server.management_blocked) return json({ error: "This server is blocked from management." }, 403);
     if (active && (!server.bot_connected || !recent)) {
-      return json({ error: "Discord 봇이 오프라인이거나 최근 응답이 없습니다. 봇 워커를 먼저 실행해 주세요." }, 409);
+      return json({ error: "The Discord bot worker is offline. Start the bot worker before enabling management." }, 409);
     }
-    const { data: changed, error: updateError } = await db.from("managed_servers")
-      .update({is_active:active,updated_at:new Date().toISOString(),...(active?{started_at:new Date().toISOString()}:{})})
-      .eq("server_id",serverId).eq("is_active",!active).select("server_id,is_active").maybeSingle();
-    if (updateError) return json({ error: "Unable to change management status: " + updateError.message }, 500);
-    if (!changed) return json({ error: active ? "이미 관리 시작 요청이 처리되었어요." : "이미 관리 종료 요청이 처리되었어요." }, 409);
-    return json({ ok:true,active:changed.is_active });
+    // Route through the same validated RPC the bot worker uses so entitlement,
+    // heartbeat, and block checks cannot be bypassed from the website.
+    const { data: rpcResult, error: rpcError } = await db.rpc("set_managed_server_active", {
+      target_server_id: serverId,
+      desired_active: active,
+    });
+    if (rpcError) {
+      return json({ error: "Management state did not change. Check entitlement and bot status." }, 409);
+    }
+    const changed = Array.isArray(rpcResult) ? rpcResult[0] === true : rpcResult === true;
+    if (!changed) {
+      return json({ error: "Management state did not change. It may already be in the requested state or the entitlement expired." }, 409);
+    }
+    // Let the bot worker send a management-state DM to the Discord server owner.
+    await db.from("bot_jobs").insert({
+      server_id: serverId,
+      job_type: "owner_dm",
+      payload: { subject: "management", active },
+      status: "pending",
+    });
+    // Cancel pending website announcement jobs when management stops.
+    if (!active) {
+      await db.from("bot_jobs")
+        .update({ status: "failed", error_message: "Management stopped", updated_at: new Date().toISOString() })
+        .eq("server_id", serverId).eq("status", "pending");
+    }
+    return json({ ok: true, active });
   }
 
   return json({ error: "Unsupported action." }, 400);
