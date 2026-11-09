@@ -214,7 +214,7 @@ async def handle_announcement_publish(job):
         role_id = str(raw_id)
         if role_id.isdigit():
             role = guild.get_role(int(role_id))
-            if role and (role.mentionable or permissions.administrator if me else role.mentionable):
+            if role and not role.is_default() and (role.mentionable or (me is not None and permissions.administrator)):
                 valid_roles.append(role)
 
     mention_text = None
@@ -341,7 +341,7 @@ async def handle_guild_snapshot_publish(job):
         })
     if channel_rows:
         db.table("discord_channels").upsert(
-            channel_rows, on_conflict="server_id,channel_id"
+            channel_rows, on_conflict="channel_id"
         ).execute()
 
     role_rows = [{
@@ -370,6 +370,7 @@ async def process_pending_jobs():
             db.table("bot_jobs")
             .select("id,server_id,job_type,payload,attempts")
             .eq("status", "pending")
+            .in_("job_type", list(JOB_HANDLERS.keys()))
             .order("created_at", desc=False)
             .limit(10)
         )
