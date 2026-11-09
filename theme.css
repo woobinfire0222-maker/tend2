@@ -470,3 +470,23 @@ html.theme-dark .hero-note:before{
 html.theme-dark .story-band .story-stat span{
   color:#b6c1d0!important;
 }
+
+
+/* Homepage showcase heading: remove the light gradient band in dark mode */
+html.theme-dark #product-showcase{
+  background:linear-gradient(180deg,#11151d 0%,#151c28 50%,#11151d 100%)!important;
+  color:#edf1f7!important;
+}
+html.theme-dark #product-showcase .showcase-heading,
+html.theme-dark #product-showcase .showcase-heading h2{
+  background:transparent!important;
+  color:#edf1f7!important;
+}
+html.theme-dark #product-showcase .showcase-heading p{
+  background:transparent!important;
+  color:#aab3c2!important;
+}
+html.theme-dark #product-showcase .showcase-heading .kicker{
+  background:transparent!important;
+  color:#8eafff!important;
+}
