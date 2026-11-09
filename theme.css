@@ -529,3 +529,90 @@ html.theme-dark body[data-page="servers"] .notice{
 html.theme-dark body[data-page="servers"] .empty{
   color:#aab3c2!important;
 }
+
+
+/* Homepage server-screen mockup: dark surfaces must cover the whole preview */
+html.theme-dark .showcase-window{
+  background:#151b25!important;
+  border-color:#303949!important;
+}
+html.theme-dark .showcase-browserbar{
+  background:#1a202b!important;
+  border-color:#303949!important;
+}
+html.theme-dark .showcase-browserbar span{
+  background:#111720!important;
+  border-color:#394457!important;
+  color:#aab3c2!important;
+}
+html.theme-dark .showcase-app{
+  background:#151b25!important;
+  color:#edf1f7!important;
+}
+html.theme-dark .showcase-rail{
+  background:#171e29!important;
+  border-color:#303949!important;
+}
+html.theme-dark .showcase-rail-icon{
+  background:#202837!important;
+  border-color:#394457!important;
+  color:#aab3c2!important;
+}
+html.theme-dark .showcase-rail-icon.active{
+  background:#263550!important;
+  border-color:#49618b!important;
+  color:#a9c0ff!important;
+}
+html.theme-dark .showcase-serverlist{
+  background:#1a202b!important;
+  border-color:#303949!important;
+  color:#edf1f7!important;
+}
+html.theme-dark .showcase-main{
+  background:#151b25!important;
+  color:#edf1f7!important;
+}
+html.theme-dark .showcase-main-top{
+  background:transparent!important;
+  border-color:#303949!important;
+  color:#edf1f7!important;
+}
+html.theme-dark .showcase-server-card,
+html.theme-dark .showcase-metric{
+  background:#202837!important;
+  border-color:#303949!important;
+  color:#edf1f7!important;
+}
+html.theme-dark .showcase-metric small,
+html.theme-dark .showcase-server-card small{
+  color:#aab3c2!important;
+}
+html.theme-dark .showcase-table th{
+  background:#202837!important;
+  color:#aab3c2!important;
+}
+html.theme-dark .showcase-table td{
+  background:transparent!important;
+  border-color:#303949!important;
+  color:#c7cfdb!important;
+}
+html.theme-dark .showcase-panel-title{
+  color:#edf1f7!important;
+}
+html.theme-dark .showcase-panel-title span{
+  color:#9eb7ff!important;
+}
+html.theme-dark .showcase-navitem{
+  color:#aab3c2!important;
+}
+html.theme-dark .showcase-navitem.active{
+  background:#263550!important;
+  color:#a9c0ff!important;
+}
+html.theme-dark .showcase-notice{
+  background:#202837!important;
+  border-color:#394457!important;
+}
+html.theme-dark .showcase-notice p{
+  color:#aab3c2!important;
+}
