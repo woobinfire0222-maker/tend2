@@ -96,7 +96,7 @@ shell("requests","무료 이용 시작","Discord 서버를 연결하면 기본 �
 const form=$("#request-form"),select=$("#server-select"),help=$("#server-select-help");
 const nameInput=$("#server-name"),idInput=$("#server-id");
 const planSelect=$("#plan"),paymentPanel=$("#payment-panel"),submitButton=$("#submit-request");
-const syncPlanUI=()=>{const free=planSelect?.value==="FREE";if(paymentPanel)paymentPanel.classList.toggle("hidden",free);if(submitButton)submitButton.textContent=free?"무료 플랜 신청 및 자동 승인":"신청 접수하기 →";};
+const syncPlanUI=()=>{const free=planSelect?.value==="FREE";if(paymentPanel)paymentPanel.classList.toggle("hidden",free);if(submitButton)submitButton.textContent=free?"무료 플랜 활성화":"신청 접수하기 →";};
 planSelect?.addEventListener("change",syncPlanUI);syncPlanUI();
 let discordAccessToken="";
 if(!form||!select)return;
@@ -153,7 +153,7 @@ if(manageable.length){
  if(freeRows.error)console.error("FREE entitlement lookup failed:",freeRows.error);
  else (freeRows.data||[]).forEach(r=>blockedIds.add(String(r.server_id)));
  const available=manageable.filter(g=>!blockedIds.has(String(g.id)));
- select.innerHTML='<option value="">신청할 서버를 선택해 주세요</option>';
+ select.innerHTML='<option value="">연결할 서버를 선택해 주세요</option>';
  available.forEach(g=>{
   const option=document.createElement("option");
   option.value=String(g.id);
@@ -162,9 +162,9 @@ if(manageable.length){
   select.append(option);
  });
  if(!available.length){
-  select.innerHTML='<option value="">신청 가능한 서버가 없어요</option>';
+  select.innerHTML='<option value="">연결할 수 있는 서버가 없어요</option>';
   if(help)help.textContent="이미 신청했거나 이용 기간이 남아 있는 서버는 목록에서 숨겨져요. 이용 기간이 끝나면 다시 신청할 수 있어요.";
- }else if(help)help.textContent="신청 가능한 서버 "+available.length+"개가 표시돼요. 이미 신청했거나 이용 기간이 남은 서버는 표시되지 않아요.";
+ }else if(help)help.textContent="연결 가능한 서버 "+available.length+"개가 표시돼요. 이미 신청했거나 이용 기간이 남은 서버는 표시되지 않아요.";
 }
 select.disabled=false;
 const inviteBox=$("#request-invite-result");
@@ -206,7 +206,7 @@ const renderFreeEntitlements=async()=>{
  if(!freeStatus)return;
  const result=await sb.from("free_entitlements").select("server_id,server_name,status,created_at").eq("user_id",user.id).eq("status","active").order("created_at",{ascending:false});
  if(result.error){console.warn("FREE entitlement list unavailable:",result.error);freeStatus.textContent="무료 이용 현황을 불러오지 못했어요.";return;}
- freeStatus.innerHTML=result.data?.length?'<div class="stack-list">'+result.data.map(x=>'<div class="setting-row"><div><strong>'+escapeHtml(x.server_name)+'</strong><small>FREE · 기간 제한 없음</small></div><span class="badge green">자동 승인 · 이용 중</span></div>').join("")+'</div>':'<div class="empty">아직 활성화된 무료 서버가 없어요.</div>';
+ freeStatus.innerHTML=result.data?.length?'<div class="stack-list">'+result.data.map(x=>'<div class="setting-row"><div><strong>'+escapeHtml(x.server_name)+'</strong><small>FREE · 기간 제한 없음</small></div><span class="badge green">무료 · 이용 중</span></div>').join("")+'</div>':'<div class="empty">아직 활성화된 무료 서버가 없어요.</div>';
 };
 void renderFreeEntitlements();
 form.addEventListener("submit",async e=>{
@@ -222,7 +222,7 @@ form.addEventListener("submit",async e=>{
    if(!discordAccessToken)throw new Error("Discord 서버 권한 확인이 필요해요. 다시 로그인해 주세요.");
    const {data,error}=await sb.functions.invoke("discord-action",{body:{action:"activate_free",server_id:serverId,server_name:name,provider_token:discordAccessToken}});
    if(error||data?.error)throw new Error(data?.error||error?.message||"무료 플랜을 활성화하지 못했어요.");
-   notify(data?.already_active?"이미 FREE 플랜을 이용 중이에요.":"FREE 신청이 자동 승인되어 활성화됐어요.");
+   notify(data?.already_active?"이미 FREE 플랜을 이용 중이에요.":"FREE 플랜이 활성화됐어요.");
    await renderFreeEntitlements();
   }else{
    throw new Error("유료 플랜은 추후 재공 예정이에요.");
@@ -245,7 +245,7 @@ async function loadRequestTable(){
   ]));
   if(paid.error)throw paid.error;
   if(free.error)throw free.error;
-  const rows=[...(paid.data||[]),...(free.data||[]).map(r=>({id:"free-"+r.server_id,plan:"FREE",server_name:r.server_name,status:r.status==="active"?"approved":"rejected",payment_status:"무료",created_at:r.created_at,rejection_reason:null}))].sort((x,y)=>new Date(y.created_at)-new Date(x.created_at)).slice(0,50);
+  const rows=[...(paid.data||[]),...(free.data||[]).map(r=>({id:"free-"+r.server_id,plan:"FREE",server_name:r.server_name,status:r.status==="active"?"active":"rejected",payment_status:"무료",created_at:r.created_at,rejection_reason:null}))].sort((x,y)=>new Date(y.created_at)-new Date(x.created_at)).slice(0,50);
   if(!rows.length){t.innerHTML='<tr><td colspan="5" class="empty">아직 신청 내역이 없어요.</td></tr>';return;}
   t.innerHTML=rows.map(r=>'<tr><td>'+escapeHtml(r.server_name)+'</td><td>'+escapeHtml(r.plan)+'</td><td>'+statusBadge(r.status)+'</td><td>'+(r.plan==="FREE"?'<span class="badge green">무료 · 자동 승인</span>':escapeHtml(r.payment_status||"확인 필요"))+(r.rejection_reason?'<small class="reason-text">'+escapeHtml(r.rejection_reason)+'</small>':"")+'</td><td>'+new Date(r.created_at).toLocaleDateString("ko-KR")+'</td></tr>').join("");
  }catch(e){console.error("request table load failed:",e);t.innerHTML='<tr><td colspan="5" class="empty">신청 내역을 불러오지 못했어요.</td></tr>';}
