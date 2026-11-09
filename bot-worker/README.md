@@ -25,4 +25,4 @@ In the Discord Developer Portal, enable **Message Content Intent** and **Server 
 
 When the process is online, it updates `managed_servers.bot_connected` and `last_seen_at`. The website allows management to start only when this heartbeat is recent. The moderation handler reads `managed_servers.is_active` and `moderation_rules` directly.
 
-Current worker scope: live heartbeat, management on/off, banned-word moderation (delete, timeout, ban), `!tend상태`, website announcement publishing (`announcement.publish`), server-owner management DMs (`owner_dm`), and Discord server/channel/role synchronization (`guild_snapshot.publish`). The worker polls supported `bot_jobs` every five seconds, claims each job once, and records completed or failed status in Supabase. Other feature cards and command-library actions still need handlers before they can perform their advertised Discord actions.
+Current worker scope: live heartbeat, management on/off, banned-word moderation (delete, timeout, ban), and `!tend상태`. Other feature cards and command-library actions still need handlers before they can perform their advertised Discord actions.
