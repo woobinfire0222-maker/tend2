@@ -472,21 +472,32 @@ html.theme-dark .story-band .story-stat span{
 }
 
 
-/* Homepage showcase heading: remove the light gradient band in dark mode */
+/* Homepage scroll-story: blend step copy into the dark section */
 html.theme-dark #product-showcase{
-  background:linear-gradient(180deg,#11151d 0%,#151c28 50%,#11151d 100%)!important;
+  background:#11151d!important;
   color:#edf1f7!important;
 }
-html.theme-dark #product-showcase .showcase-heading,
-html.theme-dark #product-showcase .showcase-heading h2{
+html.theme-dark #product-showcase .story-step{
   background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+html.theme-dark #product-showcase .story-step h3{
   color:#edf1f7!important;
 }
-html.theme-dark #product-showcase .showcase-heading p{
-  background:transparent!important;
+html.theme-dark #product-showcase .story-step p{
   color:#aab3c2!important;
 }
-html.theme-dark #product-showcase .showcase-heading .kicker{
-  background:transparent!important;
-  color:#8eafff!important;
+html.theme-dark #product-showcase .story-step-no,
+html.theme-dark #product-showcase .story-step-hint{
+  color:#9eb7ff!important;
+}
+@media(max-width:850px){
+  html.theme-dark #product-showcase .story-step{
+    background:#1a202b!important;
+    border-color:#303949!important;
+  }
+  html.theme-dark #product-showcase .story-step.is-active{
+    border-color:#496a9f!important;
+  }
 }
