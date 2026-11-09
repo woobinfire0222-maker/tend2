@@ -176,24 +176,26 @@
   }
   function applyPlanRestrictions() {
     const free=serverPlan==="free";
+    const paid=serverPlan==="paid";
+    const locked=!paid;
     ["blacklist"].forEach(key=>{
       const tab=$('[data-bot-tab="'+key+'"]'),panel=$('[data-bot-panel="'+key+'"]');
-      if(tab)tab.classList.toggle("hidden",free);
-      if(panel)panel.classList.toggle("hidden",free);
+      if(tab)tab.classList.toggle("hidden",locked);
+      if(panel)panel.classList.toggle("hidden",locked);
     });
     const featureTab=$('[data-bot-tab="features"]'),featurePanel=$('[data-bot-panel="features"]');
     if(featureTab)featureTab.classList.remove("hidden");
     if(featurePanel)featurePanel.classList.remove("hidden");
-    ["start-management","stop-management"].forEach(id=>{const el=$("#"+id);if(el)el.classList.toggle("hidden",free);});
+    ["start-management","stop-management"].forEach(id=>{const el=$("#"+id);if(el)el.classList.toggle("hidden",locked);});
     ["announcement-image-file","announcement-image","announcement-mention"].forEach(id=>{
-      const el=$("#"+id);if(el)el.closest(".field")?.classList.toggle("hidden",free);
+      const el=$("#"+id);if(el)el.closest(".field")?.classList.toggle("hidden",locked);
     });
     $("#announcement-role-field")?.classList.toggle("hidden",true);
     const limit=$("#moderation-count");
     if(limit&&free&&!limit.textContent.includes("/ 5"))limit.textContent=limit.textContent+" / 5";
     const notice=$("#plan-access-notice");
     if(notice){
-      notice.textContent=free?"현재 FREE 플랜을 이용 중이에요. 공지, 경고, 금칙어 최대 5개, 기본 서버 정보와 서버 로그를 이용할 수 있어요. 유료 플랜은 추후 재공 예정입니다.":"기존 유효 이용권으로 연결된 서버예요. 승인된 이용 기간 동안 기존 기능을 이용할 수 있어요.";
+      notice.textContent=free?"현재 FREE 플랜을 이용 중이에요. 공지, 경고, 금칙어 최대 5개, 기본 서버 정보와 서버 로그를 이용할 수 있어요. 유료 플랜은 추후 재공 예정입니다.":paid?"기존 유효 이용권으로 연결된 서버예요. 승인된 이용 기간 동안 기존 기능을 이용할 수 있어요.":"서버를 선택하면 이용 가능한 기능이 표시돼요. 유료 플랜은 추후 재공 예정입니다.";
       notice.classList.remove("hidden");
     }
   }
