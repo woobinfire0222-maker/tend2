@@ -65,22 +65,15 @@ function showLogoutConfirm(){
  document.body.append(overlay);
 }
 async function logout(){if(!sb)return;showLogoutConfirm()}
-function nav(page){const admin=isAdmin(user)||isOwnerName(user);const items=[["dashboard","▦","대시보드"],["requests","▤","이용권 신청"],["bot","⌘","봇 관리"],["servers","◈","서버 관리"],["support","✉","문의 센터"]];if(experimentMember)items.push(["lab","✧","실험실"]);if(admin)items.push(["admin","⚙","관리자"]);const html=items.map(([id,icon,label])=>'<a class="'+(page===id?"active":"")+'" href="./'+id+'.html"><span class="nav-icon">'+icon+'</span>'+label+'</a>').join("");$$("[data-side-nav]").forEach(n=>n.innerHTML='<div class="nav-label">WORKSPACE</div><div class="side-nav">'+html+'</div>');$$("[data-profile-name]").forEach(n=>n.textContent=profileName);$$("[data-profile-initial]").forEach(n=>setAvatar(n,user));$$("[data-profile-id]").forEach(n=>n.textContent=discordUserId(user)||"Discord 계정");$$("[data-profile-email]").forEach(n=>n.textContent=user?.email||"이메일 정보가 제공되지 않았어요.");$$("[data-logout]").forEach(b=>b.addEventListener("click",logout));$$("[data-mobile-menu]").forEach(b=>{if(b.dataset.menuBound)return;b.dataset.menuBound="1";b.setAttribute("aria-expanded","false");b.setAttribute("aria-label","메뉴 열기");b.addEventListener("click",()=>{const sidebar=$(".sidebar");if(!sidebar)return;const opening=!sidebar.classList.contains("open");sidebar.classList.toggle("open",opening);document.body.classList.toggle("mobile-nav-open",opening);b.setAttribute("aria-expanded",String(opening));b.setAttribute("aria-label",opening?"메뉴 닫기":"메뉴 열기");});});if(!document.documentElement.dataset.mobileNavBound){document.documentElement.dataset.mobileNavBound="1";document.addEventListener("click",e=>{const sidebar=$(".sidebar"),button=e.target.closest("[data-mobile-menu]");if(!sidebar?.classList.contains("open"))return;if(button||sidebar.contains(e.target))return;sidebar.classList.remove("open");document.body.classList.remove("mobile-nav-open");$$("[data-mobile-menu]").forEach(b=>{b.setAttribute("aria-expanded","false");b.setAttribute("aria-label","메뉴 열기")});});document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;$(".sidebar")?.classList.remove("open");document.body.classList.remove("mobile-nav-open");$$("[data-mobile-menu]").forEach(b=>{b.setAttribute("aria-expanded","false");b.setAttribute("aria-label","메뉴 열기")});});}$$(".sidebar [data-side-nav] a").forEach(a=>a.addEventListener("click",()=>{$(".sidebar")?.classList.remove("open");document.body.classList.remove("mobile-nav-open");$$("[data-mobile-menu]").forEach(b=>{b.setAttribute("aria-expanded","false");b.setAttribute("aria-label","메뉴 열기")});}));$$("[data-admin-only]").forEach(n=>n.classList.toggle("hidden",!admin))}
+function nav(page){const admin=isAdmin(user)||isOwnerName(user);const items=[["dashboard","▦","대시보드"],["requests","▤","무료 이용 시작"],["bot","⌘","봇 관리"],["servers","◈","서버 관리"],["support","✉","문의 센터"]];if(experimentMember)items.push(["lab","✧","실험실"]);if(admin)items.push(["admin","⚙","관리자"]);const html=items.map(([id,icon,label])=>'<a class="'+(page===id?"active":"")+'" href="./'+id+'.html"><span class="nav-icon">'+icon+'</span>'+label+'</a>').join("");$$("[data-side-nav]").forEach(n=>n.innerHTML='<div class="nav-label">WORKSPACE</div><div class="side-nav">'+html+'</div>');$$("[data-profile-name]").forEach(n=>n.textContent=profileName);$$("[data-profile-initial]").forEach(n=>setAvatar(n,user));$$("[data-profile-id]").forEach(n=>n.textContent=discordUserId(user)||"Discord 계정");$$("[data-profile-email]").forEach(n=>n.textContent=user?.email||"이메일 정보가 제공되지 않았어요.");$$("[data-logout]").forEach(b=>b.addEventListener("click",logout));$$("[data-mobile-menu]").forEach(b=>{if(b.dataset.menuBound)return;b.dataset.menuBound="1";b.setAttribute("aria-expanded","false");b.setAttribute("aria-label","메뉴 열기");b.addEventListener("click",()=>{const sidebar=$(".sidebar");if(!sidebar)return;const opening=!sidebar.classList.contains("open");sidebar.classList.toggle("open",opening);document.body.classList.toggle("mobile-nav-open",opening);b.setAttribute("aria-expanded",String(opening));b.setAttribute("aria-label",opening?"메뉴 닫기":"메뉴 열기");});});if(!document.documentElement.dataset.mobileNavBound){document.documentElement.dataset.mobileNavBound="1";document.addEventListener("click",e=>{const sidebar=$(".sidebar"),button=e.target.closest("[data-mobile-menu]");if(!sidebar?.classList.contains("open"))return;if(button||sidebar.contains(e.target))return;sidebar.classList.remove("open");document.body.classList.remove("mobile-nav-open");$$("[data-mobile-menu]").forEach(b=>{b.setAttribute("aria-expanded","false");b.setAttribute("aria-label","메뉴 열기")});});document.addEventListener("keydown",e=>{if(e.key!=="Escape")return;$(".sidebar")?.classList.remove("open");document.body.classList.remove("mobile-nav-open");$$("[data-mobile-menu]").forEach(b=>{b.setAttribute("aria-expanded","false");b.setAttribute("aria-label","메뉴 열기")});});}$$(".sidebar [data-side-nav] a").forEach(a=>a.addEventListener("click",()=>{$(".sidebar")?.classList.remove("open");document.body.classList.remove("mobile-nav-open");$$("[data-mobile-menu]").forEach(b=>{b.setAttribute("aria-expanded","false");b.setAttribute("aria-label","메뉴 열기")});}));$$("[data-admin-only]").forEach(n=>n.classList.toggle("hidden",!admin))}
 async function getSession(){if(!sb)return null;const {data,error}=await sb.auth.getSession();if(error)throw error;return data.session?.user||null}
 async function requireUser(){try{user=await getSession()}catch(e){notify("로그인 상태를 확인하지 못했어요. 새로고침 후 다시 시도해 주세요.");return false}if(!user){if(location.pathname.endsWith("login.html"))return false;location.href="./login.html";return false}profileName=uname(user)||user.user_metadata?.global_name||user.email||"Discord 사용자";if(location.pathname.endsWith("login.html"))return false;return true}
 function shell(page,title,subtitle){nav(page);const titleEl=$("[data-page-title]");if(titleEl)titleEl.textContent=title;const sub=$("[data-page-subtitle]");if(sub)sub.textContent=subtitle||"";const userLabel=$("[data-top-user]");if(userLabel)userLabel.textContent=profileName}
 async function count(table,filters){let q=sb.from(table).select("id",{count:"exact",head:true});for(const [k,v] of Object.entries(filters||{}))q=q.eq(k,v);const {count,error}=await q;if(error){console.error("Supabase count error:",table,error);return null}return count}
 function statusBadge(s){const map={pending:["확인 대기","amber"],approved:["승인됨","blue"],rejected:["거절됨","red"],completed:["완료","green"],paid:["입금 확인","green"],active:["활성","green"],inactive:["중지","red"]};const x=map[s]||[s||"확인 필요",""];return '<span class="badge '+x[1]+'">'+x[0]+"</span>"}
 async function loadDashboard(){
-shell("dashboard","대시보드","TEND 이용 현황과 최근 신청을 확인하세요.");
-void loadDashboardServerStatus();
-let counts,recent;try{[counts,recent]=await withTimeout(Promise.all([Promise.all([count("purchase_requests",{user_id:user.id}),count("purchase_requests",{user_id:user.id,status:"pending"}),count("purchase_requests",{user_id:user.id,status:"approved"}),count("purchase_requests",{user_id:user.id,status:"completed"})]),sb.from("purchase_requests").select("id,plan,server_name,status,created_at").eq("user_id",user.id).order("created_at",{ascending:false}).limit(5)]));}catch(e){console.error("dashboard data load timeout:",e);counts=[null,null,null,null];recent={data:null,error:{message:"요청 시간이 초과됐어요."}};notify("데이터를 불러오는 데 시간이 오래 걸려요. 새로고침해 주세요.");}
-["#stat-all","#stat-pending","#stat-approved","#stat-completed"].forEach((sel,i)=>{const el=$(sel);if(el)el.textContent=counts[i]===null?"오류":String(counts[i])});
-const {data,error}=recent;
-const tbody=$("#recent-requests");
-if(error){console.error("purchase_requests load error:",error);if(tbody)tbody.innerHTML='<tr><td colspan="4">신청 내역 오류: '+escapeHtml(error.message||error.code||"알 수 없는 오류")+'</td></tr>';}
-else if(!data?.length){if(tbody)tbody.innerHTML='<tr><td colspan="4" class="empty">아직 신청 내역이 없어요.</td></tr>';}
-else if(tbody){tbody.innerHTML=data.map(r=>'<tr><td>'+escapeHtml(r.server_name)+'</td><td>'+escapeHtml(r.plan)+'</td><td>'+statusBadge(r.status)+'</td><td>'+new Date(r.created_at).toLocaleDateString("ko-KR")+'</td></tr>').join("");}
+shell("dashboard","대시보드","무료로 연결한 서버와 봇 상태를 확인하세요.");
+await loadDashboardServerStatus();
 const refresh=$("#refresh-server-status");if(refresh&&!refresh.dataset.bound){refresh.dataset.bound="1";refresh.addEventListener("click",loadDashboardServerStatus);}
 }
 async function loadDashboardServerStatus(){
@@ -92,14 +85,14 @@ const unique=[];const seen=new Set();(req.data||[]).forEach(r=>{if(r.server_id&&
 const freeResult=await withTimeout(sb.from("free_entitlements").select("server_id,server_name,status").eq("user_id",user.id).eq("status","active"));
 if(freeResult.error){console.error("FREE server status query failed:",freeResult.error);box.innerHTML="<div class=\"empty\">무료 서버 상태를 불러오지 못했어요.</div>";return;}
 (freeResult.data||[]).forEach(r=>{if(r.server_id&&!seen.has(r.server_id)){seen.add(r.server_id);unique.push({...r,plan:"FREE"})}});
-if(!unique.length){box.innerHTML='<div class="empty">아직 승인된 서버가 없어요. 이용권 신청 후 승인을 받아 주세요.</div>';return;}
+if(!unique.length){box.innerHTML='<div class="empty">아직 연결된 서버가 없어요. 무료 이용 시작에서 서버를 연결해 주세요.</div>';return;}
 let live;try{live=await withTimeout(sb.from("managed_servers").select("server_id,server_name,is_active,bot_connected,last_seen_at,updated_at").in("server_id",unique.map(r=>r.server_id)));}catch(e){console.error("managed servers timeout:",e);box.innerHTML='<div class="empty">봇 상태를 불러오지 못했어요. 새로고침해 주세요.</div>';return;}
 if(live.error){console.error("managed_servers load error:",live.error);box.innerHTML='<div class="empty">봇 상태 조회 오류: '+escapeHtml(live.error.message||live.error.code||"알 수 없는 오류")+'</div>';return;}
 const byId=new Map((live.data||[]).map(r=>[r.server_id,r]));
 box.innerHTML='<div class="stack-list">'+unique.map(r=>{const s=byId.get(r.server_id);const recent=s?.last_seen_at&&(Date.now()-new Date(s.last_seen_at).getTime()<120000);const connected=!!s?.bot_connected&&!!recent;const state=connected?'<span class="badge green">봇 온라인</span>':'<span class="badge amber">연결 확인 필요</span>';const management=s?.is_active?'<span class="badge blue">관리 시작</span>':'<span class="badge">관리 중지</span>';const seenAt=s?.last_seen_at?new Date(s.last_seen_at).toLocaleString("ko-KR"):"접속 기록 없음";return '<div class="stack-row"><div><strong>'+escapeHtml(s?.server_name||r.server_name||"Discord 서버")+'</strong><small>마지막 응답: '+escapeHtml(seenAt)+'</small></div><div class="stack-actions">'+state+management+'</div></div>'}).join("")+'</div>';
 }
 async function loadRequests(){
-shell("requests","이용권 신청","FREE는 신청 즉시 자동 승인되고, 유료 이용권은 입금 확인 후 승인돼요.");
+shell("requests","무료 이용 시작","Discord 서버를 연결하면 기본 기능을 바로 무료로 이용할 수 있어요.");
 const form=$("#request-form"),select=$("#server-select"),help=$("#server-select-help");
 const nameInput=$("#server-name"),idInput=$("#server-id");
 const planSelect=$("#plan"),paymentPanel=$("#payment-panel"),submitButton=$("#submit-request");
@@ -152,7 +145,7 @@ if(manageable.length){
    const startAt=r.updated_at||r.created_at;
    const fallbackExpiry=durationDays&&startAt?new Date(new Date(startAt).getTime()+durationDays*86400000).toISOString():null;
    const effectiveExpiry=expiry||fallbackExpiry;
-   const active=r.status==="pending"||!effectiveExpiry||new Date(effectiveExpiry).getTime()>now;
+   const active=r.status==="approved"&&(!effectiveExpiry||new Date(effectiveExpiry).getTime()>now);
    if(active)blockedIds.add(String(r.server_id));
   });
  }
@@ -186,9 +179,9 @@ function updateRequestInvite(){
  if(!serverId||!serverName){inviteBox.classList.add("hidden");return}
  inviteBox.classList.remove("hidden");
  const heading=document.createElement("strong");
- heading.textContent="신청 전에 TEND 봇을 초대해 주세요";
+ heading.textContent="무료 플랜을 활성화하기 전에 TEND 봇을 초대해 주세요";
  const description=document.createElement("p");
- description.textContent=serverName+" 서버에 TEND 봇을 추가한 뒤 이용권 신청을 접수해 주세요.";
+ description.textContent=serverName+" 서버에 TEND 봇을 추가한 뒤 무료 플랜을 활성화해 주세요.";
  inviteBox.append(heading,description);
  const invite=new URL("https://discord.com/oauth2/authorize");
  invite.searchParams.set("client_id","1543239879633412186");
@@ -218,9 +211,10 @@ const renderFreeEntitlements=async()=>{
 void renderFreeEntitlements();
 form.addEventListener("submit",async e=>{
  e.preventDefault();if(!sb||!user)return;
- const plan=planSelect?.value||"1일",serverId=select.value;
+ const plan=planSelect?.value||"FREE",serverId=select.value;
  const option=select.selectedOptions[0],name=option?.dataset?.name||"";
- if(!serverId||!name){notify("신청할 Discord 서버를 선택해 주세요.");select.focus();return}
+ if(plan!=="FREE"){notify("유료 플랜은 추후 재공 예정이에요.");return;}
+ if(!serverId||!name){notify("연결할 Discord 서버를 선택해 주세요.");select.focus();return}
  if(!/^[0-9]{17,20}$/.test(serverId)){notify("서버 정보를 다시 불러와 주세요.");return}
  const b=submitButton;b.disabled=true;b.textContent=plan==="FREE"?"무료 플랜 활성화 중…":"저장 중…";
  try{
@@ -231,9 +225,7 @@ form.addEventListener("submit",async e=>{
    notify(data?.already_active?"이미 FREE 플랜을 이용 중이에요.":"FREE 신청이 자동 승인되어 활성화됐어요.");
    await renderFreeEntitlements();
   }else{
-   const {error}=await sb.from("purchase_requests").insert({user_id:user.id,plan,server_name:name,server_id:serverId,status:"pending",payment_status:"unpaid"});
-   if(error)throw error;
-   notify("신청이 접수됐어요. 봇 초대와 입금 확인 후 관리가 시작돼요.");
+   throw new Error("유료 플랜은 추후 재공 예정이에요.");
   }
   await loadRequestTable();
   form.reset();select.value="";if(nameInput)nameInput.value="";if(idInput)idInput.value="";
@@ -306,7 +298,7 @@ const states={queued:["대기 중","amber"],processing:["처리 중","blue"],com
 t.innerHTML=data.map(r=>{const st=states[r.status]||[r.status,""];return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(names[r.command_type]||r.command_type)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.result||"—")+'</td></tr>'}).join("");
 }
 async function loadServers(){
-shell("servers","서버 관리","FREE 플랜과 유료 이용권으로 연결한 서버를 확인하세요.");
+shell("servers","서버 관리","무료 플랜과 기존 유효 이용권으로 연결한 서버를 확인하세요.");
 const box=$("#server-list");if(!box)return;box.innerHTML='<div class="empty">서버 목록을 불러오는 중…</div>';
 let paid,free;
 try{[paid,free]=await withTimeout(Promise.all([
@@ -318,7 +310,7 @@ const map=new Map();
 (free.data||[]).forEach(r=>{if(r.server_id)map.set(r.server_id,{...r,plan:"FREE",free:true})});
 (paid.data||[]).forEach(r=>{if(r.server_id)map.set(r.server_id,{...r,free:false})});
 const rows=[...map.values()];
-if(!rows.length){box.innerHTML='<div class="empty">아직 연결된 서버가 없어요. FREE 플랜을 활성화하거나 이용권을 신청해 주세요.</div>';return}
+if(!rows.length){box.innerHTML='<div class="empty">아직 연결된 서버가 없어요. 무료 이용 시작에서 서버를 연결해 주세요.</div>';return}
 const ids=[...new Set(rows.map(r=>r.server_id).filter(Boolean))];let liveRows=[];
 if(ids.length){try{const live=await withTimeout(sb.from("managed_servers").select("server_id,server_name,bot_connected,management_available,is_active,expires_at,last_seen_at").in("server_id",ids));if(live.error)console.error("managed server status error:",live.error);else liveRows=live.data||[]}catch(e){console.error("managed server status timeout:",e)}}
 const liveMap=new Map(liveRows.map(x=>[x.server_id,x]));const clientId=String(cfg.discordBotClientId||"1543239879633412186").trim();
@@ -374,7 +366,7 @@ if(window.TEND_LAB){await window.TEND_LAB.init({sb,user,notify,escapeHtml,withTi
 notify("실험실 기능 파일을 불러오지 못했어요.");
 }
 async function loadAdmin(){
-shell("admin","관리자 대시보드","신청을 승인하거나 거절하고, 처리 사유를 남길 수 있습니다.");
+shell("admin","관리자 대시보드","기존 이용권 기록과 서버 운영 상태를 관리합니다.");
 if(!isAdmin(user)){const t=$("#admin-requests");if(t)t.innerHTML='<tr><td colspan="8" class="empty">이 계정은 관리자 계정이 아닙니다.</td></tr>';notify("관리자 계정만 이용할 수 있어요.");return}
 await loadExperimentAdmin();
 let totals;try{totals=await withTimeout(Promise.all([count("purchase_requests",{}),count("purchase_requests",{status:"pending"}),count("purchase_requests",{status:"rejected"}),count("purchase_requests",{status:"approved"})]));}catch(e){console.error("admin counts timeout:",e);totals=[null,null,null,null]}const [total,pending,unpaid,active]=totals;
