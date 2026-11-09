@@ -91,7 +91,7 @@
       sb.from("free_entitlements").select("server_id").eq("user_id",user.id).eq("server_id",id).eq("status","active").maybeSingle()
     ]);
     if (paid.error || free.error) { console.error("server entitlement query failed:",paid.error||free.error); notify("서버 권한을 확인하지 못했어요. 잠시 후 다시 시도해 주세요."); return false; }
-    if (!paid.data && !free.data) { notify("이 서버의 이용 권한이 없어요. FREE 플랜을 활성화하거나 이용권을 신청해 주세요."); return false; }
+    if (!paid.data && !free.data) { notify("이 서버의 이용 권한이 없어요. 무료 이용 시작에서 서버를 연결해 주세요."); return false; }
     serverPlan = paid.data ? "paid" : "free";
     serverId = id;
     applyPlanRestrictions();
@@ -160,7 +160,7 @@
     (free.data||[]).forEach(r=>{if(r.server_id)map.set(String(r.server_id),{...r,plan:"FREE"});});
     (paid.data||[]).forEach(r=>{if(r.server_id)map.set(String(r.server_id),{...r,plan:r.plan||"유료"});});
     const rows=[...map.values()];
-    if(!rows.length){select.innerHTML='<option value="">이용 가능한 서버가 없습니다.</option>';serverId="";serverPlan="none";applyPlanRestrictions();$("#managed-server-info").textContent="FREE 플랜을 활성화하거나 이용권을 신청하면 서버가 표시돼요.";return;}
+    if(!rows.length){select.innerHTML='<option value="">이용 가능한 서버가 없습니다.</option>';serverId="";serverPlan="none";applyPlanRestrictions();$("#managed-server-info").textContent="무료 이용 시작에서 서버를 연결하면 여기에 표시돼요.";return;}
     const inventory=await sb.from("discord_guilds").select("server_id,server_name,icon_url,bot_present,synced_at").in("server_id",rows.map(r=>String(r.server_id)));
     const inventoryReady=!inventory.error;
     const guildMap=new Map((inventory.data||[]).map(g=>[String(g.server_id),g]));
@@ -176,7 +176,7 @@
   }
   function applyPlanRestrictions() {
     const free=serverPlan==="free";
-    ["blacklist","jobs"].forEach(key=>{
+    ["blacklist"].forEach(key=>{
       const tab=$('[data-bot-tab="'+key+'"]'),panel=$('[data-bot-panel="'+key+'"]');
       if(tab)tab.classList.toggle("hidden",free);
       if(panel)panel.classList.toggle("hidden",free);
@@ -191,6 +191,11 @@
     $("#announcement-role-field")?.classList.toggle("hidden",true);
     const limit=$("#moderation-count");
     if(limit&&free&&!limit.textContent.includes("/ 5"))limit.textContent=limit.textContent+" / 5";
+    const notice=$("#plan-access-notice");
+    if(notice){
+      notice.textContent=free?"현재 FREE 플랜을 이용 중이에요. 공지, 경고, 금칙어 최대 5개, 기본 서버 정보와 서버 로그를 이용할 수 있어요. 유료 플랜은 추후 재공 예정입니다.":"기존 유효 이용권으로 연결된 서버예요. 승인된 이용 기간 동안 기존 기능을 이용할 수 있어요.";
+      notice.classList.remove("hidden");
+    }
   }
   function renderManagementControls(stateText) {
     const start=$("#start-management"),stop=$("#stop-management"),badge=$("#bot-status");
@@ -200,7 +205,7 @@
   }
   let managementTarget=false;
   async function management(active) {
-    if(serverPlan==="free"){notify("관리 시작/종료는 유료 이용권에서 사용할 수 있어요.");return;}
+    if(serverPlan==="free"){notify("관리 시작/종료는 현재 FREE 플랜에서 제공하지 않아요.");return;}
     if(managementBusy){notify("이미 관리 상태를 변경하고 있어요.");return;}
     if(active===managementActive){notify(active?"이미 관리 중인 서버예요.":"이미 관리가 종료된 서버예요.");return;}
     if(!await ensureServer())return;
