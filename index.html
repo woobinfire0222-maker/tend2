@@ -324,6 +324,78 @@ html{scroll-behavior:smooth;scroll-padding-top:88px}
 @media(max-width:600px){#product-showcase{padding:75px 0}.story-steps{grid-template-columns:1fr;gap:7px}.story-step{padding:13px 14px}.story-step h3{font-size:16px;margin:7px 0;line-height:1.4}.story-step p{font-size:11px;line-height:1.7}.story-step-hint{display:none}.story-step-no{font-size:8px}.story-visual-sticky{min-height:0}.showcase-app{grid-template-columns:37px 92px minmax(0,1fr);min-height:380px}.showcase-rail{gap:8px}.showcase-rail-icon{width:28px;height:28px}.showcase-serverlist{padding:13px 5px}.showcase-server-title{font-size:9px}.showcase-navitem{font-size:8px;padding:8px 4px}.showcase-main{padding:13px 8px}.showcase-main-top strong{font-size:12px}.showcase-server-card{padding:8px;margin:12px 0}.showcase-metrics{gap:4px}.showcase-metric{padding:7px 5px}.showcase-metric strong{font-size:13px}.showcase-table{font-size:7px}.showcase-table th,.showcase-table td{padding:7px 3px}.showcase-float-card{right:5px;bottom:-35px;width:180px}.tools-window{padding:14px}.tools-setting{gap:8px;padding:11px 0}.tools-setting small{font-size:8px}.tools-setting b{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.story-step,.story-scene{transition:none!important;transform:none!important}.story-step{opacity:1}}
 
+
+/* Introduction page dark-mode contrast and surface correction */
+html.theme-dark .hero,
+html.theme-dark .trust,
+html.theme-dark section.content,
+html.theme-dark .toolkit,
+html.theme-dark .workflow,
+html.theme-dark .principles,
+html.theme-dark .cta,
+html.theme-dark footer{background-color:#11151d;color:#edf1f7}
+html.theme-dark .hero{background:linear-gradient(180deg,#151b27 0%,#11151d 100%)}
+html.theme-dark .section-head h2,
+html.theme-dark .hero h1,
+html.theme-dark .toolkit-card h3,
+html.theme-dark .usecase strong,
+html.theme-dark .workflow-step strong,
+html.theme-dark .principle strong,
+html.theme-dark .showcase-heading,
+html.theme-dark .story-step strong,
+html.theme-dark .story-visual-label{color:#edf1f7}
+html.theme-dark .toolkit-card,
+html.theme-dark .usecase,
+html.theme-dark .workflow-step,
+html.theme-dark .principle,
+html.theme-dark .story-step,
+html.theme-dark .story-visual-sticky,
+html.theme-dark .showcase-window,
+html.theme-dark .tools-window,
+html.theme-dark .showcase-float-card{background:#1a202b;border-color:#303949;color:#edf1f7;box-shadow:0 12px 34px rgba(0,0,0,.22)}
+html.theme-dark .toolkit-card p,
+html.theme-dark .usecase p,
+html.theme-dark .workflow-step p,
+html.theme-dark .principle p,
+html.theme-dark .principles-lead,
+html.theme-dark .story-step-hint,
+html.theme-dark .showcase-caption,
+html.theme-dark .tools-footnote{color:#aab3c2}
+html.theme-dark .toolkit-tags span,
+html.theme-dark .workflow-index,
+html.theme-dark .principle-no,
+html.theme-dark .story-step-no,
+html.theme-dark .toolkit-number{background:#263550;border-color:#394b68;color:#a9c0ff}
+html.theme-dark .story-band{background:#171d28;border-color:#303949;color:#edf1f7}
+html.theme-dark .story-stat{background:transparent;border-color:#303949}
+html.theme-dark .story-stat span{color:#aab3c2}
+html.theme-dark .showcase-browserbar,
+html.theme-dark .showcase-rail,
+html.theme-dark .showcase-main-top,
+html.theme-dark .showcase-server-card,
+html.theme-dark .showcase-metric,
+html.theme-dark .tools-window-head,
+html.theme-dark .tools-setting{background:#202837;border-color:#303949;color:#edf1f7}
+html.theme-dark .showcase-server-sub,
+html.theme-dark .showcase-server-label,
+html.theme-dark .showcase-navitem,
+html.theme-dark .showcase-panel-title,
+html.theme-dark .showcase-table,
+html.theme-dark .showcase-float-foot{color:#aab3c2}
+html.theme-dark .showcase-navitem.active,
+html.theme-dark .showcase-pill,
+html.theme-dark .tools-toggle{background:#263550;color:#a9c0ff}
+html.theme-dark .split{background:linear-gradient(120deg,#171d28 0%,#202837 100%)}
+html.theme-dark .split h2,
+html.theme-dark .split .kicker{color:#edf1f7}
+html.theme-dark .cta-box{background:radial-gradient(circle at 15% 0%,#27344b 0%,#1b263a 58%,#182236 100%);border-color:#34445f;color:#edf1f7}
+html.theme-dark .footer-links a:hover,
+html.theme-dark .navlinks a:hover{color:#c5d4ff}
+html.theme-dark .price-features li{color:#c7cfdb}
+html.theme-dark .price-features{border-color:#303949}
+html.theme-dark .faq button{color:#edf1f7}
+html.theme-dark .hero-note,
+html.theme-dark .copyright{color:#8792a3}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js?v=20261029-2"></script>
