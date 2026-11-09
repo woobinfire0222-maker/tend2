@@ -391,12 +391,60 @@
   }
   async function loadAnnouncements() {
     const t=$("#announcements-list");
-    if(!t)return;
-    const q=await sb.from("bot_announcements").select("id,title,status,channel_id,created_at,error_message").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50);
-    if(q.error){console.error("announcement history query failed:",q.error);t.innerHTML='<tr><td colspan="5" class="empty">공지 내역을 불러오지 못했어요. 데이터베이스 설정을 확인해 주세요.</td></tr>';return;}
-    const states={queued:["발송 대기","amber"],sent:["발송 완료","green"],failed:["실패","red"],deleted:["삭제됨",""]};
-    t.innerHTML=q.data?.length?q.data.map(r=>{const st=states[r.status]||[r.status,""];return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.title||"(제목 없음)")+(r.error_message?'<small class="reason-text">'+escapeHtml(r.error_message)+'</small>':"")+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.channel_id||"기본 채널")+'</td><td>'+(r.status!=="deleted"&&serverPlan!=="free"?'<button class="btn btn-danger" data-announcement-delete="'+r.id+'">삭제</button>':"—")+'</td></tr>';}).join(""):'<tr><td colspan="5" class="empty">등록된 공지가 없습니다.</td></tr>';
-    $$("[data-announcement-delete]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("사이트의 공지 내역에서 삭제할까요?"))return;const id=b.dataset.announcementDelete;const u=await sb.from("bot_announcements").update({status:"deleted",updated_at:new Date().toISOString()}).eq("id",id).eq("server_id",sid());if(failed(u.error,"공지 내역을 삭제하지 못했어요."))return;notify("공지 내역을 삭제했어요.");await loadAnnouncements();}));
+    if(!t||!sid())return;
+    const [announcementResult,commandResult]=await Promise.all([
+      sb.from("announcements").select("id,title,status,channel_id,created_at,dashboard_command_id").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50),
+      sb.from("bot_commands").select("id,command_type,status,payload,result,created_at").eq("server_id",sid()).eq("user_id",user.id).eq("command_type","post_announcement").order("created_at",{ascending:false}).limit(50)
+    ]);
+    if(announcementResult.error&&commandResult.error){
+      console.error("announcement history query failed:",announcementResult.error,commandResult.error);
+      t.innerHTML='<tr><td colspan="5" class="empty">공지 내역을 불러오지 못했어요. 데이터베이스 설정을 확인해 주세요.</td></tr>';
+      return;
+    }
+    const commands=commandResult.data||[];
+    const commandById=new Map(commands.map(r=>[String(r.id),r]));
+    const linked=new Set();
+    const rows=(announcementResult.data||[]).map(r=>{
+      const commandId=r.dashboard_command_id?String(r.dashboard_command_id):"";
+      const command=commandId?commandById.get(commandId):null;
+      if(command)linked.add(commandId);
+      const commandStatus=command?.status;
+      const status=commandStatus==="completed"?"sent":commandStatus==="failed"?"failed":commandStatus==="processing"?"processing":commandStatus==="queued"||commandStatus==="pending"?"queued":r.status;
+      return {id:r.id,command_id:commandId,title:r.title,channel_id:r.channel_id,created_at:r.created_at,status,error_message:command?.result||"",pendingCommand:false};
+    });
+    commands.forEach(r=>{
+      if(linked.has(String(r.id)))return;
+      const payload=r.payload||{};
+      rows.push({
+        id:null,command_id:r.id,title:payload.title||"공지",channel_id:payload.channel_id||"",
+        created_at:r.created_at,status:r.status==="completed"?"sent":r.status==="failed"?"failed":r.status==="processing"?"processing":"queued",
+        error_message:r.result||"",pendingCommand:true
+      });
+    });
+    rows.sort((x,y)=>new Date(y.created_at)-new Date(x.created_at));
+    const states={queued:["발송 대기","amber"],pending:["발송 대기","amber"],processing:["전송 중","blue"],sent:["발송 완료","green"],completed:["발송 완료","green"],failed:["실패","red"],deleted:["삭제됨",""]};
+    t.innerHTML=rows.length?rows.map(r=>{
+      const st=states[r.status]||[r.status||"확인 필요",""];
+      const detail=r.error_message?'<small class="reason-text">'+escapeHtml(r.error_message)+'</small>':"";
+      const action=serverPlan==="free"?"—":r.pendingCommand
+        ?'<button class="btn btn-danger" data-announcement-command-cancel="'+escapeHtml(r.command_id)+'">취소</button>'
+        :r.status!=="deleted"?'<button class="btn btn-danger" data-announcement-delete="'+escapeHtml(r.id)+'" data-announcement-command="'+escapeHtml(r.command_id||"")+'">삭제</button>':"—";
+      return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.title||"(제목 없음)")+detail+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.channel_id||"기본 채널")+'</td><td>'+action+'</td></tr>';
+    }).join(""):'<tr><td colspan="5" class="empty">등록된 공지가 없습니다.</td></tr>';
+    $$("[data-announcement-delete]").forEach(b=>b.addEventListener("click",async()=>{
+      if(!confirm("사이트의 공지 내역에서 삭제할까요?"))return;
+      const id=b.dataset.announcementDelete,commandId=b.dataset.announcementCommand;
+      const update=await sb.from("announcements").update({status:"deleted",updated_at:new Date().toISOString()}).eq("id",id).eq("server_id",sid());
+      if(failed(update.error,"공지 내역을 삭제하지 못했어요."))return;
+      if(commandId)await sb.from("bot_commands").update({status:"failed",result:"웹 대시보드에서 취소됨"}).eq("id",commandId).eq("status","queued");
+      notify("공지 내역을 삭제했어요.");await loadAnnouncements();
+    }));
+    $$("[data-announcement-command-cancel]").forEach(b=>b.addEventListener("click",async()=>{
+      if(!confirm("대기 중인 공지 발송을 취소할까요?"))return;
+      const update=await sb.from("bot_commands").update({status:"failed",result:"웹 대시보드에서 취소됨"}).eq("id",b.dataset.announcementCommand).eq("user_id",user.id).eq("status","queued");
+      if(failed(update.error,"공지 발송을 취소하지 못했어요."))return;
+      notify("공지 발송을 취소했어요.");await loadAnnouncements();
+    }));
   }
   async function saveBlacklistServer(e) {
     e.preventDefault();if(!await ensureServer())return;
@@ -493,19 +541,30 @@
   }
   async function loadJobs() {
     const t=$("#bot-jobs-list");if(!t||!sid())return;
-    let q=await sb.from("bot_jobs").select("id,job_type,status,error_message,created_at").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50);
-    let rows=[];
-    if(q.error&&isMissingJobsTable(q.error)){
-      q=await sb.from("bot_commands").select("id,command_type,status,result,created_at").eq("server_id",sid()).eq("user_id",user.id).order("created_at",{ascending:false}).limit(50);
-      if(q.error){console.error(q.error);t.innerHTML='<tr><td colspan="4" class="empty">작업 기록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</td></tr>';return;}
-      rows=(q.data||[]).map(r=>({id:r.id,job_type:r.command_type,status:r.status==="queued"?"pending":r.status,error_message:r.result,created_at:r.created_at}));
-    }else if(q.error){console.error(q.error);t.innerHTML='<tr><td colspan="4" class="empty">작업 기록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</td></tr>';return;}
-    else rows=q.data||[];
-    $("#jobs-pending").textContent=rows.filter(r=>r.status==="pending"||r.status==="processing").length;
+    const [jobResult,commandResult]=await Promise.all([
+      sb.from("bot_jobs").select("id,job_type,status,error_message,created_at").eq("server_id",sid()).order("created_at",{ascending:false}).limit(50),
+      sb.from("bot_commands").select("id,command_type,status,result,created_at").eq("server_id",sid()).eq("user_id",user.id).order("created_at",{ascending:false}).limit(50)
+    ]);
+    if(jobResult.error&&commandResult.error){
+      console.error("bot job history query failed:",jobResult.error,commandResult.error);
+      t.innerHTML='<tr><td colspan="4" class="empty">작업 기록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</td></tr>';
+      return;
+    }
+    const rows=[
+      ...(jobResult.data||[]),
+      ...(commandResult.data||[]).map(r=>({
+        id:r.id,job_type:r.command_type,status:r.status==="queued"?"pending":r.status,
+        error_message:r.result,created_at:r.created_at
+      }))
+    ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,50);
+    $("#jobs-pending").textContent=rows.filter(r=>r.status==="pending"||r.status==="queued"||r.status==="processing").length;
     $("#jobs-failed").textContent=rows.filter(r=>r.status==="failed").length;
     const names={start_management:"관리 시작",stop_management:"관리 종료",management_start:"관리 시작",management_stop:"관리 종료",post_announcement:"공지 발송",delete_announcement:"공지 삭제",sync:"서버 정보 동기화",refresh_roles:"역할 정보 갱신",feature_config:"기능 설정",automation_config:"자동화 설정",forbidden_word_add:"금칙어 추가",forbidden_word_enable:"금칙어 활성",forbidden_word_delete:"금칙어 삭제",forbidden_word_list:"금칙어 목록",warning_add:"경고 부여",warning_list:"경고 목록",warning_cancel:"경고 취소",announcement_send:"공지 발송",announcement_schedule:"공지 예약",announcement_edit:"공지 수정",announcement_delete:"공지 삭제",announcement_channel_add:"공지 채널 추가",announcement_channel_delete:"공지 채널 삭제",ticket_config:"티켓 설정",ticket_type_config:"티켓 유형 설정",ticket_panel:"티켓 패널",ticket_open:"티켓 열기",ticket_close:"티켓 닫기",ticket_reopen:"티켓 재개",ticket_assign:"티켓 담당",ticket_history:"티켓 기록",ticket_note:"티켓 메모",ticket_delete:"티켓 삭제",role_panel:"역할 패널",role_menu:"역할 메뉴",role_panel_delete:"역할 패널 삭제",poll_create:"투표 생성",poll:"투표",poll_cancel:"투표 취소",poll_close:"투표 종료",blocklist_add:"차단 목록 추가",block_nickname_add:"차단 닉네임 추가",server_blacklist_add:"서버 블랙리스트 추가",server_backup:"서버 백업",backup_preview:"백업 미리보기"};
-    const states={pending:["대기 중","amber"],queued:["대기 중","amber"],processing:["처리 중","blue"],completed:["완료","green"],failed:["실패","red"]};
-    t.innerHTML=rows.length?rows.map(r=>{const st=states[r.status]||[r.status,""];return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(names[r.job_type]||r.job_type)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.error_message||"—")+'</td></tr>';}).join(""):'<tr><td colspan="4" class="empty">등록된 작업이 없습니다.</td></tr>';
+    const states={pending:["대기 중","amber"],queued:["대기 중","amber"],processing:["처리 중","blue"],completed:["완료","green"],failed:["실패","red"],sent:["완료","green"]};
+    t.innerHTML=rows.length?rows.map(r=>{
+      const st=states[r.status]||[r.status||"확인 필요",""];
+      return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(names[r.job_type]||r.job_type)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.error_message||"—")+'</td></tr>';
+    }).join(""):'<tr><td colspan="4" class="empty">등록된 작업이 없습니다.</td></tr>';
   }
   window.TEND_BOT_MANAGEMENT={init};
 })();
