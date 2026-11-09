@@ -426,24 +426,15 @@
     t.innerHTML=rows.length?rows.map(r=>{
       const st=states[r.status]||[r.status||"확인 필요",""];
       const detail=r.error_message?'<small class="reason-text">'+escapeHtml(r.error_message)+'</small>':"";
-      const action=serverPlan==="free"?"—":r.pendingCommand
-        ?'<button class="btn btn-danger" data-announcement-command-cancel="'+escapeHtml(r.command_id)+'">취소</button>'
-        :r.status!=="deleted"?'<button class="btn btn-danger" data-announcement-delete="'+escapeHtml(r.id)+'" data-announcement-command="'+escapeHtml(r.command_id||"")+'">삭제</button>':"—";
+      const action=serverPlan==="free"||r.pendingCommand?"—":r.status!=="deleted"?'<button class="btn btn-danger" data-announcement-delete="'+escapeHtml(r.id)+'">삭제</button>':"—";
       return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.title||"(제목 없음)")+detail+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.channel_id||"기본 채널")+'</td><td>'+action+'</td></tr>';
     }).join(""):'<tr><td colspan="5" class="empty">등록된 공지가 없습니다.</td></tr>';
     $$("[data-announcement-delete]").forEach(b=>b.addEventListener("click",async()=>{
       if(!confirm("사이트의 공지 내역에서 삭제할까요?"))return;
-      const id=b.dataset.announcementDelete,commandId=b.dataset.announcementCommand;
+      const id=b.dataset.announcementDelete;
       const update=await sb.from("announcements").update({status:"deleted",updated_at:new Date().toISOString()}).eq("id",id).eq("server_id",sid());
       if(failed(update.error,"공지 내역을 삭제하지 못했어요."))return;
-      if(commandId)await sb.from("bot_commands").update({status:"failed",result:"웹 대시보드에서 취소됨"}).eq("id",commandId).eq("status","queued");
       notify("공지 내역을 삭제했어요.");await loadAnnouncements();
-    }));
-    $$("[data-announcement-command-cancel]").forEach(b=>b.addEventListener("click",async()=>{
-      if(!confirm("대기 중인 공지 발송을 취소할까요?"))return;
-      const update=await sb.from("bot_commands").update({status:"failed",result:"웹 대시보드에서 취소됨"}).eq("id",b.dataset.announcementCommand).eq("user_id",user.id).eq("status","queued");
-      if(failed(update.error,"공지 발송을 취소하지 못했어요."))return;
-      notify("공지 발송을 취소했어요.");await loadAnnouncements();
     }));
   }
   async function saveBlacklistServer(e) {
