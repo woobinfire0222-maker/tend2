@@ -140,6 +140,10 @@ try{
  select.innerHTML='<option value="">서버 목록을 불러오지 못했어요</option>';
  if(help)help.textContent=error.message||"잠시 후 다시 시도해 주세요.";
 }
+if(!manageable.length){
+ select.innerHTML='<option value="">연결할 수 있는 서버가 없어요</option>';
+ if(help)help.textContent="저장된 권한이 없거나 만료됐어요. 처음 한 번은 Discord 서버 권한 확인이 필요해요.";
+}
 let blockedIds=new Set();
 if(manageable.length){
  const {data:requests,error:requestError}=await withTimeout(sb.from("purchase_requests").select("server_id,status,expires_at,updated_at,created_at,plan").eq("user_id",user.id).in("status",["pending","approved","completed"]).not("server_id","is",null));
