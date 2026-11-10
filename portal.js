@@ -103,23 +103,37 @@ if(!form||!select)return;
 select.disabled=true;
 select.innerHTML='<option value="">서버 목록을 불러오는 중…</option>';
 let manageable=[];
+const cachedGuilds=async()=>{
+ const cutoff=new Date(Date.now()-30*24*60*60*1000).toISOString();
+ const {data,error}=await sb.from("discord_user_guilds")
+  .select("guild_id,guild_name,is_owner,permissions,can_manage,synced_at")
+  .eq("user_id",user.id).eq("can_manage",true).gte("synced_at",cutoff)
+  .order("guild_name",{ascending:true});
+ if(error)throw error;
+ return (data||[]).map(g=>({id:String(g.guild_id),name:g.guild_name,owner:!!g.is_owner,permissions:g.permissions||"0"}));
+};
 try{
  const {data:{session},error:sessionError}=await sb.auth.getSession();
  if(sessionError)throw sessionError;
  const accessToken=session?.provider_token||"";
-  discordAccessToken=accessToken;
- if(!accessToken){
-  select.innerHTML='<option value="">Discord 서버 권한 연결이 필요해요</option>';
-  if(help)help.textContent="서버 목록을 불러오려면 Discord 계정 연결을 다시 진행해 주세요.";
-  notify("Discord 서버 목록 권한이 필요해요. 로그아웃 후 다시 로그인해 주세요.");
+ discordAccessToken=accessToken;
+ if(accessToken){
+  try{
+   const response=await withTimeout(fetch("https://discord.com/api/v10/users/@me/guilds",{headers:{Authorization:"Bearer "+accessToken}}));
+   if(!response.ok)throw new Error("Discord 서버 목록 조회 실패 ("+response.status+")");
+   const guilds=await response.json();
+   manageable=(Array.isArray(guilds)?guilds:[]).filter(g=>{
+    if(g.owner)return true;
+    try{return (BigInt(g.permissions||"0")&8n)===8n}catch{return false}
+   }).sort((a,b)=>String(a.name).localeCompare(String(b.name),"ko"));
+   const {error:cacheError}=await sb.functions.invoke("discord-action",{body:{action:"cache_guilds",provider_token:accessToken}});
+   if(cacheError)console.warn("Discord guild permission cache update failed:",cacheError);
+  }catch(liveError){
+   console.warn("Live Discord guild list unavailable; loading saved permissions:",liveError);
+   manageable=await cachedGuilds();
+  }
  }else{
-  const response=await withTimeout(fetch("https://discord.com/api/v10/users/@me/guilds",{headers:{Authorization:"Bearer "+accessToken}}));
-  if(!response.ok)throw new Error(response.status===401?"Discord 인증이 만료됐어요. 다시 로그인해 주세요.":response.status===403?"Discord 서버 목록 권한이 필요해요. 로그아웃 후 다시 로그인해 주세요.":"Discord 서버 목록을 불러오지 못했어요. ("+response.status+")");
-  const guilds=await response.json();
-  manageable=(Array.isArray(guilds)?guilds:[]).filter(g=>{
-   if(g.owner)return true;
-   try{return (BigInt(g.permissions||"0")&8n)===8n}catch{return false}
-  }).sort((a,b)=>String(a.name).localeCompare(String(b.name),"ko"));
+  manageable=await cachedGuilds();
  }
 }catch(error){
  console.error("Discord guild list load failed:",error);
@@ -219,8 +233,7 @@ form.addEventListener("submit",async e=>{
  const b=submitButton;b.disabled=true;b.textContent=plan==="FREE"?"무료 플랜 활성화 중…":"저장 중…";
  try{
   if(plan==="FREE"){
-   if(!discordAccessToken)throw new Error("Discord 서버 권한 확인이 필요해요. 다시 로그인해 주세요.");
-   const {data,error}=await sb.functions.invoke("discord-action",{body:{action:"activate_free",server_id:serverId,server_name:name,provider_token:discordAccessToken}});
+   const {data,error}=await sb.functions.invoke("discord-action",{body:{action:"activate_free",server_id:serverId,server_name:name,provider_token:discordAccessToken||null}});
    if(error||data?.error)throw new Error(data?.error||error?.message||"무료 플랜을 활성화하지 못했어요.");
    notify(data?.already_active?"이미 FREE 플랜을 이용 중이에요.":"FREE 플랜이 활성화됐어요.");
    await renderFreeEntitlements();
