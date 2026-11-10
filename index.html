@@ -538,7 +538,7 @@ html.theme-dark .copyright{color:#8792a3}
   loginBtn.addEventListener('click',()=>{if(currentUser&&client){logoutModal.classList.add('show')}else login()});
   cancelLogout.addEventListener('click',closeLogoutModal);
   logoutModal.addEventListener('click',e=>{if(e.target===logoutModal)closeLogoutModal()});
-  confirmLogout.addEventListener('click',async()=>{confirmLogout.disabled=true;confirmLogout.textContent='로그아웃 중…';const {error}=await client.auth.signOut();confirmLogout.disabled=false;confirmLogout.textContent='로그아웃';if(error){notify('로그아웃에 실패했어요. 다시 시도해 주세요.');return}closeLogoutModal();notify('로그아웃했어요.');await updateSession()});
+  confirmLogout.addEventListener('click',async()=>{confirmLogout.disabled=true;confirmLogout.textContent='로그아웃 중…';const {error}=await client.auth.signOut({scope:'local'});confirmLogout.disabled=false;confirmLogout.textContent='로그아웃';if(error){notify('로그아웃에 실패했어요. 다시 시도해 주세요.');return}closeLogoutModal();notify('로그아웃했어요.');await updateSession()});
   ctaLogin.addEventListener('click',()=>currentUser?(location.href='./requests.html'):login());
   async function loadAdmin(){
     if(!client||currentUser?.app_metadata?.role!=='admin')return;
