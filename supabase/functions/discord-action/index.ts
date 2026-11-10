@@ -14,6 +14,34 @@ function json(body: unknown, status = 200) {
   });
 }
 
+async function fetchAndCacheGuilds(db: any, userId: string, providerToken: string) {
+  const response = await fetch("https://discord.com/api/v10/users/@me/guilds", {
+    headers: { Authorization: `Bearer ${providerToken}` },
+  });
+  if (!response.ok) throw new Error("Discord guild lookup failed: " + response.status);
+  const payload = await response.json();
+  const manageable = (Array.isArray(payload) ? payload : []).filter((g: any) => {
+    if (g.owner === true) return true;
+    try { return (BigInt(g.permissions || "0") & 8n) === 8n; } catch { return false; }
+  });
+  const rows = manageable.map((g: any) => ({
+    user_id: userId,
+    guild_id: String(g.id),
+    guild_name: String(g.name || "Discord 서버").slice(0, 100),
+    is_owner: g.owner === true,
+    permissions: String(g.permissions || "0"),
+    can_manage: true,
+    synced_at: new Date().toISOString(),
+  }));
+  const { error: deleteError } = await db.from("discord_user_guilds").delete().eq("user_id", userId);
+  if (deleteError) throw deleteError;
+  if (rows.length) {
+    const { error: insertError } = await db.from("discord_user_guilds").insert(rows);
+    if (insertError) throw insertError;
+  }
+  return manageable;
+}
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
@@ -34,25 +62,42 @@ Deno.serve(async (request) => {
   const serverId = String(body.server_id || "");
   if (!/^\d{5,30}$/.test(serverId)) return json({ error: "Invalid Discord server ID." }, 400);
 
+  if (action === "cache_guilds") {
+    const providerToken = String(body.provider_token || "");
+    if (!providerToken) return json({ error: "Discord 권한 확인 토큰이 없어요." }, 400);
+    try {
+      const guilds = await fetchAndCacheGuilds(db, authData.user.id, providerToken);
+      return json({ ok: true, cached: guilds.length });
+    } catch (error) {
+      console.error("Discord guild cache failed:", error);
+      return json({ error: "Discord 서버 권한 정보를 저장하지 못했어요." }, 502);
+    }
+  }
+
   if (action === "activate_free") {
     const providerToken = String(body.provider_token || "");
-    if (!providerToken) return json({ error: "Discord 서버 권한을 확인할 수 없어요. 다시 로그인해 주세요." }, 400);
-    let guildResponse: Response;
-    try {
-      guildResponse = await fetch("https://discord.com/api/v10/users/@me/guilds", {
-        headers: { Authorization: `Bearer ${providerToken}` },
-      });
-    } catch {
-      return json({ error: "Discord 서버 목록을 확인하지 못했어요." }, 502);
+    let guild: any = null;
+    if (providerToken) {
+      try {
+        const guilds = await fetchAndCacheGuilds(db, authData.user.id, providerToken);
+        guild = guilds.find((g: any) => String(g.id) === serverId) || null;
+      } catch (error) {
+        console.warn("Live Discord permission check unavailable; using saved permission snapshot:", error);
+      }
     }
-    if (!guildResponse.ok) return json({ error: "Discord 인증이 만료됐어요. 다시 로그인해 주세요." }, 401);
-    const guilds = await guildResponse.json();
-    const guild = Array.isArray(guilds) ? guilds.find((g: any) => String(g.id) === serverId) : null;
-    if (!guild) return json({ error: "이 Discord 계정에서 해당 서버를 찾을 수 없어요." }, 403);
-    let isManager = guild.owner === true;
-    try { isManager = isManager || (BigInt(guild.permissions || "0") & 8n) === 8n; } catch {}
-    if (!isManager) return json({ error: "서버 소유자 또는 관리자 권한이 필요해요." }, 403);
-    const serverName = String(guild.name || body.server_name || "Discord 서버").trim().slice(0, 100);
+    if (!guild) {
+      const { data: cachedGuild, error: cachedError } = await db.from("discord_user_guilds")
+        .select("guild_id,guild_name,is_owner,permissions,can_manage,synced_at")
+        .eq("user_id", authData.user.id)
+        .eq("guild_id", serverId)
+        .eq("can_manage", true)
+        .gte("synced_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+        .maybeSingle();
+      if (cachedError) return json({ error: "저장된 Discord 서버 권한을 확인하지 못했어요." }, 500);
+      guild = cachedGuild;
+    }
+    if (!guild) return json({ error: "저장된 서버 권한을 찾을 수 없어요. Discord 계정 연결을 한 번 갱신해 주세요." }, 403);
+    const serverName = String(guild.guild_name || guild.name || body.server_name || "Discord 서버").trim().slice(0, 100);
     const { data: paidRows, error: paidError } = await db.from("purchase_requests")
       .select("id").eq("server_id", serverId).eq("status", "approved").gt("expires_at", new Date().toISOString()).limit(1);
     if (paidError) return json({ error: "기존 이용권을 확인하지 못했어요." }, 500);
