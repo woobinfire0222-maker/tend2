@@ -470,37 +470,60 @@
     $$("[data-blacklist-user-delete]").forEach(btn=>btn.addEventListener("click",async()=>{const q=await sb.from("user_blacklists").delete().eq("id",btn.dataset.blacklistUserDelete).eq("server_id",sid());if(failed(q.error,"삭제하지 못했어요."))return;await loadBlacklists();}));
   }
   const featureFields = {
-    tickets:[["panel_channel_id","패널 게시 채널 ID","text"],["support_role_ids","담당 역할 ID (쉼표 구분)","list"],["category_id","티켓 카테고리 ID","text"],["welcome_message","티켓 생성 안내","textarea"],["close_message","종료 안내","textarea"]],
-    polls:[["default_duration_minutes","기본 진행 시간(분)","number"],["allow_multiple","복수 선택 허용","boolean"],["anonymous","익명 투표","boolean"],["results_channel_id","결과 채널 ID","text"]],
-    welcome:[["channel_id","환영 채널 ID","text"],["message","환영 메시지 ({user}, {server} 사용 가능)","textarea"],["embed_color","임베드 색상 (HEX)","text"],["image_url","이미지 URL","text"]],
-    goodbye:[["channel_id","퇴장 알림 채널 ID","text"],["message","퇴장 메시지 ({user}, {server} 사용 가능)","textarea"]],
+    tickets:[["panel_channel_id","패널 게시 채널","channel:text"],["support_role_ids","담당 역할 ID (쉼표 구분)","list"],["category_id","티켓 카테고리","category"],["welcome_message","티켓 생성 안내","textarea"],["close_message","종료 안내","textarea"]],
+    polls:[["default_duration_minutes","기본 진행 시간(분)","number"],["allow_multiple","복수 선택 허용","boolean"],["anonymous","익명 투표","boolean"],["results_channel_id","결과 채널","channel:text"]],
+    welcome:[["channel_id","환영 채널","channel:text"],["message","환영 메시지 ({user}, {server} 사용 가능)","textarea"],["embed_color","임베드 색상 (HEX)","text"],["image_url","이미지 URL","text"]],
+    goodbye:[["channel_id","퇴장 알림 채널","channel:text"],["message","퇴장 메시지 ({user}, {server} 사용 가능)","textarea"]],
     auto_roles:[["role_ids","자동 지급 역할 ID (쉼표 구분)","list"],["delay_seconds","지급 대기 시간(초)","number"]],
-    reaction_roles:[["channel_id","역할 패널 채널 ID","text"],["message_id","역할 패널 메시지 ID","text"],["roles","역할 목록 (이모지:역할ID, 쉼표 구분)","textarea"],["mode","선택 방식 (button/select)","select:button,select"]],
-    auto_responses:[["channel_ids","적용 채널 ID (쉼표 구분, 비우면 전체)","list"],["responses","자동 응답 규칙 (키워드=답변, 한 줄에 하나)","textarea"],["ignore_bots","봇 메시지 무시","boolean"]],
+    reaction_roles:[["channel_id","역할 패널 채널","channel:text"],["message_id","역할 패널 메시지 ID","text"],["roles","역할 목록 (이모지:역할ID, 쉼표 구분)","textarea"],["mode","선택 방식 (button/select)","select:button,select"]],
+    auto_responses:[["channel_ids","적용 채널 (여러 개 선택, 비우면 전체)","channels:text"],["responses","자동 응답 규칙 (키워드=답변, 한 줄에 하나)","textarea"],["ignore_bots","봇 메시지 무시","boolean"]],
     link_filter:[["allowed_domains","허용 도메인 (쉼표 구분)","list"],["block_invites","Discord 초대 링크 차단","boolean"],["action","위반 조치","select:delete,warn,timeout"],["timeout_seconds","타임아웃 시간(초)","number"]],
     anti_spam:[["max_messages","허용 메시지 수","number"],["interval_seconds","측정 시간(초)","number"],["duplicate_limit","동일 메시지 반복 허용 횟수","number"],["action","위반 조치","select:delete,warn,timeout"],["timeout_seconds","타임아웃 시간(초)","number"]],
-    account_security:[["minimum_account_age_days","최소 계정 생성 기간(일)","number"],["new_member_action","신규 계정 조치","select:flag,timeout,kick"],["timeout_seconds","타임아웃 시간(초)","number"],["alert_channel_id","보안 알림 채널 ID","text"]],
-    server_logs:[["channel_id","로그 채널 ID","text"],["message_events","메시지 변경/삭제 기록","boolean"],["member_events","입퇴장 기록","boolean"],["role_events","역할 변경 기록","boolean"],["voice_events","음성 채널 이동 기록","boolean"]],
+    account_security:[["minimum_account_age_days","최소 계정 생성 기간(일)","number"],["new_member_action","신규 계정 조치","select:flag,timeout,kick"],["timeout_seconds","타임아웃 시간(초)","number"],["alert_channel_id","보안 알림 채널","channel:text"]],
+    server_logs:[["channel_id","로그 채널","channel:text"],["message_events","메시지 변경/삭제 기록","boolean"],["member_events","입퇴장 기록","boolean"],["role_events","역할 변경 기록","boolean"],["voice_events","음성 채널 이동 기록","boolean"]],
     warnings:[["max_warnings","누적 경고 기준","number"],["action","기준 도달 시 조치","select:none,timeout,kick,ban"],["timeout_seconds","타임아웃 시간(초)","number"],["notify_user","대상자에게 안내","boolean"]],
-    temporary_voice:[["lobby_channel_id","임시 채널 생성용 대기 채널 ID","text"],["category_id","임시 채널 카테고리 ID","text"],["default_user_limit","기본 인원 제한","number"],["delete_empty_after_seconds","빈 채널 삭제 대기(초)","number"]],
-    server_backup:[["backup_channel_id","백업 알림 채널 ID","text"],["include_roles","역할 구조 포함","boolean"],["include_channels","채널 구조 포함","boolean"],["include_permissions","권한 설정 포함","boolean"],["schedule_hours","자동 백업 주기(시간, 0=끔)","number"]]
+    temporary_voice:[["lobby_channel_id","임시 채널 생성용 대기 음성 채널","channel:voice"],["category_id","임시 채널 카테고리","category"],["default_user_limit","기본 인원 제한","number"],["delete_empty_after_seconds","빈 채널 삭제 대기(초)","number"]],
+    server_backup:[["backup_channel_id","백업 알림 채널","channel:text"],["include_roles","역할 구조 포함","boolean"],["include_channels","채널 구조 포함","boolean"],["include_permissions","권한 설정 포함","boolean"],["schedule_hours","자동 백업 주기(시간, 0=끔)","number"]]
   };
-  function featureFieldHtml(featureKey, field, settings) {
+  function featureFieldHtml(featureKey, field, settings, inventory) {
     const [key,label,type]=field, value=settings[key];
     const id="feature-field-"+featureKey+"-"+key;
     if(type==="boolean") return '<label class="feature-editor-check"><input type="checkbox" id="'+id+'" data-setting-key="'+key+'" '+(value===true?"checked":"")+'><span>'+escapeHtml(label)+'</span></label>';
     if(type==="textarea") return '<label class="field"><span>'+escapeHtml(label)+'</span><textarea id="'+id+'" data-setting-key="'+key+'" rows="3">'+escapeHtml(Array.isArray(value)?value.join("\\n"):value??"")+'</textarea></label>';
     if(type==="list") return '<label class="field"><span>'+escapeHtml(label)+'</span><input id="'+id+'" data-setting-key="'+key+'" value="'+escapeHtml(Array.isArray(value)?value.join(", "):value??"")+'" placeholder="쉼표로 구분"></label>';
+    if(type==="channels:text"||type==="channel:text"||type==="channel:voice"||type==="category"){
+      const multi=type==="channels:text";
+      const selected=(multi?(Array.isArray(value)?value.map(String):[]):value?[String(value)]:[]);
+      let options=[];
+      if(type==="category"){
+        options=inventory.channels.filter(x=>String(x.channel_type)==="4").map(x=>({id:String(x.channel_id),name:x.channel_name||"이름 없는 카테고리"}));
+      }else{
+        const allowed=type==="channel:voice"?new Set(["2"]):new Set(["0","5","15","16"]);
+        const cats=new Map(inventory.channels.filter(x=>String(x.channel_type)==="4").map(x=>[String(x.channel_id),x.channel_name||"카테고리"]));
+        options=inventory.channels.filter(x=>allowed.has(String(x.channel_type))&&x.can_send!==false).map(x=>({id:String(x.channel_id),name:(cats.has(String(x.parent_id))?cats.get(String(x.parent_id))+" / ":"")+(type==="channel:voice"?"🔊 ":"# ")+(x.channel_name||"이름 없는 채널")}));
+      }
+      const available=new Set(options.map(x=>x.id));
+      selected.filter(x=>!available.has(x)).forEach(x=>options.unshift({id:x,name:"저장된 항목 · "+x}));
+      const placeholder=type==="category"?"카테고리를 선택하세요":type==="channel:voice"?"음성 채널을 선택하세요":"채널을 선택하세요";
+      return '<label class="field"><span>'+escapeHtml(label)+'</span><select id="'+id+'" data-setting-key="'+key+'" '+(multi?'multiple size="5"':'')+'>'+(!multi?'<option value="">'+placeholder+'</option>':'')+options.map(x=>'<option value="'+escapeHtml(x.id)+'" '+(selected.includes(x.id)?"selected":"")+'>'+escapeHtml(x.name)+'</option>').join("")+'</select>'+(options.length?'':'<small>목록이 비어 있어요. 먼저 위의 Discord 정보 새로고침을 눌러 주세요.</small>')+(multi?'<small>여러 항목은 Ctrl 키를 누른 채 선택할 수 있어요.</small>':'')+'</label>';
+    }
     if(type.startsWith("select:")) return '<label class="field"><span>'+escapeHtml(label)+'</span><select id="'+id+'" data-setting-key="'+key+'">'+type.slice(7).split(",").map(v=>'<option value="'+v+'" '+(String(value??"")===v?"selected":"")+'>'+v+'</option>').join("")+'</select></label>';
     return '<label class="field"><span>'+escapeHtml(label)+'</span><input id="'+id+'" data-setting-key="'+key+'" type="'+(type==="number"?"number":"text")+'" value="'+escapeHtml(value??"")+'"></label>';
   }
-  function openFeatureEditor(featureKey, feature, settings, enabled) {
+  async function openFeatureEditor(featureKey, feature, settings, enabled) {
     document.querySelector("#feature-editor-backdrop")?.remove();
     const fields=featureFields[featureKey]||[];
+    const needsInventory=fields.some(f=>["channel:text","channel:voice","channels:text","category"].includes(f[2]));
+    let inventory={channels:[]};
+    if(needsInventory){
+      const result=await sb.from("discord_channels").select("channel_id,channel_name,channel_type,parent_id,can_send").eq("server_id",sid()).order("position",{ascending:true});
+      if(result.error){console.error("Discord channel inventory failed:",result.error);notify("채널 목록을 불러오지 못했어요. Discord 정보 새로고침 후 다시 시도해 주세요.");}
+      else inventory.channels=result.data||[];
+    }
     const backdrop=document.createElement("div");
     backdrop.id="feature-editor-backdrop";
     backdrop.className="feature-editor-backdrop";
-    backdrop.innerHTML='<section class="feature-editor" role="dialog" aria-modal="true" aria-labelledby="feature-editor-title"><header><div><h2 id="feature-editor-title">'+escapeHtml(feature[1])+'</h2><p>'+escapeHtml(feature[2])+'</p></div><button type="button" class="btn btn-light" data-editor-close>닫기</button></header><form id="feature-editor-form"><div class="feature-editor-fields">'+fields.map(f=>featureFieldHtml(featureKey,f,settings)).join("")+'</div><label class="feature-editor-check feature-editor-enabled"><input type="checkbox" id="feature-editor-enabled" '+(enabled?"checked":"")+'><span>이 기능 사용</span></label><footer><button type="button" class="btn btn-light" data-editor-close>취소</button><button class="btn btn-blue" type="submit">설정 저장 및 적용</button></footer></form></section>';
+    backdrop.innerHTML='<section class="feature-editor" role="dialog" aria-modal="true" aria-labelledby="feature-editor-title"><header><div><h2 id="feature-editor-title">'+escapeHtml(feature[1])+'</h2><p>'+escapeHtml(feature[2])+'</p></div><button type="button" class="btn btn-light" data-editor-close>닫기</button></header><form id="feature-editor-form"><div class="feature-editor-fields">'+fields.map(f=>featureFieldHtml(featureKey,f,settings,inventory)).join("")+'</div>'+(needsInventory&&!inventory.channels.length?'<p class="card-note">채널 목록이 비어 있다면 먼저 봇 관리 상단의 Discord 정보 새로고침을 실행해 주세요.</p>':'')+'<label class="feature-editor-check feature-editor-enabled"><input type="checkbox" id="feature-editor-enabled" '+(enabled?"checked":"")+'><span>이 기능 사용</span></label><footer><button type="button" class="btn btn-light" data-editor-close>취소</button><button class="btn btn-blue" type="submit">설정 저장 및 적용</button></footer></form></section>';
     document.body.append(backdrop);
     backdrop.querySelectorAll("[data-editor-close]").forEach(b=>b.addEventListener("click",()=>backdrop.remove()));
     backdrop.addEventListener("click",e=>{if(e.target===backdrop)backdrop.remove();});
@@ -509,11 +532,12 @@
       const button=e.submitter;button.disabled=true;button.textContent="저장 중…";
       const next={...settings};
       backdrop.querySelectorAll("[data-setting-key]").forEach(el=>{
-        const key=el.dataset.settingKey;
+        const key=el.dataset.settingKey,fieldType=featureFields[featureKey].find(f=>f[0]===key)?.[2];
         if(el.type==="checkbox") next[key]=el.checked;
         else if(el.type==="number") next[key]=el.value===""?null:Number(el.value);
-        else if(el.tagName==="SELECT") next[key]=el.value;
-        else if(featureFields[featureKey].find(f=>f[0]===key)?.[2]==="list") next[key]=el.value.split(",").map(v=>v.trim()).filter(Boolean);
+        else if(el.tagName==="SELECT"&&el.multiple) next[key]=[...el.selectedOptions].map(o=>o.value);
+        else if(el.tagName==="SELECT") next[key]=el.value||null;
+        else if(fieldType==="list") next[key]=el.value.split(",").map(v=>v.trim()).filter(Boolean);
         else next[key]=el.value;
       });
       const nextEnabled=backdrop.querySelector("#feature-editor-enabled").checked;
@@ -525,17 +549,11 @@
   async function loadFeatures() {
     const box=$("#feature-settings-list");
     if(!box)return;
-    if(serverPlan==="free"){
-      const warning=await sb.from("server_warnings").select("user_id",{count:"exact",head:true}).eq("server_id",sid()).eq("active",true);
-      const count=warning.error?null:(warning.count||0);
-      box.innerHTML='<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>경고 시스템</strong><small>등록된 경고 내역과 현재 상태를 확인할 수 있어요.</small></div><span class="badge">조회 전용</span></div><div class="setting-row"><div><strong>유효 경고</strong><small>현재 서버에 등록된 경고</small></div><strong>'+ (count===null?'확인 불가':count.toLocaleString("ko-KR")+'건') +'</strong></div></article>';
-      return;
-    }
     const q=await sb.from("server_feature_settings").select("feature_key,settings,enabled").eq("server_id",sid());
     if(q.error){box.innerHTML='<div class="empty">기능 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return;}
     const rows=new Map((q.data||[]).map(r=>[r.feature_key,r]));
     box.innerHTML=features.map(f=>{const r=rows.get(f[0]),enabled=!!r?.enabled;return '<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>'+escapeHtml(f[1])+'</strong><small>'+escapeHtml(f[2])+'</small></div><span class="badge '+(enabled?"green":"")+'">'+(enabled?"사용 중":"중지")+'</span></div><button type="button" class="btn btn-light" data-feature-edit="'+f[0]+'">자세히 설정 <span>→</span></button></article>';}).join("");
-    $$("[data-feature-edit]").forEach(btn=>btn.addEventListener("click",()=>{const key=btn.dataset.featureEdit,feature=features.find(f=>f[0]===key),r=rows.get(key);openFeatureEditor(key,feature,r?.settings||{},!!r?.enabled);}));
+    $$("[data-feature-edit]").forEach(btn=>btn.addEventListener("click",()=>{const key=btn.dataset.featureEdit,feature=features.find(f=>f[0]===key),r=rows.get(key);void openFeatureEditor(key,feature,r?.settings||{},!!r?.enabled);}));
   }
   async function loadJobs() {
     const t=$("#bot-jobs-list");if(!t||!sid())return;
