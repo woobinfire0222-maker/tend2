@@ -493,14 +493,14 @@
     if(type==="list") return '<label class="field"><span>'+escapeHtml(label)+'</span><input id="'+id+'" data-setting-key="'+key+'" value="'+escapeHtml(Array.isArray(value)?value.join(", "):value??"")+'" placeholder="쉼표로 구분"></label>';
     if(type==="channels:text"||type==="channel:text"||type==="channel:voice"||type==="category"){
       const multi=type==="channels:text";
-      const selected=(multi?(Array.isArray(value)?value.map(String):[]):value?[String(value)]:[]);
+      const selected=(multi?(Array.isArray(value)?value.map(String):typeof value==="string"?value.split(",").map(x=>x.trim()).filter(Boolean):[]):value?[String(value)]:[]);
       let options=[];
       if(type==="category"){
         options=inventory.channels.filter(x=>String(x.channel_type)==="4").map(x=>({id:String(x.channel_id),name:x.channel_name||"이름 없는 카테고리"}));
       }else{
         const allowed=type==="channel:voice"?new Set(["2"]):new Set(["0","5","15","16"]);
         const cats=new Map(inventory.channels.filter(x=>String(x.channel_type)==="4").map(x=>[String(x.channel_id),x.channel_name||"카테고리"]));
-        options=inventory.channels.filter(x=>allowed.has(String(x.channel_type))&&x.can_send!==false).map(x=>({id:String(x.channel_id),name:(cats.has(String(x.parent_id))?cats.get(String(x.parent_id))+" / ":"")+(type==="channel:voice"?"🔊 ":"# ")+(x.channel_name||"이름 없는 채널")}));
+        options=inventory.channels.filter(x=>allowed.has(String(x.channel_type))).map(x=>({id:String(x.channel_id),name:(cats.has(String(x.parent_id))?cats.get(String(x.parent_id))+" / ":"")+(type==="channel:voice"?"🔊 ":"# ")+(x.channel_name||"이름 없는 채널")+(x.can_send===false?" · 봇 권한 확인 필요":"")}));
       }
       const available=new Set(options.map(x=>x.id));
       selected.filter(x=>!available.has(x)).forEach(x=>options.unshift({id:x,name:"저장된 항목 · "+x}));
