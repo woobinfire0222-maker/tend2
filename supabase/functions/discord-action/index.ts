@@ -60,7 +60,6 @@ Deno.serve(async (request) => {
   try { body = await request.json(); } catch { return json({ error: "Invalid JSON body." }, 400); }
   const action = String(body.action || "");
   const serverId = String(body.server_id || "");
-  if (!/^\d{5,30}$/.test(serverId)) return json({ error: "Invalid Discord server ID." }, 400);
 
   if (action === "cache_guilds") {
     const providerToken = String(body.provider_token || "");
@@ -73,6 +72,8 @@ Deno.serve(async (request) => {
       return json({ error: "Discord 서버 권한 정보를 저장하지 못했어요." }, 502);
     }
   }
+
+  if (!/^\d{5,30}$/.test(serverId)) return json({ error: "Invalid Discord server ID." }, 400);
 
   if (action === "activate_free") {
     const providerToken = String(body.provider_token || "");
