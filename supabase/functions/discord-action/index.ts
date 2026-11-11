@@ -93,13 +93,11 @@ Deno.serve(async (request) => {
     if (serverReadError) return json({ error: "서버 관리 상태를 확인하지 못했어요." }, 500);
 
     if (server?.is_active) {
-      const { data: rpcResult, error: rpcError } = await db.rpc("set_managed_server_active", {
-        target_server_id: serverId,
-        desired_active: false,
-      });
-      if (rpcError) return json({ error: "관리 중지에 실패해 FREE 이용을 종료하지 못했어요." }, 409);
-      const changed = Array.isArray(rpcResult) ? rpcResult[0] === true : rpcResult === true;
-      if (!changed) return json({ error: "관리 상태를 중지하지 못했어요. 잠시 후 다시 시도해 주세요." }, 409);
+      const { error: stopError } = await db.from("managed_servers")
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq("server_id", serverId)
+        .eq("is_active", true);
+      if (stopError) return json({ error: "관리 중지에 실패해 FREE 이용을 종료하지 못했어요." }, 500);
       await db.from("bot_jobs")
         .update({ status: "failed", error_message: "FREE plan ended", updated_at: new Date().toISOString() })
         .eq("server_id", serverId)
