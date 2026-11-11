@@ -335,7 +335,25 @@ box.innerHTML=rows.map(r=>{const s=liveMap.get(r.server_id),expiry=s?.expires_at
 const invite=clientId&&r.server_id&&!s?.bot_connected?'https://discord.com/oauth2/authorize?client_id='+encodeURIComponent(clientId)+'&scope=bot%20applications.commands&permissions='+encodeURIComponent(String(cfg.discordBotPermissions||"0"))+'&guild_id='+encodeURIComponent(r.server_id)+'&disable_guild_select=true':"";
 const state=expired?'<span class="badge red">기간 만료</span>':available?'<span class="badge green">이용 가능</span>':'<span class="badge amber">봇 연결 확인</span>';
 const until=r.free?"기간 제한 없음":expiry?new Date(expiry).toLocaleString("ko-KR"):"이용 기간 확인 중";
-return '<div class="setting-row"><div><strong>'+escapeHtml(s?.server_name||r.server_name||"Discord 서버")+'</strong><small>서버 ID: '+escapeHtml(r.server_id||"미등록")+'</small><small>'+(r.free?"FREE · 무제한":escapeHtml(r.plan)+" · 만료: "+escapeHtml(until))+'</small><small>'+(s?.bot_connected?"봇 연결됨":"봇 미연결")+'</small></div><div class="stack-actions">'+state+(invite?'<a class="btn btn-blue" target="_blank" rel="noopener noreferrer" href="'+invite+'">봇 초대</a>':"")+'</div></div>';}).join("");
+return '<div class="setting-row"><div><strong>'+escapeHtml(s?.server_name||r.server_name||"Discord 서버")+'</strong><small>서버 ID: '+escapeHtml(r.server_id||"미등록")+'</small><small>'+(r.free?"FREE · 무제한":escapeHtml(r.plan)+" · 만료: "+escapeHtml(until))+'</small><small>'+(s?.bot_connected?"봇 연결됨":"봇 미연결")+'</small></div><div class="stack-actions">'+state+(invite?'<a class="btn btn-blue" target="_blank" rel="noopener noreferrer" href="'+invite+'">봇 초대</a>':"")+(r.free?'<button type="button" class="btn btn-light" data-free-cancel="'+escapeHtml(r.server_id)+'">FREE 종료</button>':"")+'</div></div>';}).join("");
+box.querySelectorAll("[data-free-cancel]").forEach(button=>button.addEventListener("click",async()=>{
+ const serverId=button.dataset.freeCancel;
+ if(!serverId||!confirm("이 서버의 FREE 이용을 즉시 종료할까요? 종료하면 TEND 관리 기능도 바로 중지돼요."))return;
+ button.disabled=true;
+ button.textContent="종료 중…";
+ try{
+  const {data,error}=await sb.functions.invoke("discord-action",{body:{action:"cancel_free",server_id:serverId}});
+  if(error)throw error;
+  if(data?.error)throw new Error(data.error);
+  notify("FREE 이용을 종료했어요.");
+  await loadServers();
+ }catch(error){
+  console.error("FREE cancellation failed:",error);
+  notify(error.message||"FREE 이용 종료에 실패했어요.");
+  button.disabled=false;
+  button.textContent="FREE 종료";
+ }
+}));
 }
 async function loadExperimentAdmin(){
 const host=$("#experiment-member-list"),search=$("#experiment-member-search"),countEl=$("#experiment-member-count");
