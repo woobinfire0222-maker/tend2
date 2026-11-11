@@ -75,6 +75,52 @@ Deno.serve(async (request) => {
 
   if (!/^\d{5,30}$/.test(serverId)) return json({ error: "Invalid Discord server ID." }, 400);
 
+  if (action === "cancel_free") {
+    const { data: entitlement, error: entitlementReadError } = await db.from("free_entitlements")
+      .select("id,user_id,status,server_name")
+      .eq("server_id", serverId)
+      .eq("user_id", authData.user.id)
+      .maybeSingle();
+    if (entitlementReadError) return json({ error: "무료 이용 상태를 확인하지 못했어요." }, 500);
+    if (!entitlement || entitlement.status !== "active") {
+      return json({ error: "종료할 수 있는 활성 FREE 이용권이 없어요." }, 404);
+    }
+
+    const { data: server, error: serverReadError } = await db.from("managed_servers")
+      .select("server_id,is_active")
+      .eq("server_id", serverId)
+      .maybeSingle();
+    if (serverReadError) return json({ error: "서버 관리 상태를 확인하지 못했어요." }, 500);
+
+    if (server?.is_active) {
+      const { data: rpcResult, error: rpcError } = await db.rpc("set_managed_server_active", {
+        target_server_id: serverId,
+        desired_active: false,
+      });
+      if (rpcError) return json({ error: "관리 중지에 실패해 FREE 이용을 종료하지 못했어요." }, 409);
+      const changed = Array.isArray(rpcResult) ? rpcResult[0] === true : rpcResult === true;
+      if (!changed) return json({ error: "관리 상태를 중지하지 못했어요. 잠시 후 다시 시도해 주세요." }, 409);
+      await db.from("bot_jobs").insert({
+        server_id: serverId,
+        job_type: "owner_dm",
+        payload: { subject: "management", active: false },
+        status: "pending",
+      });
+      await db.from("bot_jobs")
+        .update({ status: "failed", error_message: "FREE plan ended", updated_at: new Date().toISOString() })
+        .eq("server_id", serverId)
+        .eq("status", "pending");
+    }
+
+    const { error: cancelError } = await db.from("free_entitlements")
+      .update({ status: "inactive", updated_at: new Date().toISOString() })
+      .eq("id", entitlement.id)
+      .eq("user_id", authData.user.id)
+      .eq("status", "active");
+    if (cancelError) return json({ error: "관리 중지는 완료됐지만 FREE 이용 종료 저장에 실패했어요. 다시 눌러 주세요." }, 500);
+    return json({ ok: true, cancelled: true, server_id: serverId, server_name: entitlement.server_name });
+  }
+
   if (action === "activate_free") {
     const providerToken = String(body.provider_token || "");
     let guild: any = null;
