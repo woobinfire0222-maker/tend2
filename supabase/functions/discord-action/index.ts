@@ -210,7 +210,7 @@ Deno.serve(async (request) => {
   if (!hasPaidAccess && !hasFreeAccess) {
     return json({ error: "An active TEND plan is required for this server." }, 403);
   }
-  if (hasFreeAccess && !["send_announcement", "refresh_discord_server", "refresh_status"].includes(action)) {
+  if (hasFreeAccess && !["send_announcement", "refresh_discord_server", "refresh_status", "set_management"].includes(action)) {
     return json({ error: "This feature requires a paid TEND plan." }, 403);
   }
 
@@ -350,41 +350,47 @@ Deno.serve(async (request) => {
   if (action === "set_management") {
     const active = body.active === true;
     const { data: server, error } = await db.from("managed_servers")
-      .select("server_id,bot_connected,last_seen_at,is_active,management_blocked,expires_at")
+      .select("server_id,bot_connected,last_seen_at,is_active,management_blocked")
       .eq("server_id", serverId).maybeSingle();
     if (error) return json({ error: "Unable to read bot status." }, 500);
     const recent = !!server?.last_seen_at && (Date.now() - new Date(server.last_seen_at).getTime() < 120000);
-    if (!server || server.management_blocked) return json({ error: "This server is blocked from management." }, 403);
+    if (!server) return json({ error: "이 서버의 봇 연결 정보를 찾을 수 없어요. 봇을 서버에 초대한 뒤 다시 시도해 주세요." }, 404);
+    if (server.management_blocked) return json({ error: "이 서버는 관리가 제한되어 있어요." }, 403);
     if (active && (!server.bot_connected || !recent)) {
-      return json({ error: "The Discord bot worker is offline. Start the bot worker before enabling management." }, 409);
+      return json({ error: "봇이 오프라인이에요. 봇이 온라인인 상태에서 관리 시작을 눌러 주세요." }, 409);
     }
-    // Route through the same validated RPC the bot worker uses so entitlement,
-    // heartbeat, and block checks cannot be bypassed from the website.
-    const { data: rpcResult, error: rpcError } = await db.rpc("set_managed_server_active", {
-      target_server_id: serverId,
-      desired_active: active,
-    });
-    if (rpcError) {
-      return json({ error: "Management state did not change. Check entitlement and bot status." }, 409);
+
+    if (hasFreeAccess) {
+      const { data: updated, error: updateError } = await db.from("managed_servers")
+        .update({ is_active: active, updated_at: new Date().toISOString() })
+        .eq("server_id", serverId)
+        .select("server_id,is_active")
+        .maybeSingle();
+      if (updateError) return json({ error: "FREE 관리 상태를 변경하지 못했어요." }, 500);
+      if (!updated) return json({ error: "서버 관리 상태가 저장되지 않았어요. 다시 시도해 주세요." }, 409);
+    } else {
+      const { data: rpcResult, error: rpcError } = await db.rpc("set_managed_server_active", {
+        target_server_id: serverId,
+        desired_active: active,
+      });
+      if (rpcError) return json({ error: "Management state did not change. Check entitlement and bot status." }, 409);
+      const changed = Array.isArray(rpcResult) ? rpcResult[0] === true : rpcResult === true;
+      if (!changed) return json({ error: "Management state did not change. It may already be in the requested state or the entitlement expired." }, 409);
     }
-    const changed = Array.isArray(rpcResult) ? rpcResult[0] === true : rpcResult === true;
-    if (!changed) {
-      return json({ error: "Management state did not change. It may already be in the requested state or the entitlement expired." }, 409);
-    }
-    // Let the bot worker send a management-state DM to the Discord server owner.
-    await db.from("bot_jobs").insert({
-      server_id: serverId,
-      job_type: "owner_dm",
-      payload: { subject: "management", active },
-      status: "pending",
-    });
-    // Cancel pending website announcement jobs when management stops.
+
     if (!active) {
       await db.from("bot_jobs")
         .update({ status: "failed", error_message: "Management stopped", updated_at: new Date().toISOString() })
         .eq("server_id", serverId).eq("status", "pending");
     }
-    return json({ ok: true, active });
+    const { error: dmError } = await db.from("bot_jobs").insert({
+      server_id: serverId,
+      job_type: "owner_dm",
+      payload: { subject: "management", active },
+      status: "pending",
+    });
+    if (dmError) console.error("Management owner notification queue failed:", dmError);
+    return json({ ok: true, active, plan: hasFreeAccess ? "FREE" : "paid" });
   }
 
   return json({ error: "Unsupported action." }, 400);
