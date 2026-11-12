@@ -176,26 +176,20 @@
   }
   function applyPlanRestrictions() {
     const free=serverPlan==="free";
-    const paid=serverPlan==="paid";
-    const locked=!paid;
-    ["blacklist"].forEach(key=>{
+    ["blacklist","discord-verification","features","moderation","announcements","jobs"].forEach(key=>{
       const tab=$('[data-bot-tab="'+key+'"]'),panel=$('[data-bot-panel="'+key+'"]');
-      if(tab)tab.classList.toggle("hidden",locked);
-      if(panel)panel.classList.toggle("hidden",locked);
+      if(tab)tab.classList.remove("hidden");
+      if(panel)panel.classList.remove("hidden");
     });
-    const featureTab=$('[data-bot-tab="features"]'),featurePanel=$('[data-bot-panel="features"]');
-    if(featureTab)featureTab.classList.remove("hidden");
-    if(featurePanel)featurePanel.classList.remove("hidden");
     ["start-management","stop-management"].forEach(id=>{const el=$("#"+id);if(el)el.classList.toggle("hidden",serverPlan==="none");});
     ["announcement-image-file","announcement-image","announcement-mention"].forEach(id=>{
-      const el=$("#"+id);if(el)el.closest(".field")?.classList.toggle("hidden",locked);
+      const el=$("#"+id);if(el)el.closest(".field")?.classList.remove("hidden");
     });
-    $("#announcement-role-field")?.classList.toggle("hidden",true);
     const limit=$("#moderation-count");
-    if(limit&&free&&!limit.textContent.includes("/ 5"))limit.textContent=limit.textContent+" / 5";
+    if(limit)limit.textContent=limit.textContent.replace(/\\s*\\/\\s*5개?$/, "개");
     const notice=$("#plan-access-notice");
     if(notice){
-      notice.textContent=free?"현재 FREE 플랜을 이용 중이에요. 관리 시작/종료와 공지, 경고, 금칙어 최대 5개, 기본 서버 정보 및 서버 로그를 이용할 수 있어요.":paid?"기존 유효 이용권으로 연결된 서버예요. 승인된 이용 기간 동안 기존 기능을 이용할 수 있어요.":"서버를 선택하면 이용 가능한 기능이 표시돼요. 유료 플랜은 추후 재공 예정입니다.";
+      notice.textContent=serverPlan==="none"?"서버를 선택하면 모든 봇 관리 기능을 이용할 수 있어요.":"현재 "+(free?"FREE":"유료 이용권")+" 서버예요. TEND의 모든 봇 관리 기능을 이용할 수 있어요.";
       notice.classList.remove("hidden");
     }
   }
@@ -242,8 +236,7 @@
     $("#bot-health").className="badge "+(s.bot_connected?"green":"amber");
     $("#bot-last-seen").textContent=s.last_seen_at?new Date(s.last_seen_at).toLocaleString("ko-KR"):"—";
     $("#managed-server-info").textContent=($("#managed-server-select").selectedOptions[0]?.textContent||id)+" · "+(serverPlan==="free"?"FREE · 무제한":"유료 이용권")+" · "+(managementActive?"관리 중":"관리 종료");
-    if(serverPlan==="free") await Promise.all([loadRules(),loadChannels(),loadAnnouncements(),loadDiscordInventory(),loadFeatures()]);
-    else await Promise.all([loadRules(),loadChannels(),loadAnnouncements(),loadBlacklists(),loadFeatures(),loadJobs(),loadDiscordInventory()]);
+    await Promise.all([loadRules(),loadChannels(),loadAnnouncements(),loadBlacklists(),loadFeatures(),loadJobs(),loadDiscordInventory()]);
   }
   function openDiscordInventory() {
     if(!sid()){notify("먼저 관리 대상 서버를 선택해 주세요.");return;}
@@ -315,7 +308,7 @@
     const word=$("#moderation-word").value.trim(), match=$("#moderation-match").value, action=$("#moderation-action").value;
     const seconds=action==="timeout"?Number($("#moderation-timeout").value):null;
     if(!word){notify("금지 단어를 입력해 주세요.");return;}
-    if(serverPlan==="free"){const count=await sb.from("moderation_rules").select("id",{count:"exact",head:true}).eq("server_id",sid());if(count.error){notify("금칙어 개수를 확인하지 못했어요.");return;}if((count.count||0)>=5){notify("FREE 플랜은 금칙어를 최대 5개까지 등록할 수 있어요.");return;}}
+    
     if(action==="timeout"&&(!Number.isInteger(seconds)||seconds<1||seconds>2419200)){notify("타임아웃은 1~2419200초로 입력해 주세요.");return;}
     const q=await sb.from("moderation_rules").insert({server_id:sid(),word,match_type:match,action_type:action,timeout_seconds:seconds,enabled:true,created_by:user.id});
     if(failed(q.error,"금지 단어를 저장하지 못했어요."))return;
@@ -432,7 +425,7 @@
     t.innerHTML=rows.length?rows.map(r=>{
       const st=states[r.status]||[r.status||"확인 필요",""];
       const detail=r.error_message?'<small class="reason-text">'+escapeHtml(r.error_message)+'</small>':"";
-      const action=serverPlan==="free"||r.pendingCommand?"—":r.status!=="deleted"?'<button class="btn btn-danger" data-announcement-delete="'+escapeHtml(r.id)+'">삭제</button>':"—";
+      const action=r.pendingCommand?"—":r.status!=="deleted"?'<button class="btn btn-danger" data-announcement-delete="'+escapeHtml(r.id)+'">삭제</button>':"—";
       return '<tr><td>'+new Date(r.created_at).toLocaleString("ko-KR")+'</td><td>'+escapeHtml(r.title||"(제목 없음)")+detail+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+escapeHtml(r.channel_id||"기본 채널")+'</td><td>'+action+'</td></tr>';
     }).join(""):'<tr><td colspan="5" class="empty">등록된 공지가 없습니다.</td></tr>';
     $$("[data-announcement-delete]").forEach(b=>b.addEventListener("click",async()=>{
