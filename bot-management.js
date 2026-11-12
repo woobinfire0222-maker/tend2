@@ -195,7 +195,7 @@
       const el=$("#"+id);if(el)el.closest(".field")?.classList.remove("hidden");
     });
     const limit=$("#moderation-count");
-    if(limit)limit.textContent=limit.textContent.replace(/\\s*\\/\\s*5개?$/, "개");
+    if(limit)limit.textContent=limit.textContent.replace(/\s*\/\s*5개?$/, "개");
     const notice=$("#plan-access-notice");
     if(notice){
       notice.textContent=serverPlan==="none"?"서버를 선택하면 모든 봇 관리 기능을 이용할 수 있어요.":"현재 "+(free?"FREE":"유료 이용권")+" 서버예요. TEND의 모든 봇 관리 기능을 이용할 수 있어요.";
