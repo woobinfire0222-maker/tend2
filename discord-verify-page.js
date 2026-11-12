@@ -5,7 +5,7 @@
     : null;
   const $ = (s) => document.querySelector(s);
   const params = new URLSearchParams(location.search);
-  const code = params.get("code") || location.pathname.match(/^\/discord_verify\/([A-Za-z0-9_-]+)\/?$/)?.[1] || "";
+  const code = params.get("verify") || location.pathname.match(/^\/discord_verify\/([A-Za-z0-9_-]+)\/?$/)?.[1] || "";
   const status = $("#verify-status");
   const submit = $("#verify-submit");
   const login = $("#verify-login");
@@ -17,6 +17,16 @@
   function showError(error) {
     console.error("Discord verification:", error);
     show(error.message || "인증 정보를 확인하지 못했어요.", "error");
+    if (error.message && error.message.includes("다른 Discord 계정")) {
+      login.classList.remove("verify-hidden");
+      login.textContent = "다른 Discord 계정으로 로그인";
+      login.onclick = async () => {
+        login.disabled = true;
+        await sb.auth.signOut({ scope: "local" });
+        const { error: oauthError } = await sb.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: location.href, scopes: "identify" } });
+        if (oauthError) { login.disabled = false; show(oauthError.message, "error"); }
+      };
+    }
   }
   async function call(action) {
     const { data, error } = await sb.functions.invoke("discord-verification", { body: { action, code } });
