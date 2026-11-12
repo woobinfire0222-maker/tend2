@@ -138,40 +138,49 @@
   async function loadServers() {
     const select=$("#managed-server-select");
     select.innerHTML='<option value="">서버 목록 불러오는 중…</option>';
-    let results;
+    const timeout=(promise,ms=20000)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error("서버 권한 조회 시간이 초과됐어요.")),ms))]);
+    let paid,free;
     try {
-      results=await Promise.race([
-        Promise.all([
-          sb.from("purchase_requests").select("server_id,server_name,status,created_at").eq("user_id",user.id).eq("status","approved").gt("expires_at",new Date().toISOString()).not("server_id","is",null).order("created_at",{ascending:false}),
-          sb.from("free_entitlements").select("server_id,server_name,status,created_at").eq("user_id",user.id).eq("status","active").order("created_at",{ascending:false})
-        ]),
-        new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout")),12000))
-      ]);
+      [paid,free]=await timeout(Promise.all([
+        sb.from("purchase_requests").select("server_id,server_name,status,created_at,expires_at,plan").eq("user_id",user.id).eq("status","approved").gt("expires_at",new Date().toISOString()).not("server_id","is",null).order("created_at",{ascending:false}),
+        sb.from("free_entitlements").select("server_id,server_name,status,created_at").eq("user_id",user.id).eq("status","active").order("created_at",{ascending:false})
+      ]));
     } catch(e) {
       console.error("entitled server list request failed:",e);
       select.innerHTML='<option value="">서버 목록을 불러오지 못했어요</option>';
-      $("#managed-server-info").textContent="서버 목록을 불러오지 못했어요. 새로고침을 눌러 다시 시도해 주세요.";
+      $("#managed-server-info").textContent=e.message||"서버 목록을 불러오지 못했어요. 새로고침을 눌러 다시 시도해 주세요.";
       notify("서버 목록을 불러오지 못했어요. 다시 시도해 주세요.");
       return;
     }
-    const paid=results[0],free=results[1];
-    if(paid.error||free.error){console.error("server entitlement query error:",paid.error||free.error);select.innerHTML='<option value="">서버 목록을 불러오지 못했어요</option>';$("#managed-server-info").textContent="서버 권한을 불러오지 못했어요. SQL 적용 상태를 확인해 주세요.";return;}
+    if(paid.error&&free.error) {
+      console.error("server entitlement queries failed:",paid.error,free.error);
+      select.innerHTML='<option value="">서버 목록을 불러오지 못했어요</option>';
+      $("#managed-server-info").textContent=(paid.error.message||"")+(free.error.message?" · "+free.error.message:"");
+      notify("서버 권한을 불러오지 못했어요. 로그인 상태와 권한을 확인해 주세요.");
+      return;
+    }
+    if(paid.error)console.warn("paid server list unavailable; continuing with FREE servers:",paid.error);
+    if(free.error)console.warn("FREE server list unavailable; continuing with approved servers:",free.error);
     const map=new Map();
     (free.data||[]).forEach(r=>{if(r.server_id)map.set(String(r.server_id),{...r,plan:"FREE"});});
     (paid.data||[]).forEach(r=>{if(r.server_id)map.set(String(r.server_id),{...r,plan:r.plan||"유료"});});
     const rows=[...map.values()];
-    if(!rows.length){select.innerHTML='<option value="">이용 가능한 서버가 없습니다.</option>';serverId="";serverPlan="none";applyPlanRestrictions();$("#managed-server-info").textContent="무료 이용 시작에서 서버를 연결하면 여기에 표시돼요.";return;}
-    const inventory=await sb.from("discord_guilds").select("server_id,server_name,icon_url,bot_present,synced_at").in("server_id",rows.map(r=>String(r.server_id)));
+    if(!rows.length){select.innerHTML='<option value="">이용 가능한 서버가 없습니다.</option>';serverId="";serverPlan="none";applyPlanRestrictions();$("#managed-server-info").textContent="무료 이용 시작 또는 승인된 이용권이 있는 서버가 여기에 표시돼요.";return;}
+    let inventory={data:[],error:null};
+    try {
+      inventory=await timeout(sb.from("discord_guilds").select("server_id,server_name,icon_url,bot_present,synced_at").in("server_id",rows.map(r=>String(r.server_id))),12000);
+    } catch(e) {
+      console.warn("Discord guild inventory lookup timed out; showing entitled servers:",e);
+      inventory={data:[],error:e};
+    }
     const inventoryReady=!inventory.error;
     const guildMap=new Map((inventory.data||[]).map(g=>[String(g.server_id),g]));
     rows.forEach(r=>{const g=guildMap.get(String(r.server_id));r.botGuild=g||null;if(g?.server_name)r.server_name=g.server_name;});
-    select.innerHTML='<option value="">관리할 서버 선택</option>'+rows.map(r=>'<option value="'+escapeHtml(r.server_id)+'" data-plan="'+(r.plan==="FREE"?"free":"paid")+'"'+(inventoryReady&&!r.botGuild&&r.plan!=="FREE"?' disabled':'')+'>'+escapeHtml(r.server_name||"Discord 서버")+' · '+(r.plan==="FREE"?"FREE":"유료")+(inventoryReady&&!r.botGuild?' · 봇 미참여':'')+'</option>').join("");
-    const selectable=rows.filter(r=>!inventoryReady||r.botGuild||r.plan==="FREE");
-    if(serverId&&selectable.some(r=>String(r.server_id)===String(serverId)))select.value=serverId;
-    else{serverId=selectable.length?String(selectable[0].server_id):"";select.value=serverId;}
+    select.innerHTML='<option value="">관리할 서버 선택</option>'+rows.map(r=>'<option value="'+escapeHtml(r.server_id)+'" data-plan="'+(r.plan==="FREE"?"free":"paid")+'">'+escapeHtml(r.server_name||"Discord 서버")+' · '+(r.plan==="FREE"?"FREE":"유료")+(inventoryReady&&!r.botGuild?' · 봇 미참여':'')+'</option>').join("");
+    if(serverId&&rows.some(r=>String(r.server_id)===String(serverId)))select.value=serverId;
+    else{serverId=String(rows[0].server_id);select.value=serverId;}
     serverPlan=select.selectedOptions[0]?.dataset?.plan||"none";
     applyPlanRestrictions();
-    if(!serverId){$("#managed-server-info").textContent="봇이 참여 중인 서버를 선택해 주세요.";return;}
     await loadServerData();
   }
   function applyPlanRestrictions() {
