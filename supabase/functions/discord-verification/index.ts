@@ -8,26 +8,25 @@ const corsHeaders = {
 };
 
 function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" },
+  });
 }
 
-function discordId(user: any): string {
+function getDiscordIdentity(user: any) {
   const identities = Array.isArray(user?.identities) ? user.identities : [];
   const identity = identities.find((item: any) => item?.provider === "discord");
   const data = identity?.identity_data || {};
-  const metadata = user?.user_metadata || {};
-  const values = [
-    identity?.id,
-    data.id,
-    data.user_id,
-    data.provider_id,
-    data.sub,
-    metadata.provider_id,
-    metadata.user_id,
-    metadata.discord_id,
-    metadata.sub,
-  ];
-  return values.map((value: any) => String(value || "")).find((value: string) => /^\d{17,20}$/.test(value)) || "";
+  const id = [data.provider_id, data.sub, data.user_id, data.id]
+    .map((value: any) => String(value || ""))
+    .find((value: string) => /^\d{17,20}$/.test(value)) || "";
+  return {
+    id,
+    username: String(data.preferred_username || data.username || data.name || user?.email?.split("@")[0] || id).slice(0, 100),
+    globalName: String(data.full_name || data.global_name || data.name || "").slice(0, 100),
+    avatar: String(data.avatar_url || data.picture || "").slice(0, 500) || null,
+  };
 }
 
 async function sha256(value: string) {
@@ -36,10 +35,15 @@ async function sha256(value: string) {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-async function isServerAdmin(db: any, user: any, serverId: string) {
+function randomHex(bytes = 32) {
+  const value = new Uint8Array(bytes);
+  crypto.getRandomValues(value);
+  return [...value].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function isServerAdmin(db: any, userId: string, serverId: string) {
   const { data, error } = await db.from("discord_user_guilds")
-    .select("is_owner,permissions,can_manage")
-    .eq("user_id", user.id).eq("guild_id", serverId).maybeSingle();
+    .select("is_owner,permissions").eq("user_id", userId).eq("guild_id", serverId).maybeSingle();
   if (error || !data) return false;
   if (data.is_owner === true) return true;
   try { return (BigInt(data.permissions || "0") & 8n) === 8n; } catch { return false; }
@@ -52,87 +56,133 @@ Deno.serve(async (request) => {
   const url = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SECRET_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const token = (request.headers.get("Authorization") || "").match(/^Bearer\s+(.+)$/i)?.[1];
-  if (!url || !serviceKey || !token) return json({ error: "로그인이 필요해요." }, 401);
+  if (!url || !serviceKey || !token) return json({ error: "Discord 로그인 후 다시 시도해 주세요." }, 401);
 
   const db = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const { data: auth, error: authError } = await db.auth.getUser(token);
-  if (authError || !auth.user) return json({ error: "로그인 정보를 확인할 수 없어요." }, 401);
+  if (authError || !auth.user) return json({ error: "로그인 정보를 확인할 수 없어요. 다시 로그인해 주세요." }, 401);
   const user = auth.user;
-  const currentDiscordId = discordId(user);
-  if (!currentDiscordId) return json({ error: "Discord 계정 정보를 확인할 수 없어요. Discord로 다시 로그인해 주세요." }, 403);
+  const discord = getDiscordIdentity(user);
+  if (!discord.id) return json({ error: "Discord 계정 연결을 확인할 수 없어요. Discord 계정으로 로그인해 주세요." }, 403);
 
   let body: Record<string, any>;
-  try { body = await request.json(); } catch { return json({ error: "잘못된 요청이에요." }, 400); }
+  try { body = await request.json(); } catch { return json({ error: "요청 형식이 올바르지 않아요." }, 400); }
   const action = String(body.action || "");
 
-  if (action === "inspect" || action === "submit") {
-    const rawCode = String(body.code || "");
-    if (!/^[A-Za-z0-9_-]{32,100}$/.test(rawCode)) return json({ error: "인증 링크가 올바르지 않아요." }, 400);
-    const codeHash = await sha256(rawCode);
-    const { data: row, error } = await db.from("discord_verification_requests")
-      .select("id,server_id,discord_user_id,discord_username,discord_global_name,discord_avatar,status,expires_at,rejection_reason,apply_error,applied_at")
-      .eq("code_hash", codeHash).maybeSingle();
-    if (error) return json({ error: "인증 요청을 확인하지 못했어요." }, 500);
-    if (!row) return json({ error: "인증 링크를 찾을 수 없어요. Discord에서 새 인증 링크를 받아 주세요." }, 404);
-    if (new Date(row.expires_at).getTime() <= Date.now() && ["issued", "submitted"].includes(row.status)) {
-      await db.from("discord_verification_requests").update({ status: "expired", updated_at: new Date().toISOString() }).eq("id", row.id);
-      return json({ error: "인증 링크가 만료됐어요. Discord에서 다시 인증을 시작해 주세요.", status: "expired" }, 410);
-    }
-    if (row.discord_user_id !== currentDiscordId) {
-      return json({ error: "이 링크를 생성한 Discord 계정으로 로그인해 주세요.", mismatch: true }, 403);
-    }
+  if (action === "request_create") {
+    const serverId = String(body.server_id || "");
+    if (!/^\d{17,20}$/.test(serverId)) return json({ error: "인증 서버 정보가 올바르지 않아요." }, 400);
 
     const { data: settings, error: settingsError } = await db.from("discord_verification_settings")
-      .select("enabled,role_id").eq("server_id", row.server_id).maybeSingle();
-    if (settingsError) return json({ error: "서버의 인증 설정을 확인하지 못했어요." }, 500);
-    const featureEnabled = settings?.enabled === true && !!settings?.role_id;
-
-    if (action === "submit") {
-      if (row.status === "approved") return json({ ok: true, already_approved: true, status: "approved" });
-      if (row.status === "rejected") return json({ ok: true, status: "rejected", rejection_reason: row.rejection_reason || "계정 검사 기준을 통과하지 못했어요." });
-      if (row.status === "expired" || row.status === "failed") return json({ error: row.apply_error || "이 인증 요청은 더 이상 사용할 수 없어요.", status: row.status }, 410);
-      if (!featureEnabled) return json({ error: "이 서버의 인증 기능이 꺼져 있거나 인증 역할이 설정되지 않았어요.", feature_enabled: false }, 409);
-      if (row.status === "issued") {
-        const now = new Date().toISOString();
-        const { data: changed, error: updateError } = await db.from("discord_verification_requests")
-          .update({ status: "submitted", submitted_at: now, updated_at: now })
-          .eq("id", row.id).eq("status", "issued").select("id").maybeSingle();
-        if (updateError) return json({ error: "인증 요청을 등록하지 못했어요." }, 500);
-        if (!changed) {
-          const { data: latest, error: latestError } = await db.from("discord_verification_requests")
-            .select("status,rejection_reason,apply_error,applied_at").eq("id", row.id).maybeSingle();
-          if (latestError || !latest) return json({ error: "인증 상태를 다시 확인하지 못했어요." }, 500);
-          row.status = latest.status;
-          row.rejection_reason = latest.rejection_reason;
-          row.apply_error = latest.apply_error;
-          row.applied_at = latest.applied_at;
-        } else {
-          row.status = "submitted";
-        }
-      }
+      .select("enabled,role_id").eq("server_id", serverId).maybeSingle();
+    if (settingsError) return json({ error: "서버 인증 설정을 확인하지 못했어요." }, 500);
+    if (settings?.enabled !== true || !/^\d{17,20}$/.test(String(settings?.role_id || ""))) {
+      return json({ error: "이 서버는 인증 기능이 꺼져 있거나 인증 역할이 설정되지 않았어요." }, 409);
     }
 
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const { data: previousRows, error: previousError } = await db.from("discord_verification_requests")
+      .select("id,status,expires_at,rejection_reason,apply_error,applied_at,requested_at")
+      .eq("server_id", serverId).eq("discord_user_id", discord.id)
+      .in("status", ["pending", "processing", "approved"])
+      .order("requested_at", { ascending: false }).limit(5);
+    if (previousError) return json({ error: "기존 인증 요청을 확인하지 못했어요." }, 500);
+
+    const active = (previousRows || []).find((row: any) =>
+      row.status === "processing" ||
+      (row.status === "pending" && new Date(row.expires_at).getTime() > now.getTime()) ||
+      (row.status === "approved" && !!row.applied_at)
+    );
+    if (active) {
+      const { data: server } = await db.from("managed_servers").select("server_name").eq("server_id", serverId).maybeSingle();
+      return json({
+        ok: true, request_id: active.id, status: active.status, already_exists: true,
+        server_id: serverId, server_name: server?.server_name || "Discord 서버",
+        applied_at: active.applied_at || null,
+      });
+    }
+
+    const { error: expireError } = await db.from("discord_verification_requests")
+      .update({ status: "expired", updated_at: nowIso })
+      .eq("server_id", serverId).eq("discord_user_id", discord.id).eq("status", "pending").lte("expires_at", nowIso);
+    if (expireError) return json({ error: "만료된 인증 요청을 정리하지 못했어요." }, 500);
+
+    const codeHash = await sha256(randomHex(32));
+    const expiresAt = new Date(now.getTime() + 10 * 60 * 1000).toISOString();
+    const { data: created, error: insertError } = await db.from("discord_verification_requests")
+      .insert({
+        server_id: serverId,
+        discord_user_id: discord.id,
+        discord_username: discord.username || discord.id,
+        discord_global_name: discord.globalName || null,
+        discord_avatar: discord.avatar,
+        code_hash: codeHash,
+        status: "pending",
+        expires_at: expiresAt,
+        requested_at: nowIso,
+        submitted_at: nowIso,
+        created_at: nowIso,
+        updated_at: nowIso,
+      })
+      .select("id,status,expires_at")
+      .single();
+    if (insertError || !created) return json({ error: "인증 요청을 등록하지 못했어요. 잠시 후 다시 시도해 주세요." }, 500);
+
+    const { data: server } = await db.from("managed_servers").select("server_name").eq("server_id", serverId).maybeSingle();
+    return json({
+      ok: true, request_id: created.id, status: created.status,
+      server_id: serverId, server_name: server?.server_name || "Discord 서버",
+      expires_at: created.expires_at,
+    });
+  }
+
+  if (action === "request_status") {
+    const requestId = String(body.request_id || "");
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId)) {
+      return json({ error: "인증 요청 정보가 올바르지 않아요." }, 400);
+    }
+    const { data: row, error } = await db.from("discord_verification_requests")
+      .select("id,server_id,discord_user_id,discord_username,discord_global_name,discord_avatar,status,expires_at,rejection_reason,apply_error,applied_at,requested_at")
+      .eq("id", requestId).eq("discord_user_id", discord.id).maybeSingle();
+    if (error) return json({ error: "인증 상태를 불러오지 못했어요." }, 500);
+    if (!row) return json({ error: "이 Discord 계정의 인증 요청을 찾을 수 없어요." }, 404);
+
+    if (row.status === "pending" && new Date(row.expires_at).getTime() <= Date.now()) {
+      await db.from("discord_verification_requests").update({ status: "expired", updated_at: new Date().toISOString() })
+        .eq("id", row.id).eq("status", "pending");
+      row.status = "expired";
+    }
     const { data: server } = await db.from("managed_servers").select("server_name").eq("server_id", row.server_id).maybeSingle();
     return json({
-      ok: true,
-      server_id: row.server_id,
+      ok: true, request_id: row.id, server_id: row.server_id,
       server_name: server?.server_name || "Discord 서버",
-      discord_user_id: row.discord_user_id,
-      username: row.discord_username,
-      global_name: row.discord_global_name || row.discord_username,
-      avatar: row.discord_avatar,
-      status: row.status,
-      feature_enabled: featureEnabled,
-      rejection_reason: row.rejection_reason || null,
-      apply_error: row.apply_error || null,
-      applied_at: row.applied_at || null,
-      already_approved: row.status === "approved",
+      discord_user_id: row.discord_user_id, username: row.discord_username,
+      global_name: row.discord_global_name || row.discord_username, avatar: row.discord_avatar,
+      status: row.status, rejection_reason: row.rejection_reason || null,
+      apply_error: row.apply_error || null, applied_at: row.applied_at || null,
+      expires_at: row.expires_at,
     });
   }
 
   const serverId = String(body.server_id || "");
   if (!/^\d{17,20}$/.test(serverId)) return json({ error: "서버 정보가 올바르지 않아요." }, 400);
-  if (!await isServerAdmin(db, user, serverId)) return json({ error: "이 Discord 서버의 관리자 권한을 확인할 수 없어요. 서버 목록을 새로고침한 뒤 다시 시도해 주세요." }, 403);
+
+  if (action === "settings_public") {
+    const { data: settings, error: settingsError } = await db.from("discord_verification_settings")
+      .select("enabled,role_id").eq("server_id", serverId).maybeSingle();
+    if (settingsError) return json({ error: "서버 인증 설정을 확인하지 못했어요." }, 500);
+    const { data: server } = await db.from("managed_servers").select("server_name").eq("server_id", serverId).maybeSingle();
+    return json({
+      ok: true,
+      feature_enabled: settings?.enabled === true && /^\d{17,20}$/.test(String(settings?.role_id || "")),
+      server_name: server?.server_name || "Discord 서버",
+    });
+  }
+
+  if (!await isServerAdmin(db, user.id, serverId)) {
+    return json({ error: "이 Discord 서버의 관리자 권한을 확인할 수 없어요. 서버 목록을 새로고침한 뒤 다시 시도해 주세요." }, 403);
+  }
 
   if (action === "settings_get") {
     const { data, error } = await db.from("discord_verification_settings")
