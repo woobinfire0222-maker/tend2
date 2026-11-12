@@ -186,7 +186,7 @@
     const featureTab=$('[data-bot-tab="features"]'),featurePanel=$('[data-bot-panel="features"]');
     if(featureTab)featureTab.classList.remove("hidden");
     if(featurePanel)featurePanel.classList.remove("hidden");
-    ["start-management","stop-management"].forEach(id=>{const el=$("#"+id);if(el)el.classList.toggle("hidden",locked);});
+    ["start-management","stop-management"].forEach(id=>{const el=$("#"+id);if(el)el.classList.toggle("hidden",serverPlan==="none");});
     ["announcement-image-file","announcement-image","announcement-mention"].forEach(id=>{
       const el=$("#"+id);if(el)el.closest(".field")?.classList.toggle("hidden",locked);
     });
@@ -195,7 +195,7 @@
     if(limit&&free&&!limit.textContent.includes("/ 5"))limit.textContent=limit.textContent+" / 5";
     const notice=$("#plan-access-notice");
     if(notice){
-      notice.textContent=free?"현재 FREE 플랜을 이용 중이에요. 공지, 경고, 금칙어 최대 5개, 기본 서버 정보와 서버 로그를 이용할 수 있어요. 유료 플랜은 추후 재공 예정입니다.":paid?"기존 유효 이용권으로 연결된 서버예요. 승인된 이용 기간 동안 기존 기능을 이용할 수 있어요.":"서버를 선택하면 이용 가능한 기능이 표시돼요. 유료 플랜은 추후 재공 예정입니다.";
+      notice.textContent=free?"현재 FREE 플랜을 이용 중이에요. 관리 시작/종료와 공지, 경고, 금칙어 최대 5개, 기본 서버 정보 및 서버 로그를 이용할 수 있어요.":paid?"기존 유효 이용권으로 연결된 서버예요. 승인된 이용 기간 동안 기존 기능을 이용할 수 있어요.":"서버를 선택하면 이용 가능한 기능이 표시돼요. 유료 플랜은 추후 재공 예정입니다.";
       notice.classList.remove("hidden");
     }
   }
@@ -207,7 +207,6 @@
   }
   let managementTarget=false;
   async function management(active) {
-    if(serverPlan==="free"){notify("관리 시작/종료는 현재 FREE 플랜에서 제공하지 않아요.");return;}
     if(managementBusy){notify("이미 관리 상태를 변경하고 있어요.");return;}
     if(active===managementActive){notify(active?"이미 관리 중인 서버예요.":"이미 관리가 종료된 서버예요.");return;}
     if(!await ensureServer())return;
