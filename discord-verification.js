@@ -19,7 +19,7 @@
   };
   async function call(action, extra = {}) {
     const { data, error } = await sb.functions.invoke("discord-verification", { body: { action, server_id: currentServer, ...extra } });
-    if (error) throw new Error(data?.error || error.message || "요청을 처리하지 못했어요.");
+    if (error) { let message = data?.error; try { if (!message && error.context?.json) message = (await error.context.json())?.error; } catch {} throw new Error(message || error.message || "요청을 처리하지 못했어요."); }
     if (data?.error) throw new Error(data.error);
     return data;
   }
