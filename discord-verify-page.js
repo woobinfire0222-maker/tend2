@@ -35,9 +35,7 @@
     requestId = id;
   }
 
-  function showProfile(user) {
-    const identities = Array.isArray(user?.identities) ? user.identities : [];
-    const identity = identities.find(item => item.provider === "discord");
+  function showProfile(user, identity) {
     const data = identity?.identity_data || {};
     const discordId = String(data.provider_id || data.sub || data.user_id || data.id || "");
     const name = data.global_name || data.full_name || data.name || data.preferred_username || data.username || "Discord 사용자";
@@ -148,6 +146,7 @@
     try {
       const result = await call("request_create", { server_id: serverId });
       if (result.request_id) setRequestInUrl(result.request_id);
+      if (result.server_name) $("#verify-server").textContent = "인증 대상 서버 · " + result.server_name;
       if (result.status === "approved") return showApproved();
       retryMode = false;
       submit.classList.add("verify-hidden");
@@ -188,7 +187,11 @@
     const { data: sessionData, error: sessionError } = await sb.auth.getSession();
     if (sessionError) throw sessionError;
     currentUser = sessionData.session?.user || null;
-    const discordIdentity = currentUser?.identities?.find(item => item.provider === "discord");
+    const { data: identityData, error: identityError } = currentUser
+      ? await sb.auth.getUserIdentities()
+      : { data: null, error: null };
+    if (identityError) throw identityError;
+    const discordIdentity = (identityData?.identities || []).find(item => item.provider === "discord");
 
     if (!currentUser || !discordIdentity) {
       setPage("Discord 계정으로 로그인해 주세요.", "본인 계정을 확인한 뒤 인증 요청을 만들 수 있어요.");
@@ -198,16 +201,7 @@
       return;
     }
 
-    showProfile(currentUser);
-    const { data: identityData } = await sb.auth.getUserIdentities();
-    const identity = (identityData?.identities || []).find(item => item.provider === "discord");
-    if (!identity) {
-      setPage("Discord 계정 연결을 확인할 수 없어요.", "Discord 계정으로 다시 로그인해 주세요.");
-      login.classList.remove("verify-hidden");
-      login.onclick = loginWithDiscord;
-      show("Discord 계정 연결 정보를 찾을 수 없어요.", "error");
-      return;
-    }
+    showProfile(currentUser, discordIdentity);
 
     if (requestId) {
       try {
@@ -223,10 +217,17 @@
       }
     }
 
-    const { data: serverInfo, error: serverError } = await call("settings_public", { server_id: serverId }).catch(error => ({ error }));
-    if (serverError || !serverInfo?.feature_enabled) {
+    let serverInfo;
+    try {
+      serverInfo = await call("settings_public", { server_id: serverId });
+    } catch (error) {
       setPage("현재 이 서버에서는 인증을 사용할 수 없어요.", "서버 관리자가 TEND 봇 관리에서 자동 인증과 인증 역할을 설정해야 해요.");
-      show(serverError?.message || serverInfo?.error || "인증 기능이 꺼져 있거나 인증 역할이 설정되지 않았어요.", "error");
+      show(error.message || "인증 설정을 확인하지 못했어요.", "error");
+      return;
+    }
+    if (!serverInfo?.feature_enabled) {
+      setPage("현재 이 서버에서는 인증을 사용할 수 없어요.", "서버 관리자가 TEND 봇 관리에서 자동 인증과 인증 역할을 설정해야 해요.");
+      show("인증 기능이 꺼져 있거나 인증 역할이 설정되지 않았어요.", "error");
       return;
     }
 
