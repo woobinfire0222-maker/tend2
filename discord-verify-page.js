@@ -202,6 +202,7 @@
     }
 
     showProfile(currentUser, discordIdentity);
+    submit.onclick = startRequest;
 
     if (requestId) {
       try {
