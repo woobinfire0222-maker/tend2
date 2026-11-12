@@ -127,6 +127,21 @@ Deno.serve(async (request) => {
       })
       .select("id,status,expires_at")
       .single();
+    if (insertError?.code === "23505") {
+      const { data: raced } = await db.from("discord_verification_requests")
+        .select("id,status,expires_at,applied_at")
+        .eq("server_id", serverId).eq("discord_user_id", discord.id)
+        .in("status", ["pending", "processing", "approved"])
+        .order("requested_at", { ascending: false }).limit(1).maybeSingle();
+      if (raced && (raced.status === "processing" || (raced.status === "pending" && new Date(raced.expires_at).getTime() > Date.now()) || (raced.status === "approved" && !!raced.applied_at))) {
+        const { data: server } = await db.from("managed_servers").select("server_name").eq("server_id", serverId).maybeSingle();
+        return json({
+          ok: true, request_id: raced.id, status: raced.status, already_exists: true,
+          server_id: serverId, server_name: server?.server_name || "Discord 서버",
+          applied_at: raced.applied_at || null,
+        });
+      }
+    }
     if (insertError || !created) return json({ error: "인증 요청을 등록하지 못했어요. 잠시 후 다시 시도해 주세요." }, 500);
 
     const { data: server } = await db.from("managed_servers").select("server_name").eq("server_id", serverId).maybeSingle();
