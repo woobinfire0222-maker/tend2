@@ -7,13 +7,53 @@
 <script>try{if(localStorage.getItem("tend-theme")==="dark")document.documentElement.classList.add("theme-dark")}catch{}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js?v=20261029-3"></script>
 <style>
-body{min-height:100vh;background:var(--bg,#f7f8fa)}.verify-wrap{width:min(520px,calc(100% - 32px));margin:8vh auto}.verify-brand{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:850;margin-bottom:28px}.verify-brand img{width:36px;height:36px;object-fit:contain}.verify-card{padding:28px;border:1px solid var(--line);border-radius:22px;background:var(--card,#fff);box-shadow:0 22px 70px rgba(0,0,0,.08)}.verify-card h1{font-size:25px;letter-spacing:-.05em;margin:0 0 8px}.verify-muted{color:var(--muted);line-height:1.65}.verify-profile{display:flex;align-items:center;gap:14px;padding:16px;margin:20px 0;border:1px solid var(--line);border-radius:16px}.verify-avatar{width:58px;height:58px;border-radius:50%;object-fit:cover;background:#dfe4ee}.verify-profile strong,.verify-profile small{display:block;overflow-wrap:anywhere}.verify-profile small{color:var(--muted);margin-top:4px}.verify-actions{display:grid;gap:10px;margin-top:20px}.verify-actions .btn{width:100%}.verify-status{padding:13px 14px;border-radius:12px;background:var(--soft,#eef3ff);font-size:14px;line-height:1.6;margin-top:14px}.verify-status.error{background:rgba(220,60,60,.1);color:#c43b3b}.verify-status.success{background:rgba(30,160,100,.1);color:#16845a}.verify-server{font-weight:750;margin:18px 0 4px}.verify-hidden{display:none!important}
+:root{--verify-blue:#3182f6;--verify-ink:#191f28;--verify-sub:#737d8c;--verify-line:#e8ebef;--verify-card:#fff;--verify-bg:#f7f8fa}
+html.theme-dark{--verify-ink:#f4f6f8;--verify-sub:#9ba5b2;--verify-line:#282d35;--verify-card:#15181e;--verify-bg:#090b0f}
+body{min-height:100vh;background:var(--verify-bg);color:var(--verify-ink)}
+.verify-wrap{width:min(440px,calc(100% - 36px));margin:0 auto;padding:42px 0 30px}
+.verify-brand{display:flex;align-items:center;gap:9px;font-size:20px;font-weight:850;letter-spacing:-.04em;margin-bottom:34px;color:var(--verify-ink);text-decoration:none}
+.verify-brand img{width:30px;height:30px;object-fit:contain}
+.verify-card{padding:30px 26px 26px;border:1px solid var(--verify-line);border-radius:24px;background:var(--verify-card);box-shadow:0 8px 34px rgba(20,30,50,.045)}
+.verify-kicker{font-size:11px;font-weight:800;letter-spacing:.11em;color:var(--verify-blue);margin-bottom:13px}
+.verify-card h1{font-size:25px;line-height:1.32;letter-spacing:-.055em;margin:0 0 10px;font-weight:800;word-break:keep-all}
+.verify-muted{color:var(--verify-sub);line-height:1.65;font-size:14px;margin:0}
+.verify-profile{display:flex;align-items:center;gap:13px;padding:14px;margin:22px 0 16px;border:1px solid var(--verify-line);border-radius:16px;background:color-mix(in srgb,var(--verify-card) 92%,var(--verify-bg))}
+.verify-avatar{width:46px;height:46px;border-radius:50%;object-fit:cover;background:#dfe4ee}
+.verify-profile strong,.verify-profile small{display:block;overflow-wrap:anywhere}
+.verify-profile strong{font-size:14px}.verify-profile small{color:var(--verify-sub);margin-top:4px;font-size:12px}
+.verify-server{font-size:13px;font-weight:700;color:var(--verify-sub);margin:18px 0 0;overflow-wrap:anywhere}
+.verify-progress{margin:24px 0 8px;padding:17px 16px;border-radius:17px;background:color-mix(in srgb,var(--verify-bg) 76%,var(--verify-card));border:1px solid var(--verify-line)}
+.verify-progress-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px}
+.verify-progress-head strong{font-size:13px}.verify-progress-head span{font-size:11px;color:var(--verify-sub)}
+.verify-steps{display:grid;gap:13px}
+.verify-step{display:flex;align-items:center;gap:11px;min-width:0;color:var(--verify-sub);font-size:13px;transition:color .2s ease}
+.verify-step-dot{width:22px;height:22px;flex:0 0 22px;border-radius:50%;display:grid;place-items:center;background:var(--verify-line);font-size:11px;font-weight:800}
+.verify-step-label{min-width:0;line-height:1.4}
+.verify-step.is-active{color:var(--verify-ink);font-weight:750}
+.verify-step.is-active .verify-step-dot{background:rgba(49,130,246,.12);color:var(--verify-blue);position:relative}
+.verify-step.is-active .verify-step-dot:after{content:"";position:absolute;inset:-3px;border:1.5px solid rgba(49,130,246,.35);border-radius:50%;animation:verify-pulse 1.5s ease-out infinite}
+.verify-step.is-done{color:var(--verify-ink)}
+.verify-step.is-done .verify-step-dot{background:#e5f6ed;color:#15945b}
+html.theme-dark .verify-step.is-done .verify-step-dot{background:#123526;color:#5bd69a}
+.verify-step.is-error{color:#d34c4c}
+.verify-step.is-error .verify-step-dot{background:rgba(211,76,76,.12);color:#d34c4c}
+@keyframes verify-pulse{0%{transform:scale(.9);opacity:.8}100%{transform:scale(1.45);opacity:0}}
+.verify-status{padding:13px 14px;border-radius:13px;background:rgba(49,130,246,.075);color:var(--verify-sub);font-size:13px;line-height:1.6;margin-top:15px;overflow-wrap:anywhere}
+.verify-status.error{background:rgba(220,60,60,.09);color:#d34c4c}.verify-status.success{background:rgba(30,160,100,.09);color:#15945b}
+.verify-actions{display:grid;gap:10px;margin-top:20px}.verify-actions .btn{width:100%;min-height:49px;border-radius:14px;font-weight:750}
+.verify-actions .btn-blue{background:var(--verify-blue);color:white;border:0}
+.verify-actions .btn-light{background:var(--verify-bg);color:var(--verify-ink);border:1px solid var(--verify-line)}
+.verify-actions .btn-dark{background:#202631;color:white;border:0}
+.verify-footnote{text-align:center;font-size:11px;margin:17px 0 0;color:var(--verify-sub)}
+.verify-hidden{display:none!important}
+@media(max-width:480px){.verify-wrap{padding-top:25px}.verify-brand{margin-bottom:25px}.verify-card{padding:25px 20px 21px;border-radius:21px}.verify-card h1{font-size:23px}}
+@media(prefers-reduced-motion:reduce){.verify-step,.verify-step-dot{transition:none}.verify-step.is-active .verify-step-dot:after{animation:none}}
 </style></head>
 <body><main class="verify-wrap"><a class="verify-brand" href="./index.html"><img src="./TEND.png" alt="">TEND</a><section class="verify-card">
-<div class="kicker">DISCORD ACCOUNT VERIFICATION</div><h1 id="verify-title">Discord 계정으로 본인 확인을 진행해 주세요.</h1><p class="verify-muted" id="verify-description">잠시만 기다려 주세요.</p>
+<div class="verify-kicker">TEND · DISCORD VERIFICATION</div><h1 id="verify-title">디스코드 계정을 인증할게요.</h1><p class="verify-muted" id="verify-description">계정을 확인하고 서버 이용을 위한 인증을 진행해요.</p>
 <div id="verify-profile" class="verify-profile verify-hidden"><img id="verify-avatar" class="verify-avatar" alt="Discord 프로필"><div><strong id="verify-name"></strong><small id="verify-id"></small></div></div>
-<div id="verify-server" class="verify-server"></div>
+<div id="verify-server" class="verify-server"></div><section id="verify-progress" class="verify-progress verify-hidden" aria-live="polite"><div class="verify-progress-head"><strong id="verify-progress-title">인증 진행 중</strong><span id="verify-progress-caption">안전하게 확인하고 있어요</span></div><div class="verify-steps"><div class="verify-step" data-step="0"><span class="verify-step-dot">1</span><span class="verify-step-label">인증 요청 준비</span></div><div class="verify-step" data-step="1"><span class="verify-step-dot">2</span><span class="verify-step-label">디스코드 계정 확인</span></div><div class="verify-step" data-step="2"><span class="verify-step-dot">3</span><span class="verify-step-label">자동 계정 검사</span></div><div class="verify-step" data-step="3"><span class="verify-step-dot">4</span><span class="verify-step-label">서버 인증 마무리</span></div></div></section>
 <div id="verify-status" class="verify-status">인증 링크를 확인하고 있어요.</div>
 <div class="verify-actions"><button id="verify-submit" class="btn btn-blue verify-hidden" type="button">인증 시작</button><button id="verify-refresh" class="btn btn-light verify-hidden" type="button" onclick="location.reload()">상태 다시 확인</button><button id="verify-login" class="btn btn-dark verify-hidden" type="button">Discord 계정으로 로그인</button><a class="btn btn-light" href="./index.html">TEND 메인으로</a></div>
-</section><p class="verify-muted" style="text-align:center;font-size:12px;margin-top:18px">TEND는 Discord 비밀번호나 계정 토큰을 요구하지 않습니다.</p></main>
-<script src="./discord-verify-page.js?v=20261112-pending2"></script></body></html>
+</section><p class="verify-footnote">TEND는 Discord 비밀번호나 계정 토큰을 요구하지 않습니다.</p></main>
+<script src="./discord-verify-page.js?v=20261112-toss-progress1"></script></body></html>
