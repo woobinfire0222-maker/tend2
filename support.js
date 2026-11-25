@@ -55,7 +55,7 @@
     $("#support-chat-subject").textContent=ticket.subject;
     $("#support-chat-meta").textContent=(isAdmin()?"문의자 ID: "+ticket.user_id+" · ":"접수: ")+new Date(ticket.created_at).toLocaleString("ko-KR");
     const badge=$("#support-chat-status");badge.textContent=statusText(ticket.status);badge.className="badge "+(ticket.status==="closed"?"":"blue");
-    setHidden("#support-ticket-toggle",!isAdmin());
+    setHidden("#support-ticket-toggle",!ctx?.isSuperAdmin);
     const toggle=$("#support-ticket-toggle");if(toggle){toggle.textContent=ticket.status==="closed"?"문의 다시 열기":"문의 종료";toggle.dataset.next=ticket.status==="closed"?"open":"closed"}
     const closed=ticket.status==="closed"&&!isAdmin();
     setHidden("#support-reply-form",closed);setHidden("#support-closed-note",!closed);
@@ -92,7 +92,7 @@
     await Promise.all([refreshMessages(ticketId,false),loadTickets(false)]);
   }
   async function toggleTicket(){
-    if(!isAdmin()||!selectedId)return;
+    if(!ctx?.isSuperAdmin||!selectedId)return;
     const ticket=tickets.find(t=>t.id===selectedId);if(!ticket)return;
     const next=ticket.status==="closed"?"open":"closed";
     const {error}=await ctx.sb.from("support_tickets").update({status:next,updated_at:new Date().toISOString()}).eq("id",selectedId);
