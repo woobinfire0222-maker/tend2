@@ -414,7 +414,7 @@ const term=(search?.value||"").trim().toLowerCase();
 const rows=members.filter(m=>[m.display_name,m.discord_id,m.user_id].some(v=>String(v||"").toLowerCase().includes(term)));
 if(!list)return;
 list.innerHTML=rows.length?rows.map(m=>{
-const assigned=staff.has(m.user_id),valid=/^\\d{17,20}$/.test(String(m.discord_id||""));
+const assigned=staff.has(m.user_id),valid=/^[0-9]{17,20}$/.test(String(m.discord_id||""));
 return '<div class="experiment-member-row"><div class="experiment-member-info"><strong>'+escapeHtml(m.display_name||"이름 없는 멤버")+'</strong><small>Discord ID · '+escapeHtml(m.discord_id||"확인되지 않음")+'</small></div><div class="experiment-member-action">'+(assigned?'<span class="badge green">일반 관리자</span><button class="btn btn-light" data-staff-remove="'+escapeHtml(m.user_id)+'">해제</button>':valid?'<button class="btn btn-blue" data-staff-add="'+escapeHtml(m.user_id)+'">일반 관리자 지정</button>':'<span class="badge">Discord 계정 확인 필요</span>')+'</div></div>';
 }).join(""):'<div class="empty">검색 결과가 없어요.</div>';
 list.querySelectorAll("[data-staff-add]").forEach(button=>button.addEventListener("click",async()=>{
