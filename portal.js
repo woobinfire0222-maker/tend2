@@ -361,7 +361,7 @@ if(!host)return;
 host.innerHTML='<div class="empty">멤버 목록을 불러오는 중…</div>';
 let membersResult,experimentsResult;
 try{[membersResult,experimentsResult]=await Promise.all([
-withTimeout(sb.from("tend_members").select("user_id,discord_id,display_name,updated_at").order("updated_at",{ascending:false}).limit(500)),
+withTimeout(sb.rpc("tend_admin_list_members")),
 withTimeout(sb.from("tend_experiment_members").select("user_id,assigned_at").limit(1000))
 ])}catch(e){console.error("Experiment member list timeout:",e);host.innerHTML='<div class="empty">멤버 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return}
 if(membersResult.error||experimentsResult.error){console.error("Experiment member list error:",membersResult.error||experimentsResult.error);host.innerHTML='<div class="empty">멤버 목록을 불러오지 못했어요. Supabase SQL Editor에서 experiment-lab.sql을 먼저 실행해 주세요.</div>';return}
