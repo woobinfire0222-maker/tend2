@@ -404,7 +404,7 @@ async function loadSupportStaffPanel(){
 const panel=$("#admin-support-staff-panel");if(!panel)return;panel.classList.remove("hidden");
 const list=$("#admin-support-staff-list"),search=$("#admin-support-staff-search");
 const [membersResult,staffResult]=await Promise.all([
-withTimeout(sb.from("tend_members").select("user_id,discord_id,display_name,updated_at").order("updated_at",{ascending:false}).limit(500)),
+withTimeout(sb.rpc("tend_admin_list_members")),
 withTimeout(sb.from("tend_support_staff").select("user_id,assigned_by,created_at").order("created_at",{ascending:false}).limit(500))
 ]);
 if(membersResult.error||staffResult.error){console.error("support staff list failed",membersResult.error||staffResult.error);if(list)list.innerHTML='<div class="empty">관리자 목록을 불러오지 못했어요. 권한을 확인해 주세요.</div>';return}
