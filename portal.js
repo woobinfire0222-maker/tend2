@@ -2,7 +2,7 @@
 const cfg=window.TEND_CONFIG||{};
 const sb=window.TEND_SB||(window.supabase&&cfg.supabaseUrl&&cfg.supabaseAnonKey?window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null);if(sb)window.TEND_SB=sb;
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-let user=null,profileName="사용자",experimentMember=false;
+let user=null,profileName="사용자",experimentMember=false,supportAdmin=false;
 const toast=$("#toast");
 function notify(s){if(!toast)return;toast.textContent=s;toast.classList.add("show");clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.classList.remove("show"),3000)}
 function withTimeout(promise, ms=12000){return Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout")),ms))])}
@@ -400,9 +400,54 @@ if(error||!data){experimentMember=false;notify("실험실 이용 권한이 없�
 if(window.TEND_LAB){await window.TEND_LAB.init({sb,user,notify,escapeHtml,withTimeout});return}
 notify("실험실 기능 파일을 불러오지 못했어요.");
 }
+async function loadSupportStaffPanel(){
+const panel=$("#admin-support-staff-panel");if(!panel)return;panel.classList.remove("hidden");
+const list=$("#admin-support-staff-list"),search=$("#admin-support-staff-search");
+const [membersResult,staffResult]=await Promise.all([
+withTimeout(sb.from("tend_members").select("user_id,discord_id,display_name,updated_at").order("updated_at",{ascending:false}).limit(500)),
+withTimeout(sb.from("tend_support_staff").select("user_id,assigned_by,created_at").order("created_at",{ascending:false}).limit(500))
+]);
+if(membersResult.error||staffResult.error){console.error("support staff list failed",membersResult.error||staffResult.error);if(list)list.innerHTML='<div class="empty">관리자 목록을 불러오지 못했어요. 권한을 확인해 주세요.</div>';return}
+const members=membersResult.data||[],staff=new Map((staffResult.data||[]).map(x=>[x.user_id,x]));
+const render=()=>{
+const term=(search?.value||"").trim().toLowerCase();
+const rows=members.filter(m=>[m.display_name,m.discord_id,m.user_id].some(v=>String(v||"").toLowerCase().includes(term)));
+if(!list)return;
+list.innerHTML=rows.length?rows.map(m=>{
+const assigned=staff.has(m.user_id),valid=/^\\d{17,20}$/.test(String(m.discord_id||""));
+return '<div class="experiment-member-row"><div class="experiment-member-info"><strong>'+escapeHtml(m.display_name||"이름 없는 멤버")+'</strong><small>Discord ID · '+escapeHtml(m.discord_id||"확인되지 않음")+'</small></div><div class="experiment-member-action">'+(assigned?'<span class="badge green">일반 관리자</span><button class="btn btn-light" data-staff-remove="'+escapeHtml(m.user_id)+'">해제</button>':valid?'<button class="btn btn-blue" data-staff-add="'+escapeHtml(m.user_id)+'">일반 관리자 지정</button>':'<span class="badge">Discord 계정 확인 필요</span>')+'</div></div>';
+}).join(""):'<div class="empty">검색 결과가 없어요.</div>';
+list.querySelectorAll("[data-staff-add]").forEach(button=>button.addEventListener("click",async()=>{
+if(!confirm("이 사용자를 일반 관리자로 지정할까요? 문의 답변 외의 관리자 기능은 사용할 수 없습니다."))return;
+button.disabled=true;const {error}=await sb.from("tend_support_staff").insert({user_id:button.dataset.staffAdd,assigned_by:user.id});
+if(error){console.error("support staff assign failed",error);notify("일반 관리자 지정에 실패했어요.");button.disabled=false;return}
+notify("일반 관리자로 지정했어요.");await loadSupportStaffPanel();
+}));
+list.querySelectorAll("[data-staff-remove]").forEach(button=>button.addEventListener("click",async()=>{
+if(!confirm("이 사용자의 일반 관리자 권한을 해제할까요?"))return;
+button.disabled=true;const {error}=await sb.from("tend_support_staff").delete().eq("user_id",button.dataset.staffRemove);
+if(error){console.error("support staff remove failed",error);notify("일반 관리자 해제에 실패했어요.");button.disabled=false;return}
+notify("일반 관리자 권한을 해제했어요.");await loadSupportStaffPanel();
+}));
+};
+if(search&&!search.dataset.bound){search.dataset.bound="1";search.addEventListener("input",render)}
+render();
+}
 async function loadAdmin(){
-shell("admin","관리자 대시보드","기존 이용권 기록과 서버 운영 상태를 관리합니다.");
-if(!isAdmin(user)){const t=$("#admin-requests");if(t)t.innerHTML='<tr><td colspan="8" class="empty">이 계정은 관리자 계정이 아닙니다.</td></tr>';notify("관리자 계정만 이용할 수 있어요.");return}
+shell("admin","관리자 대시보드","최고관리자 및 고객 문의 관리");
+const superAdmin=isAdmin(user);
+if(!superAdmin){
+const {data:allowed,error:roleError}=await sb.rpc("tend_is_support_admin");
+if(roleError||!allowed){notify("관리자 권한이 없어요.");location.replace("./dashboard.html");return}
+supportAdmin=true;
+document.querySelectorAll(".main > section").forEach(section=>{if(!section.classList.contains("page-head")&&section.id!=="admin-support-inbox")section.classList.add("hidden")});
+const head=$(".page-head .page-title"),sub=$(".page-head .page-subtitle");
+if(head)head.textContent="문의 관리자";
+if(sub)sub.textContent="일반 관리자는 고객 문의 확인과 답변만 할 수 있어요.";
+return;
+}
+supportAdmin=true;
+await loadSupportStaffPanel();
 await loadExperimentAdmin();
 let totals;try{totals=await withTimeout(Promise.all([count("purchase_requests",{}),count("purchase_requests",{status:"pending"}),count("purchase_requests",{status:"rejected"}),count("purchase_requests",{status:"approved"})]));}catch(e){console.error("admin counts timeout:",e);totals=[null,null,null,null]}const [total,pending,unpaid,active]=totals;
 $("#admin-total").textContent=total??"—";$("#admin-pending").textContent=pending??"—";$("#admin-unpaid").textContent=unpaid??"—";$("#admin-active").textContent=active??"—";
@@ -417,6 +462,6 @@ $$("[data-reject]").forEach(b=>b.addEventListener("click",async()=>{const reason
 function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function setupTheme(){const key="tend-theme",root=document.documentElement,buttons=Array.from(document.querySelectorAll("[data-theme-toggle]"));let saved="light";try{saved=localStorage.getItem(key)||"light"}catch{}const apply=theme=>{const dark=theme==="dark";root.classList.toggle("theme-dark",dark);buttons.forEach(button=>{button.innerHTML=dark?"☀ <span>라이트 모드</span>":"☾ <span>다크 모드</span>";button.setAttribute("aria-label",dark?"라이트 모드로 전환":"다크 모드로 전환")})};apply(saved);buttons.forEach(button=>button.addEventListener("click",()=>{const next=root.classList.contains("theme-dark")?"light":"dark";try{localStorage.setItem(key,next)}catch{}apply(next)}))}
 setupTheme();
-async function init(){if(!sb){console.error("TEND Supabase initialization failed",{supabaseLibraryLoaded:!!window.supabase,configLoaded:!!window.TEND_CONFIG,urlConfigured:!!cfg.supabaseUrl,keyConfigured:!!cfg.supabaseAnonKey});notify("Supabase 연결 실패: 설정 파일 또는 Supabase 라이브러리를 불러오지 못했어요. 새로고침해 주세요.");return}const page=document.body.dataset.page;let loginConfirmed=false,loginCheckTimer=null;const confirmLoginUser=async(candidate)=>{if(page!=="login"||loginConfirmed)return;let current=candidate||null;if(!current){try{current=await getSession()}catch(error){console.error("Discord session check failed:",error);return}}if(!current)return;loginConfirmed=true;if(loginCheckTimer)clearInterval(loginCheckTimer);user=current;profileName=uname(user)||user.user_metadata?.global_name||user.email||"Discord 사용자";showAccountConfirm(user)};sb.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_OUT"){if(page!=="login")location.href="./login.html";return}if(page==="login"&&session?.user)confirmLoginUser(session.user)});if(page==="login"){$("#discord-login")?.addEventListener("click",login);$("#login-back")?.addEventListener("click",()=>location.href="./index.html");await confirmLoginUser();if(!loginConfirmed){let checks=0;loginCheckTimer=setInterval(()=>{checks++;confirmLoginUser();if(checks>=30&&!loginConfirmed)clearInterval(loginCheckTimer)},300)}return}if(!await requireUser())return;void sb.from("tend_members").upsert({user_id:user.id,discord_id:discordUserId(user)||null,display_name:profileName,updated_at:new Date().toISOString()},{onConflict:"user_id"}).then(({error})=>{if(error)console.warn("TEND member profile sync failed:",error.message)}).catch(e=>console.warn("TEND member profile sync failed:",e));try{const {data:experimentData,error:experimentError}=await sb.from("tend_experiment_members").select("user_id").eq("user_id",user.id).maybeSingle();experimentMember=!experimentError&&!!experimentData}catch(e){console.warn("TEND experiment access check failed:",e);experimentMember=false}if(page==="dashboard")await loadDashboard();else if(page==="requests")await loadRequests();else if(page==="bot")await loadBot();else if(page==="servers")await loadServers();else if(page==="support"){shell("support","문의 센터","TEND 고객지원과 1:1로 대화할 수 있어요.");if(window.TEND_SUPPORT)await window.TEND_SUPPORT.init({sb,user,profileName,isAdmin:isAdmin(user)||isOwnerName(user),notify,escapeHtml});else notify("문의 센터 파일을 불러오지 못했어요.");}else if(page==="lab"){await loadLab();}else if(page==="admin"){await loadAdmin();if(window.TEND_SUPPORT)await window.TEND_SUPPORT.init({sb,user,profileName,isAdmin:isAdmin(user)||isOwnerName(user),notify,escapeHtml});}}
+async function init(){if(!sb){console.error("TEND Supabase initialization failed",{supabaseLibraryLoaded:!!window.supabase,configLoaded:!!window.TEND_CONFIG,urlConfigured:!!cfg.supabaseUrl,keyConfigured:!!cfg.supabaseAnonKey});notify("Supabase 연결 실패: 설정 파일 또는 Supabase 라이브러리를 불러오지 못했어요. 새로고침해 주세요.");return}const page=document.body.dataset.page;let loginConfirmed=false,loginCheckTimer=null;const confirmLoginUser=async(candidate)=>{if(page!=="login"||loginConfirmed)return;let current=candidate||null;if(!current){try{current=await getSession()}catch(error){console.error("Discord session check failed:",error);return}}if(!current)return;loginConfirmed=true;if(loginCheckTimer)clearInterval(loginCheckTimer);user=current;profileName=uname(user)||user.user_metadata?.global_name||user.email||"Discord 사용자";showAccountConfirm(user)};sb.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_OUT"){if(page!=="login")location.href="./login.html";return}if(page==="login"&&session?.user)confirmLoginUser(session.user)});if(page==="login"){$("#discord-login")?.addEventListener("click",login);$("#login-back")?.addEventListener("click",()=>location.href="./index.html");await confirmLoginUser();if(!loginConfirmed){let checks=0;loginCheckTimer=setInterval(()=>{checks++;confirmLoginUser();if(checks>=30&&!loginConfirmed)clearInterval(loginCheckTimer)},300)}return}if(!await requireUser())return;void sb.from("tend_members").upsert({user_id:user.id,discord_id:discordUserId(user)||null,display_name:profileName,updated_at:new Date().toISOString()},{onConflict:"user_id"}).then(({error})=>{if(error)console.warn("TEND member profile sync failed:",error.message)}).catch(e=>console.warn("TEND member profile sync failed:",e));try{const {data:experimentData,error:experimentError}=await sb.from("tend_experiment_members").select("user_id").eq("user_id",user.id).maybeSingle();experimentMember=!experimentError&&!!experimentData}catch(e){console.warn("TEND experiment access check failed:",e);experimentMember=false}if(page==="dashboard")await loadDashboard();else if(page==="requests")await loadRequests();else if(page==="bot")await loadBot();else if(page==="servers")await loadServers();else if(page==="support"){shell("support","문의 센터","TEND 고객지원과 1:1로 대화할 수 있어요.");if(window.TEND_SUPPORT)await window.TEND_SUPPORT.init({sb,user,profileName,isAdmin:isAdmin(user)||isOwnerName(user),notify,escapeHtml});else notify("문의 센터 파일을 불러오지 못했어요.");}else if(page==="lab"){await loadLab();}else if(page==="admin"){await loadAdmin();if(window.TEND_SUPPORT)await window.TEND_SUPPORT.init({sb,user,profileName,isAdmin:supportAdmin,isSuperAdmin:isAdmin(user),notify,escapeHtml});}}
 init().catch(e=>{console.error("TEND init failed:",e);const toast=document.querySelector("#toast");if(toast){toast.textContent="화면을 불러오지 못했어요. 새로고침 후 다시 시도해 주세요.";toast.classList.add("show");}document.querySelectorAll(".empty").forEach(el=>{if(/불러오는 중|확인하는 중/.test(el.textContent))el.textContent="불러오지 못했어요. 새로고침 후 다시 시도해 주세요.";});});
 })();
