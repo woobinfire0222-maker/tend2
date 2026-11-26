@@ -487,7 +487,7 @@
     warnings:[["max_warnings","누적 경고 기준","number"],["action","기준 도달 시 조치","select:none,timeout,kick,ban"],["timeout_seconds","타임아웃 시간(초)","number"],["notify_user","대상자에게 안내","boolean"]],
     temporary_voice:[["lobby_channel_id","임시 채널 생성용 대기 음성 채널","channel:voice"],["category_id","임시 채널 카테고리","category"],["default_user_limit","기본 인원 제한","number"],["delete_empty_after_seconds","빈 채널 삭제 대기(초)","number"]],
     server_backup:[["backup_channel_id","백업 알림 채널","channel:text"],["include_roles","역할 구조 포함","boolean"],["include_channels","채널 구조 포함","boolean"],["include_permissions","권한 설정 포함","boolean"],["schedule_hours","자동 백업 주기(시간, 0=끔)","number"]],
-    honeypot:[["channel_id","허니팟 채널","channel:text"],["alert_channel_id","차단 알림 로그 채널","channel:text"],["exempt_role_ids","차단 제외 역할 ID (쉼표 구분)","list"],["ban_reason","영구 차단 사유","textarea"],["delete_message","감지 메시지 삭제","boolean"]]
+    honeypot:[["alert_channel_id","차단 알림 채널 ID (선택)","text"],["exempt_role_ids","차단 제외 역할 ID (쉼표 구분)","list"],["ban_reason","영구 차단 사유","textarea"],["delete_message","감지 메시지 삭제","boolean"]]
   };
   function featureFieldHtml(featureKey, field, settings, inventory) {
     const [key,label,type]=field, value=settings[key];
@@ -527,8 +527,33 @@
     const backdrop=document.createElement("div");
     backdrop.id="feature-editor-backdrop";
     backdrop.className="feature-editor-backdrop";
-    backdrop.innerHTML='<section class="feature-editor" role="dialog" aria-modal="true" aria-labelledby="feature-editor-title"><header><div><h2 id="feature-editor-title">'+escapeHtml(feature[1])+'</h2><p>'+escapeHtml(feature[2])+'</p></div><button type="button" class="btn btn-light" data-editor-close>닫기</button></header><form id="feature-editor-form"><div class="feature-editor-fields">'+fields.map(f=>featureFieldHtml(featureKey,f,settings,inventory)).join("")+'</div>'+(needsInventory&&!inventory.channels.length?'<p class="card-note">채널 목록이 비어 있다면 먼저 봇 관리 상단의 Discord 정보 새로고침을 실행해 주세요.</p>':'')+'<label class="feature-editor-check feature-editor-enabled"><input type="checkbox" id="feature-editor-enabled" '+(enabled?"checked":"")+'><span>이 기능 사용</span></label><footer><button type="button" class="btn btn-light" data-editor-close>취소</button><button class="btn btn-blue" type="submit">설정 저장 및 적용</button></footer></form></section>';
+    const honeypotTop=featureKey==="honeypot"?'<section class="card" style="margin-bottom:16px"><div class="card-head"><div><div class="card-title">허니팟 채널 생성</div><p class="page-subtitle">봇이 선택한 서버에 전용 텍스트 채널을 만들어요.</p></div></div><label class="field"><span>새 채널 이름</span><input id="honeypot-channel-name" maxlength="91" value="honeypot" placeholder="honeypot"></label><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" class="btn btn-blue" id="honeypot-create-channel">Discord 채널 생성</button><button type="button" class="btn btn-light" id="honeypot-refresh-channel">상태 새로고침</button></div><div id="honeypot-channel-state" class="notice" style="margin-top:10px">'+(settings.channel_id?'현재 연결된 채널: '+escapeHtml(settings.channel_name||"허니팟 채널")+' · '+escapeHtml(settings.channel_id):'아직 생성된 허니팟 채널이 없어요.')+'</div></section>':"";
+    backdrop.innerHTML='<section class="feature-editor" role="dialog" aria-modal="true" aria-labelledby="feature-editor-title"><header><div><h2 id="feature-editor-title">'+escapeHtml(feature[1])+'</h2><p>'+escapeHtml(feature[2])+'</p></div><button type="button" class="btn btn-light" data-editor-close>닫기</button></header><form id="feature-editor-form">'+honeypotTop+'<div class="feature-editor-fields">'+fields.map(f=>featureFieldHtml(featureKey,f,settings,inventory)).join("")+'</div>'+(needsInventory&&!inventory.channels.length?'<p class="card-note">채널 목록이 비어 있다면 먼저 봇 관리 상단의 Discord 정보 새로고침을 실행해 주세요.</p>':'')+'<label class="feature-editor-check feature-editor-enabled"><input type="checkbox" id="feature-editor-enabled" '+(enabled?"checked":"")+'><span>이 기능 사용</span></label><footer><button type="button" class="btn btn-light" data-editor-close>취소</button><button class="btn btn-blue" type="submit">설정 저장 및 적용</button></footer></form></section>';
     document.body.append(backdrop);
+    if(featureKey==="honeypot"){
+      const state=backdrop.querySelector("#honeypot-channel-state");
+      const refresh=async()=>{
+        const current=await sb.from("server_feature_settings").select("settings,enabled").eq("server_id",sid()).eq("feature_key","honeypot").maybeSingle();
+        if(current.error){state.textContent="설정을 확인하지 못했어요: "+current.error.message;return;}
+        const value=current.data?.settings||{};
+        settings=value;
+        state.textContent=value.channel_id?"현재 연결된 채널: #"+(value.channel_name||"honeypot")+" · "+value.channel_id:"아직 생성된 허니팟 채널이 없어요.";
+      };
+      backdrop.querySelector("#honeypot-refresh-channel").addEventListener("click",refresh);
+      backdrop.querySelector("#honeypot-create-channel").addEventListener("click",async()=>{
+        const button=backdrop.querySelector("#honeypot-create-channel");
+        const channelName=backdrop.querySelector("#honeypot-channel-name").value.trim().toLowerCase();
+        if(!/^[a-z0-9][a-z0-9_-]{0,90}$/.test(channelName)){notify("채널 이름은 영문 소문자, 숫자, - 또는 _로 1~91자 입력해 주세요.");return;}
+        if(settings.channel_id&&!confirm("이미 허니팟 채널이 연결되어 있어요. 새 채널을 추가로 만들까요?"))return;
+        if(!await ensureServer())return;
+        button.disabled=true;button.textContent="생성 요청 중…";
+        const queued=await sb.from("bot_jobs").insert({server_id:sid(),job_type:"honeypot.create_channel",payload:{channel_name:channelName},status:"pending"});
+        if(queued.error){console.error("honeypot channel job enqueue failed:",queued.error);notify("채널 생성 요청을 등록하지 못했어요: "+queued.error.message);button.disabled=false;button.textContent="Discord 채널 생성";return;}
+        state.textContent="생성 요청을 접수했어요. 봇이 채널을 만들면 '상태 새로고침'을 눌러 확인해 주세요.";
+        notify("허니팟 채널 생성 요청을 보냈어요.");
+        button.disabled=false;button.textContent="다시 채널 생성 요청";
+      });
+    }
     backdrop.querySelectorAll("[data-editor-close]").forEach(b=>b.addEventListener("click",()=>backdrop.remove()));
     backdrop.addEventListener("click",e=>{if(e.target===backdrop)backdrop.remove();});
     backdrop.querySelector("#feature-editor-form").addEventListener("submit",async e=>{
