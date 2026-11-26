@@ -7,6 +7,7 @@
       ["/관리시작","관리 시작","선택한 서버의 관리 기능을 시작하도록 요청합니다.","management_start"],
       ["/관리종료","관리 종료","선택한 서버의 관리 기능을 중지하도록 요청합니다.","management_stop"],
       ["/기능설정","기능 설정","서버 기능별 사용 여부와 세부 설정을 관리합니다.","feature_config"],
+      ["/허니팟설정","허니팟 설정","허니팟 채널과 영구 차단 알림 설정을 관리합니다.","honeypot_config"],
       ["/자동화설정","자동화 설정","자동화 규칙과 실행 조건을 설정합니다.","automation_config"]
     ]],
     ["금칙어 및 조정",[
@@ -70,7 +71,8 @@
     ["account_security","계정 보안","신규 계정 기준과 제한 정책"],
     ["warnings","경고 시스템","경고 사유, 누적 기준 및 자동 제재"],
     ["temporary_voice","임시 음성 채널","자동 생성, 인원 제한 및 자동 삭제"],
-    ["server_backup","서버 백업","지원되는 역할·채널 구조 설정 내보내기"]
+    ["server_backup","서버 백업","지원되는 역할·채널 구조 설정 내보내기"],
+    ["honeypot","허니팟","지정된 함정 채널에 메시지를 작성한 계정을 영구 차단하고 기록"]
   ];
   const sid = () => serverId || ($("#managed-server-select") && $("#managed-server-select").value) || "";
   const failed = (e, message) => { if (!e) return false; console.error(e); notify(message); return true; };
@@ -484,7 +486,8 @@
     server_logs:[["channel_id","로그 채널","channel:text"],["message_events","메시지 변경/삭제 기록","boolean"],["member_events","입퇴장 기록","boolean"],["role_events","역할 변경 기록","boolean"],["voice_events","음성 채널 이동 기록","boolean"]],
     warnings:[["max_warnings","누적 경고 기준","number"],["action","기준 도달 시 조치","select:none,timeout,kick,ban"],["timeout_seconds","타임아웃 시간(초)","number"],["notify_user","대상자에게 안내","boolean"]],
     temporary_voice:[["lobby_channel_id","임시 채널 생성용 대기 음성 채널","channel:voice"],["category_id","임시 채널 카테고리","category"],["default_user_limit","기본 인원 제한","number"],["delete_empty_after_seconds","빈 채널 삭제 대기(초)","number"]],
-    server_backup:[["backup_channel_id","백업 알림 채널","channel:text"],["include_roles","역할 구조 포함","boolean"],["include_channels","채널 구조 포함","boolean"],["include_permissions","권한 설정 포함","boolean"],["schedule_hours","자동 백업 주기(시간, 0=끔)","number"]]
+    server_backup:[["backup_channel_id","백업 알림 채널","channel:text"],["include_roles","역할 구조 포함","boolean"],["include_channels","채널 구조 포함","boolean"],["include_permissions","권한 설정 포함","boolean"],["schedule_hours","자동 백업 주기(시간, 0=끔)","number"]],
+    honeypot:[["channel_id","허니팟 채널","channel:text"],["alert_channel_id","차단 알림 로그 채널","channel:text"],["exempt_role_ids","차단 제외 역할 ID (쉼표 구분)","list"],["ban_reason","영구 차단 사유","textarea"],["delete_message","감지 메시지 삭제","boolean"]]
   };
   function featureFieldHtml(featureKey, field, settings, inventory) {
     const [key,label,type]=field, value=settings[key];
