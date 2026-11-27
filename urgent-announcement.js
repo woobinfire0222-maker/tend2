@@ -1,0 +1,18 @@
+(()=>{const KEY="tend-urgent-hosting-20261127";try{if(localStorage.getItem(KEY)==="closed")return}catch{};const style=document.createElement("style");style.textContent=`
+#tend-urgent-overlay{position:fixed;inset:0;z-index:2147483000;background:rgba(8,12,20,.68);backdrop-filter:blur(7px);display:grid;place-items:center;padding:20px;opacity:0;animation:tendUrgentIn .22s ease forwards}
+#tend-urgent-card{width:min(100%,460px);background:#fff;color:#171b24;border:1px solid #e7eaf0;border-radius:22px;box-shadow:0 28px 90px #0005;padding:27px;position:relative;transform:translateY(12px);animation:tendUrgentCard .28s cubic-bezier(.2,.8,.2,1) forwards;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.035em}
+#tend-urgent-close{position:absolute;right:17px;top:17px;width:34px;height:34px;border:0;border-radius:10px;background:#f1f3f6;color:#5f6673;font-size:20px;cursor:pointer}
+#tend-urgent-label{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;background:#fff0ef;color:#d7433c;font-size:11px;font-weight:800}
+#tend-urgent-dot{width:7px;height:7px;border-radius:50%;background:#e24b43;box-shadow:0 0 0 4px #e24b431c}
+#tend-urgent-card h2{font-size:24px;line-height:1.3;letter-spacing:-.06em;margin:19px 42px 11px 0;font-weight:850}
+#tend-urgent-card p{font-size:14px;line-height:1.85;color:#626b79;margin:0}
+#tend-urgent-card .tend-urgent-note{margin-top:16px;padding:13px 14px;border-radius:13px;background:#f6f7f9;color:#414957;font-size:12px;line-height:1.7}
+#tend-urgent-ok{width:100%;margin-top:21px;height:46px;border:0;border-radius:13px;background:#20242d;color:#fff;font-size:14px;font-weight:750;cursor:pointer}
+@keyframes tendUrgentIn{to{opacity:1}}@keyframes tendUrgentCard{to{transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){#tend-urgent-overlay,#tend-urgent-card{animation:none;opacity:1;transform:none}}
+@media(max-width:480px){#tend-urgent-card{padding:23px 20px;border-radius:19px}#tend-urgent-card h2{font-size:22px}}
+html.theme-dark #tend-urgent-card{background:#1a222e;color:#edf1f7;border-color:#303b4c}
+html.theme-dark #tend-urgent-close{background:#263142;color:#e7edf6}
+html.theme-dark #tend-urgent-card p{color:#aab4c3}
+html.theme-dark #tend-urgent-card .tend-urgent-note{background:#111821;color:#cbd5e2}
+`;document.head.appendChild(style);const overlay=document.createElement("div");overlay.id="tend-urgent-overlay";overlay.innerHTML='<section id="tend-urgent-card" role="dialog" aria-modal="true" aria-labelledby="tend-urgent-title"><button id="tend-urgent-close" type="button" aria-label="닫기">×</button><div id="tend-urgent-label"><span id="tend-urgent-dot"></span> 긴급 공지</div><h2 id="tend-urgent-title">디스코드 봇 일시 중단 안내</h2><p>현재 호스팅사 측 문제로 TEND 디스코드 봇이 정상적으로 작동하지 않고 있습니다.</p><p style="margin-top:9px">문제를 확인하고 있으며, <strong>오늘 안에 복구하겠습니다.</strong></p><div class="tend-urgent-note">복구가 완료되면 별도 공지를 통해 다시 안내하겠습니다. 이용에 불편을 드려 죄송합니다.</div><button id="tend-urgent-ok" type="button">확인</button></section>';document.body.appendChild(overlay);const close=()=>{overlay.remove();try{localStorage.setItem(KEY,"closed")}catch{}};overlay.querySelector("#tend-urgent-close").addEventListener("click",close);overlay.querySelector("#tend-urgent-ok").addEventListener("click",close);overlay.addEventListener("click",e=>{if(e.target===overlay)close()});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("tend-urgent-overlay"))close()});})();
