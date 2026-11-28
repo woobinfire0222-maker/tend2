@@ -643,3 +643,33 @@ body.bl-editor-page{height:100vh;height:100dvh;min-height:0;display:flex;flex-di
     font-size:9px;
   }
 }
+
+
+/* Project element manager is a native-looking row directly after the Values category */
+.bl-editor-page .blocklyToolboxDiv .bl-toolbox-manager-row{
+  display:flex!important;
+  align-items:center;
+  box-sizing:border-box;
+  min-height:32px;
+  height:32px;
+  margin:1px 4px;
+  padding:0 8px;
+  border-radius:6px;
+  cursor:pointer;
+  user-select:none;
+}
+.bl-editor-page .blocklyToolboxDiv .bl-toolbox-manager-row .blocklyTreeLabel{
+  font-family:inherit;
+  font-size:11px;
+  line-height:32px;
+  font-weight:700;
+  color:#303b4d;
+  white-space:nowrap;
+}
+.bl-editor-page .blocklyToolboxDiv .bl-toolbox-manager-row:hover{
+  background:#edf3ff;
+}
+.bl-editor-page .blocklyToolboxDiv .bl-toolbox-manager-row:focus-visible{
+  outline:2px solid #3978f6;
+  outline-offset:-2px;
+}
