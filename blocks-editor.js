@@ -1,8 +1,7 @@
-
 (() => {
  const $=s=>document.querySelector(s),sb=window.BLOCKS.sb;
  const params=new URLSearchParams(location.search),projectId=params.get("id");
- const palette=$("#blocks-palette"),workspace=$("#blocks-workspace-list"),nameInput=$("#blocks-project-name"),count=$("#blocks-count"),saveButton=$("#blocks-save"),enableButton=$("#blocks-enable");
+ const nameInput=$("#blocks-project-name"),saveButton=$("#blocks-save"),enableButton=$("#blocks-enable");
  const definitions=[
   {type:"event_message_create",group:"이벤트",kind:"event",label:"새 메시지가 올라오면",fields:[{key:"channel_filter",label:"채널 ID (선택)",placeholder:"전체 채널",kind:"text"}]},
   {type:"event_member_join",group:"이벤트",kind:"event",label:"새 멤버가 들어오면",fields:[]},
@@ -49,182 +48,156 @@
   {type:"value_user_name",group:"값",kind:"value",label:"이벤트 사용자 이름",fields:[]},
   {type:"value_server_name",group:"값",kind:"value",label:"현재 서버 이름",fields:[]},
   {type:"value_channel_name",group:"값",kind:"value",label:"현재 채널 이름",fields:[]},
-  {type:"value_current_time",group:"값",kind:"value",label:"현재 시간",fields:[]}
- ];
+  {type:"value_current_time",group:"값",kind:"value",label:"현재 시간",fields:[]}];
  const byType=Object.fromEntries(definitions.map(d=>[d.type,d]));
- let user,project,server,blocks=[],variables=[],resources={channels:[],roles:[]},dragSource=null,dirty=false,activeValueInput=null,selectedPaletteGroup='이벤트',canvasScale=1,canvasX=32,canvasY=42,canvasPanning=null;
- const defaults={event_message_create:{channel_filter:""},condition_contains:{keyword:""},condition_has_role:{role_id:""},action_send_message:{channel_id:"",content:"",mention_mode:"none",mention_id:"",delete_after_seconds:"",thread_mode:"none"},action_send_embed:{channel_id:"",embed_title:"",author:"",description:"",color:"#356DF3",footer:"",title_url:"",thumbnail_url:"",image_url:"",timestamp:"false"},action_reply:{content:"",reply_target:"event_message",target_message_id:"",fallback:"send_new",mention_author:"false"},action_add_role:{role_id:""},action_remove_role:{role_id:""},action_warn:{reason:""},control_wait:{seconds:"1"},data_set_variable:{variable:"",value:""},data_change_variable:{variable:"",amount:"1"}};
-
-Object.assign(defaults,{
-event_message_edit:{},event_message_delete:{},event_reaction_add:{emoji:""},
-condition_starts_with:{text:""},condition_ends_with:{text:""},condition_equals:{text:""},condition_channel_is:{channel_id:""},condition_has_attachment:{expected:"true"},condition_is_bot:{expected:"false"},condition_message_length:{operator:"gte",length:"10"},condition_username_contains:{text:""},
-action_delete_message:{reason:""},action_add_reaction:{emoji:"👍"},action_send_dm:{content:""},action_set_nickname:{nickname:""},action_create_thread:{name:"새 스레드",auto_archive_minutes:"1440"},action_pin_message:{pin:"true"},action_set_slowmode:{channel_id:"",seconds:"5"},action_log:{message:""},
-control_stop:{},control_cooldown:{seconds:"30"},control_random:{chance:"50"},
-data_append_variable:{variable:"",text:""},data_math_variable:{variable:"",operator:"add",amount:"1"},
-value_text:{value:"텍스트"},value_number:{value:"0"},value_variable:{variable:""},value_user_name:{},value_server_name:{},value_channel_name:{},value_current_time:{}
-});
- function makeBlock(type){const def=byType[type];return {id:crypto.randomUUID(),type,fields:{...(defaults[type]||{})}};}
- function markDirty(){dirty=true;$("#blocks-save-state").textContent="변경 사항 있음";saveButton.disabled=false;}
- function drawPalette(){
-  const groups=[...new Set(definitions.map(def=>def.group))],tabs=$("#blocks-category-tabs");tabs.replaceChildren();palette.replaceChildren();
-  groups.forEach(group=>{const tab=document.createElement("button");tab.type="button";tab.className="bl-category-tab"+(selectedPaletteGroup===group?" active":"");tab.textContent=group;tab.setAttribute("role","tab");tab.setAttribute("aria-selected",String(selectedPaletteGroup===group));tab.addEventListener("click",()=>{selectedPaletteGroup=group;drawPalette();});tabs.append(tab);});
-  definitions.filter(def=>def.group===selectedPaletteGroup).forEach(def=>{const button=document.createElement("button");button.type="button";button.className="bl-palette-block "+def.kind;button.draggable=true;button.dataset.type=def.type;button.textContent=def.label;button.addEventListener("click",()=>{if(def.kind==="value"){if(activeValueInput&&document.contains(activeValueInput))insertValue(def.type,activeValueInput);else window.BLOCKS.notify("먼저 작업 공간의 값 입력칸을 누른 뒤 값 블록을 선택해 주세요.");return;}addBlock(def.type);});button.addEventListener("dragstart",e=>{dragSource={kind:"new",type:def.type};e.dataTransfer.effectAllowed="copy";e.dataTransfer.setData("text/plain",def.type);});palette.append(button);});
- }
- function renderVariables(){
-  const host=$("#blocks-variable-list");host.replaceChildren();
-  variables.forEach(variable=>{
-   const chip=document.createElement("button");chip.type="button";chip.className="bl-variable-chip";chip.draggable=true;chip.textContent=variable;chip.title="입력칸으로 끌어 놓기";
-   chip.addEventListener("dragstart",e=>{dragSource={kind:"variable",name:variable};e.dataTransfer.effectAllowed="copy";e.dataTransfer.setData("text/plain","variable:"+variable);});
-   chip.addEventListener("click",()=>{if(activeValueInput){const input=activeValueInput;input.value="{{"+variable+"}}";const card=input.closest(".bl-workspace-block"),block=blocks.find(x=>x.id===card?.dataset.id);if(block){block.fields[input.dataset.key]=input.value;markDirty();}}else window.BLOCKS.notify("먼저 텍스트 값 입력칸을 누른 뒤 변수를 선택해 주세요.");});
-   host.append(chip);
-  });
- }
- function addBlock(type,index){
-  if(blocks.length>=50){window.BLOCKS.notify("프로젝트에는 최대 50개 블록까지 추가할 수 있어요.");return;}
-  const block=makeBlock(type);if(Number.isInteger(index))blocks.splice(index,0,block);else blocks.push(block);renderBlocks();markDirty();
- }
- function insertValue(type,input){
-  const tokens={value_text:"텍스트",value_number:"0",value_variable:"{{변수명}}",value_user_name:"{{user_name}}",value_server_name:"{{server_name}}",value_channel_name:"{{channel_name}}",value_current_time:"{{current_time}}"};
-  if(!(type in tokens)||!input)return;
-  input.value=tokens[type];const card=input.closest(".bl-workspace-block"),block=blocks.find(x=>x.id===card?.dataset.id);
-  if(block){block.fields[input.dataset.key]=input.value;markDirty();}
-  input.focus();
- }
- function fieldElement(block,field){
-  const wrap=document.createElement("label");wrap.className="bl-block-field"+(field.full?" full":"");
-  const title=document.createElement("span");title.textContent=field.label;wrap.append(title);
-  let input;
-  if(field.kind==="textarea"){input=document.createElement("textarea");input.placeholder=field.placeholder||"";input.value=block.fields[field.key]??"";}
-  else if(field.kind==="select"){input=document.createElement("select");(field.options||[]).forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;input.append(option);});input.value=block.fields[field.key]??(field.options?.[0]?.[0]||"");}
-  else if(field.kind==="channel"||field.kind==="role"){const items=resources[field.kind==="channel"?"channels":"roles"]||[];if(items.length){input=document.createElement("select");const first=document.createElement("option");first.value="";first.textContent=field.kind==="channel"?"채널을 선택해 주세요":"역할을 선택해 주세요";input.append(first);items.forEach(item=>{const option=document.createElement("option");option.value=item.id;option.textContent=(field.kind==="channel"?"#":"@")+item.name;input.append(option);});const current=block.fields[field.key]||"";if(current&&!items.some(item=>item.id===current)){const extra=document.createElement("option");extra.value=current;extra.textContent="저장된 ID · "+current;input.append(extra);}input.value=current;}else{input=document.createElement("input");input.type="text";input.placeholder=field.placeholder+" (목록 동기화 필요)";input.value=block.fields[field.key]??"";}}
-  else{input=document.createElement("input");input.type=field.kind==="number"?"number":"text";input.placeholder=field.placeholder||"";input.value=block.fields[field.key]??"";if(field.kind==="number"){input.min="0";input.max=field.key==="seconds"?"10":"86400";}}
-  input.className="block-field-input";input.dataset.key=field.key;input.dataset.kind=field.kind;if(field.kind==="value")input.addEventListener("focus",()=>{activeValueInput=input;});input.addEventListener("input",()=>{block.fields[field.key]=input.value;markDirty();});
-  input.addEventListener("change",()=>{block.fields[field.key]=input.value;markDirty();});
-  input.addEventListener("dragover",e=>{if(field.kind==="value"&&dragSource){e.preventDefault();input.style.outline="2px solid #356df3";}});
-  input.addEventListener("dragleave",()=>{input.style.outline="";});
-  input.addEventListener("drop",e=>{
-   if(field.kind!=="value"||!dragSource)return;e.preventDefault();input.style.outline="";
-   if(dragSource.kind==="variable")input.value="{{"+dragSource.name+"}}";
-   else if(dragSource.kind==="new"&&dragSource.type==="value_text")input.value="텍스트";
-   else if(dragSource.kind==="new"&&dragSource.type==="value_number")input.value="0";
-   else if(dragSource.kind==="new"&&dragSource.type==="value_variable")input.value="{{변수명}}";
-   else if(dragSource.kind==="new"&&dragSource.type==="value_user_name")input.value="{{user_name}}";
-   else if(dragSource.kind==="new"&&dragSource.type==="value_server_name")input.value="{{server_name}}";
-   else if(dragSource.kind==="new"&&dragSource.type==="value_channel_name")input.value="{{channel_name}}";
-   else if(dragSource.kind==="new"&&dragSource.type==="value_current_time")input.value="{{current_time}}";
-   block.fields[field.key]=input.value;markDirty();
-  });
-  wrap.append(input);return wrap;
- }
- function renderBlocks(){
-  workspace.replaceChildren();count.textContent=blocks.length+" / 50";
-  if(!blocks.length){const empty=document.createElement("div");empty.className="bl-empty bl-canvas-empty";empty.textContent="아직 블록이 없어요. 왼쪽에서 이벤트 블록을 선택하거나 끌어와 시작하세요.";workspace.append(empty);return;}
-  let activeStack=null,stackHost=null;
-  blocks.forEach((block,index)=>{const def=byType[block.type];if(!def)return;
-   if(def.kind==="event"){activeStack=document.createElement("section");activeStack.className="bl-event-stack";activeStack.dataset.eventId=block.id;const eventCard=makeCard(block,def,index);eventCard.classList.add("bl-event-hat");activeStack.append(eventCard);stackHost=document.createElement("div");stackHost.className="bl-event-children";activeStack.append(stackHost);workspace.append(activeStack);}
-   else{if(!activeStack){activeStack=document.createElement("section");activeStack.className="bl-event-stack bl-orphan-stack";stackHost=document.createElement("div");stackHost.className="bl-event-children";activeStack.append(stackHost);workspace.append(activeStack);}const card=makeCard(block,def,index);card.classList.add("bl-connected-block");if(def.kind==="condition")card.classList.add("bl-condition-block");stackHost.append(card);}
-  });
-  applyCanvasTransform();
- }
- function makeCard(block,def,index){
-  const card=document.createElement("article");card.className="bl-workspace-block";card.draggable=true;card.dataset.id=block.id;
-  card.addEventListener("dragstart",e=>{if(e.target.closest("input,textarea,select,button")){e.preventDefault();return;}dragSource={kind:"move",id:block.id};card.classList.add("dragging");e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","block:"+block.id);});
-  card.addEventListener("dragend",()=>{card.classList.remove("dragging");document.querySelectorAll(".bl-drop-before,.bl-drop-after").forEach(node=>node.classList.remove("bl-drop-before","bl-drop-after"));});
-  card.addEventListener("dragover",e=>{if(!dragSource||dragSource.kind!=="move"||dragSource.id===block.id)return;e.preventDefault();const rect=card.getBoundingClientRect(),after=e.clientY>rect.top+rect.height/2;card.classList.toggle("bl-drop-before",!after);card.classList.toggle("bl-drop-after",after);});
-  card.addEventListener("dragleave",e=>{if(!card.contains(e.relatedTarget))card.classList.remove("bl-drop-before","bl-drop-after");});
-  const head=document.createElement("div");head.className="bl-block-head "+def.kind;const title=document.createElement("span");title.textContent=def.label;head.append(title);const tools=document.createElement("div");tools.className="bl-block-tools";
-  [["↑",-1],["↓",1],["삭제","delete"]].forEach(([label,action])=>{const button=document.createElement("button");button.type="button";button.textContent=label;button.addEventListener("click",()=>{const current=blocks.findIndex(x=>x.id===block.id);if(current<0)return;if(action==="delete")blocks.splice(current,1);else{const next=current+Number(action);if(next<0||next>=blocks.length)return;const item=blocks.splice(current,1)[0];blocks.splice(next,0,item);}renderBlocks();markDirty();});tools.append(button);});head.append(tools);card.append(head);
-  if(def.fields.length){const fields=document.createElement("div");fields.className="bl-block-fields";def.fields.forEach(field=>fields.append(fieldElement(block,field)));card.append(fields);}return card;
- }
- function applyCanvasTransform(){const world=$("#blocks-workspace-list");if(!world)return;world.style.transform="translate("+canvasX+"px,"+canvasY+"px) scale("+canvasScale+")";$("#blocks-zoom-label").textContent=Math.round(canvasScale*100)+"%";}
- function setupCanvas(){
-  const area=$("#blocks-workspace");area.addEventListener("contextmenu",e=>e.preventDefault());
-  area.addEventListener("mousedown",e=>{if(e.button===2||e.button===1){e.preventDefault();canvasPanning={x:e.clientX,y:e.clientY,originX:canvasX,originY:canvasY};area.classList.add("is-panning");}});
-  window.addEventListener("mousemove",e=>{if(!canvasPanning)return;canvasX=canvasPanning.originX+e.clientX-canvasPanning.x;canvasY=canvasPanning.originY+e.clientY-canvasPanning.y;applyCanvasTransform();});
-  window.addEventListener("mouseup",()=>{canvasPanning=null;area.classList.remove("is-panning");});
-  area.addEventListener("wheel",e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();canvasScale=Math.max(.45,Math.min(1.7,canvasScale*(e.deltaY<0?1.08:.92)));applyCanvasTransform();}},{passive:false});
-  $("#blocks-zoom-in").addEventListener("click",()=>{canvasScale=Math.min(1.7,canvasScale*1.12);applyCanvasTransform();});$("#blocks-zoom-out").addEventListener("click",()=>{canvasScale=Math.max(.45,canvasScale/1.12);applyCanvasTransform();});$("#blocks-zoom-reset").addEventListener("click",()=>{canvasScale=1;canvasX=32;canvasY=42;applyCanvasTransform();});
-  let touch=null;area.addEventListener("touchstart",e=>{if(e.touches.length===2)touch={x:(e.touches[0].clientX+e.touches[1].clientX)/2,y:(e.touches[0].clientY+e.touches[1].clientY)/2,ox:canvasX,oy:canvasY};},{passive:true});
-  area.addEventListener("touchmove",e=>{if(touch&&e.touches.length===2){const x=(e.touches[0].clientX+e.touches[1].clientX)/2,y=(e.touches[0].clientY+e.touches[1].clientY)/2;canvasX=touch.ox+x-touch.x;canvasY=touch.oy+y-touch.y;applyCanvasTransform();}},{passive:true});area.addEventListener("touchend",()=>{touch=null;});
- }
- function setupDrop(){
-  const area=$("#blocks-workspace");
-  area.addEventListener("dragover",e=>{if(dragSource){e.preventDefault();e.dataTransfer.dropEffect=dragSource.kind==="move"?"move":"copy";}});
-  area.addEventListener("drop",e=>{
-   if(!dragSource)return;
-   const targetField=e.target.closest(".block-field-input");
-   if(targetField&&targetField.dataset.kind==="value")return;
-   e.preventDefault();
-   if(dragSource.kind==="new"){const target=e.target.closest(".bl-workspace-block");if(!target){addBlock(dragSource.type);return;}const targetIndex=blocks.findIndex(b=>b.id===target.dataset.id);const rect=target.getBoundingClientRect();const after=e.clientY>rect.top+rect.height/2;addBlock(dragSource.type,Math.max(0,targetIndex+(after?1:0)));return;}
-   if(dragSource.kind==="move"){
-    const from=blocks.findIndex(b=>b.id===dragSource.id),target=e.target.closest(".bl-workspace-block");
-    if(from<0)return;
-    const moving=blocks[from],movingDef=byType[moving.type];
-    if(!target){if(movingDef?.kind==="event"){window.BLOCKS.notify("이벤트 블록은 다른 이벤트 스택과 함께 이동해야 해요.");return;}const stackStart=blocks.map((b,i)=>byType[b.type]?.kind==="event"?i:-1).filter(i=>i>=0).filter(i=>i<=from).pop();const stackEnd=blocks.findIndex((b,i)=>i>from&&byType[b.type]?.kind==="event");const end=stackEnd<0?blocks.length:stackEnd;if(from<stackStart||from>=end)return;const item=blocks.splice(from,1)[0];blocks.splice(end-1,0,item);renderBlocks();markDirty();return;}
-    const to=blocks.findIndex(b=>b.id===target.dataset.id);if(to<0||to===from)return;
-    const targetDef=byType[blocks[to].type];const targetIsEvent=targetDef?.kind==="event";
-    if(movingDef?.kind==="event"){
-      let sourceEnd=blocks.findIndex((b,i)=>i>from&&byType[b.type]?.kind==="event");if(sourceEnd<0)sourceEnd=blocks.length;
-      const segment=blocks.splice(from,sourceEnd-from);
-      let targetStart=blocks.findIndex(b=>b.id===target.dataset.id);
-      if(targetStart<0){blocks.push(...segment);}else if(targetIsEvent){blocks.splice(targetStart,0,...segment);}else{const targetRoot=blocks.map((b,i)=>byType[b.type]?.kind==="event"?i:-1).filter(i=>i>=0).filter(i=>i<=targetStart).pop();let targetEnd=blocks.findIndex((b,i)=>i>targetRoot&&byType[b.type]?.kind==="event");if(targetEnd<0)targetEnd=blocks.length;blocks.splice(targetEnd,0,...segment);}
+ let user,project,server,resources={channels:[],roles:[]},variables=[],dirty=false,workspace=null;
+ const groups=["이벤트","조건","동작","제어","변수","값"];
+ const categoryFor=d=>d.group;
+ const statementTypes=definitions.filter(d=>!["value"].includes(d.kind)).map(d=>d.type);
+ function blockDef(d){
+  Blockly.Blocks[d.type]={init(){
+   this.setColour(({event:45,condition:275,action:145,control:25,data:210,value:195})[d.kind]||210);
+   this.setTooltip(d.label);this.setHelpUrl("");
+   this.appendDummyInput("HEAD").appendField(d.label);
+   (d.fields||[]).forEach(f=>{
+    if(f.kind==="value"||f.kind==="number"){
+     const input=this.appendValueInput(f.key.toUpperCase()).appendField(f.label);
+     input.setCheck(f.kind==="number"?"Number":"String");
+    }else if(f.kind==="select"){
+     this.appendDummyInput("FIELD_"+f.key).appendField(f.label).appendField(new Blockly.FieldDropdown(f.options),f.key.toUpperCase());
     }else{
-      let sourceRoot=blocks.map((b,i)=>byType[b.type]?.kind==="event"?i:-1).filter(i=>i>=0).filter(i=>i<=from).pop();
-      let sourceEnd=blocks.findIndex((b,i)=>i>sourceRoot&&byType[b.type]?.kind==="event");if(sourceEnd<0)sourceEnd=blocks.length;
-      if(targetIsEvent||to<sourceRoot||to>=sourceEnd){window.BLOCKS.notify("일반 블록은 같은 이벤트 스택 안에서 이동할 수 있어요.");return;}
-      const rect=target.getBoundingClientRect(),after=e.clientY>rect.top+rect.height/2;
-      const item=blocks.splice(from,1)[0];let insert=blocks.findIndex(b=>b.id===target.dataset.id);if(after)insert++;
-      blocks.splice(Math.max(sourceRoot,insert>from?insert-1:insert),0,item);
+     this.appendDummyInput("FIELD_"+f.key).appendField(f.label).appendField(new Blockly.FieldTextInput(""),f.key.toUpperCase());
     }
-    renderBlocks();markDirty();
-   }
+   });
+   if(d.kind==="event"){this.setNextStatement(true);this.setDeletable(true);}
+   else if(d.kind==="condition"){this.setOutput(true,"Boolean");}
+   else if(d.kind==="value"){this.setOutput(true,d.type==="value_number"?"Number":"String");}
+   else{this.setPreviousStatement(true);this.setNextStatement(true);}
+   this.setInputsInline(false);
+  }};
+ }
+ function registerSpecialBlocks(){
+  Blockly.Blocks.control_if={init(){this.setColour(25);this.appendValueInput("CONDITION").setCheck("Boolean").appendField("만약");this.appendDummyInput().appendField("이라면");this.appendStatementInput("DO").appendField("실행");this.setPreviousStatement(true);this.setNextStatement(true);this.setInputsInline(true);this.setTooltip("조건이 참이면 안쪽 블록을 실행합니다.");}};
+  Blockly.Blocks.control_if_else={init(){this.setColour(25);this.appendValueInput("CONDITION").setCheck("Boolean").appendField("만약");this.appendDummyInput().appendField("이라면");this.appendStatementInput("DO").appendField("실행");this.appendDummyInput().appendField("아니면");this.appendStatementInput("ELSE").appendField("실행");this.setPreviousStatement(true);this.setNextStatement(true);this.setInputsInline(true);}};
+  Blockly.Blocks.control_repeat_count={init(){this.setColour(25);this.appendDummyInput().appendField("반복하기").appendField(new Blockly.FieldNumber(3,1,20,1),"TIMES").appendField("번");this.appendStatementInput("DO").appendField("실행");this.setPreviousStatement(true);this.setNextStatement(true);}};
+  Blockly.Blocks.value_text={init(){this.setColour(195);this.appendDummyInput().appendField("텍스트").appendField(new Blockly.FieldTextInput("텍스트"),"TEXT");this.setOutput(true,"String");}};
+  Blockly.Blocks.value_number={init(){this.setColour(195);this.appendDummyInput().appendField("숫자").appendField(new Blockly.FieldNumber(0),"NUMBER");this.setOutput(true,"Number");}};
+  Blockly.Blocks.value_variable={init(){this.setColour(195);this.appendDummyInput().appendField("변수").appendField(new Blockly.FieldDropdown([["변수 선택",""]]),"VARIABLE");this.setOutput(true);}};
+  Blockly.Blocks.value_user_name={init(){this.setColour(195);this.appendDummyInput().appendField("사용자 이름");this.setOutput(true,"String");}};
+  Blockly.Blocks.value_server_name={init(){this.setColour(195);this.appendDummyInput().appendField("서버 이름");this.setOutput(true,"String");}};
+  Blockly.Blocks.value_channel_name={init(){this.setColour(195);this.appendDummyInput().appendField("채널 이름");this.setOutput(true,"String");}};
+  Blockly.Blocks.value_current_time={init(){this.setColour(195);this.appendDummyInput().appendField("현재 시간");this.setOutput(true,"String");}};
+ }
+ function buildToolbox(){
+  const contents=groups.map(group=>({kind:"category",name:group,colour:({이벤트:"#e6a23c",조건:"#9a76dc",동작:"#38a879",제어:"#e28c48",변수:"#4b8fe8",값:"#2999b9"})[group],contents:definitions.filter(d=>d.group===group).map(d=>({kind:"block",type:d.type}))}));
+  contents.splice(3,0,{kind:"category",name:"조건문",colour:"#e28c48",contents:[{kind:"block",type:"control_if"},{kind:"block",type:"control_if_else"},{kind:"block",type:"control_repeat_count"}]});
+  contents[contents.length-1].contents.push(...["value_text","value_number","value_variable","value_user_name","value_server_name","value_channel_name","value_current_time"].map(type=>({kind:"block",type})));
+  return {kind:"categoryToolbox",contents};
+ }
+ function refreshVariableDropdowns(){
+  if(!workspace)return;
+  const opts=variables.length?variables.map(v=>[v,v]):[["변수 없음",""]];
+  workspace.getAllBlocks(false).filter(b=>b.type==="value_variable").forEach(b=>{const field=b.getField("VARIABLE");if(field)field.menuGenerator_=opts;});
+ }
+ function initBlockly(){
+  definitions.forEach(blockDef);registerSpecialBlocks();
+  workspace=Blockly.inject("blocklyDiv",{toolbox:buildToolbox(),renderer:"zelos",theme:Blockly.Theme.defineTheme("tendBlocks",{base:Blockly.Themes.Classic,componentStyles:{workspaceBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#101a27":"#f6f8fc",toolboxBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#172333":"#ffffff",toolboxForegroundColour:document.documentElement.classList.contains("theme-dark")?"#edf3fb":"#172033",flyoutBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#1b293a":"#ffffff",flyoutForegroundColour:document.documentElement.classList.contains("theme-dark")?"#edf3fb":"#172033",flyoutOpacity:1,scrollbarColour:"#8b9bb3",insertionMarkerColour:"#3978f6",insertionMarkerOpacity:.35,markerColour:"#3978f6",cursorColour:"#3978f6"}}),grid:{spacing:24,length:3,colour:document.documentElement.classList.contains("theme-dark")?"#344153":"#dce3ed",snap:true},zoom:{controls:true,wheel:true,startScale:1,maxScale:1.8,minScale:.45,scaleSpeed:1.12},move:{scrollbars:true,drag:true,wheel:true},trashcan:true,renderer:"zelos",sounds:false,oneBasedIndex:false});
+  workspace.addChangeListener(e=>{if(e.isUiEvent||e.type==="ui")return;markDirty();$("#blocks-count").textContent=workspace.getAllBlocks(false).length+" / 50";});
+ }
+ function markDirty(){dirty=true;$("#blocks-save-state").textContent="변경 사항 있음";saveButton.disabled=false;}
+ function nodeFromBlock(block){
+  if(!block)return null;
+  const node={id:block.id,type:block.type,fields:{},values:{}};
+  block.inputList.forEach(input=>{
+   if(input.type===Blockly.inputTypes.VALUE){const child=block.getInputTargetBlock(input.name);if(child)node.values[input.name]=nodeFromBlock(child);}
   });
-  document.addEventListener("dragend",()=>{dragSource=null;document.querySelectorAll(".bl-drop-before,.bl-drop-after").forEach(node=>node.classList.remove("bl-drop-before","bl-drop-after"));});
-  document.addEventListener("drop",()=>{setTimeout(()=>{dragSource=null;document.querySelectorAll(".bl-drop-before,.bl-drop-after").forEach(node=>node.classList.remove("bl-drop-before","bl-drop-after"));},0);});
+  block.inputList.forEach(input=>input.fieldRow.forEach(field=>{if(field.name)node.fields[field.name]=field.getValue();}));
+  if(block.type==="control_if"||block.type==="control_if_else"||block.type==="control_repeat_count"){
+   node.children=chainToArray(block.getInputTargetBlock("DO"));
+   if(block.type==="control_if_else")node.else_children=chainToArray(block.getInputTargetBlock("ELSE"));
+  }
+  const next=block.getNextBlock();if(next)node.next=nodeFromBlock(next);
+  return node;
+ }
+ function chainToArray(block){const out=[];let current=block,guard=0;while(current&&guard++<50){out.push(nodeFromBlock(current));current=current.getNextBlock();}return out;}
+ function projectJSON(){
+  const roots=workspace.getTopBlocks(true).filter(b=>byType[b.type]?.kind==="event"||b.type.startsWith("event_")).map(nodeFromBlock);
+  return {schema_version:2,variables,roots};
+ }
+ function createBlock(type,fields={},parent=null,connection="next"){
+  if(!Blockly.Blocks[type])return null;
+  const b=workspace.newBlock(type);b.initSvg();b.render();
+  Object.entries(fields||{}).forEach(([key,value])=>{const f=b.getField(key.toUpperCase());if(f&&value!==null&&value!==undefined)try{f.setValue(String(value));}catch{}});
+  if(parent&&parent.nextConnection&&b.previousConnection)parent.nextConnection.connect(b.previousConnection);
+  return b;
+ }
+ function restoreProject(data){
+  workspace.clear();
+  if(data?.schema_version===2&&Array.isArray(data.roots)){
+   const loadNode=(node,parentConn)=>{
+    if(!node||!Blockly.Blocks[node.type])return null;
+    const b=createBlock(node.type,node.fields);
+    if(parentConn&&b.previousConnection)try{parentConn.connect(b.previousConnection);}catch{}
+    Object.entries(node.values||{}).forEach(([key,value])=>{const input=b.getInput(key);if(input?.connection){const child=loadNode(value,null);if(child?.outputConnection)try{input.connection.connect(child.outputConnection);}catch{}}});
+    if(["control_if","control_if_else","control_repeat_count"].includes(node.type)){
+     const addChain=(arr,inputName)=>{let prior=null;(arr||[]).forEach(child=>{const item=loadNode(child,prior?prior.nextConnection:b.getInput(inputName)?.connection);if(item)prior=item;});};
+     addChain(node.children,"DO");if(node.type==="control_if_else")addChain(node.else_children,"ELSE");
+    }
+    if(node.next){const next=loadNode(node.next,b.nextConnection);return next?b: b;}
+    return b;
+   };
+   data.roots.forEach(root=>loadNode(root,null));
+  }else if(Array.isArray(data?.blocks)){
+   let currentEvent=null,currentTail=null;
+   data.blocks.forEach(old=>{
+    if(old.type.startsWith("event_")){currentEvent=createBlock(old.type,old.fields);currentTail=currentEvent;return;}
+    if(old.type.startsWith("condition_")){
+     const cond=createBlock(old.type,old.fields);const wrap=createBlock("control_if");if(cond?.outputConnection)try{wrap.getInput("CONDITION").connection.connect(cond.outputConnection);}catch{}
+     if(currentTail?.nextConnection)try{currentTail.nextConnection.connect(wrap.previousConnection);}catch{}currentTail=wrap;return;
+    }
+    const next=createBlock(old.type,old.fields);if(currentTail?.nextConnection&&next?.previousConnection)try{currentTail.nextConnection.connect(next.previousConnection);}catch{}if(next)currentTail=next;
+   });
+  }
+  workspace.getAllBlocks(false).forEach(b=>{try{b.render();}catch{}});
+  $("#blocks-count").textContent=workspace.getAllBlocks(false).length+" / 50";
  }
  async function save(){
-  if(blocks.length>50){window.BLOCKS.notify("블록은 최대 50개까지 저장할 수 있어요.");return false;}
+  const all=workspace.getAllBlocks(false);if(all.length>50){window.BLOCKS.notify("프로젝트에는 최대 50개 블록까지 사용할 수 있어요.");return false;}
+  const data=projectJSON();if(JSON.stringify(data).length>200000){window.BLOCKS.notify("프로젝트 데이터가 너무 커요.");return false;}
   saveButton.disabled=true;$("#blocks-save-state").textContent="저장 중…";
-  const projectData={version:1,blocks,variables};
   try{
-   const {data,error}=await sb.from("blocks_projects").update({name:nameInput.value.trim().slice(0,60)||"새 프로젝트",project_data:projectData,version:(project.version||1)+1,updated_at:new Date().toISOString()}).eq("id",project.id).eq("owner_id",user.id).select("id,name,project_data,is_enabled").single();
-   if(error)throw error;project=data;blocks=data.project_data.blocks||[];variables=data.project_data.variables||[];dirty=false;$("#blocks-save-state").textContent="저장 완료";saveButton.disabled=false;renderBlocks();renderVariables();return true;
+   const {data:updated,error}=await sb.from("blocks_projects").update({name:nameInput.value.trim().slice(0,60)||"새 프로젝트",project_data:data,version:(project.version||1)+1,updated_at:new Date().toISOString()}).eq("id",project.id).eq("owner_id",user.id).select("id,name,project_data,is_enabled").single();
+   if(error)throw error;project=updated;dirty=false;$("#blocks-save-state").textContent="저장 완료";saveButton.disabled=false;return true;
   }catch(error){console.error("BLOCKS project save failed",error);window.BLOCKS.notify(error.message||"저장하지 못했어요.");$("#blocks-save-state").textContent="저장 실패";saveButton.disabled=false;return false;}
  }
  async function toggleEnabled(){
-  if(dirty){const ok=await save();if(!ok)return;}
+  if(dirty&&!await save())return;
   if(!server?.bot_connected){window.BLOCKS.notify("TEND 봇을 먼저 서버에 초대해 주세요.");return;}
-  if(!project.is_enabled&&!blocks.some(block=>String(block.type).startsWith("event_"))){window.BLOCKS.notify("실행하려면 이벤트 블록을 하나 이상 추가해 주세요.");return;}
+  if(!workspace.getTopBlocks(true).some(b=>b.type.startsWith("event_"))){window.BLOCKS.notify("실행하려면 이벤트 블록을 하나 이상 추가해 주세요.");return;}
   enableButton.disabled=true;
-  try{
-   const next=!project.is_enabled;
-   const {data,error}=await sb.from("blocks_projects").update({is_enabled:next,updated_at:new Date().toISOString()}).eq("id",project.id).eq("owner_id",user.id).select("is_enabled").single();
-   if(error)throw error;project.is_enabled=data.is_enabled;renderEnable();window.BLOCKS.notify(next?"프로젝트 실행을 활성화했어요.":"프로젝트 실행을 중지했어요.");
-  }catch(error){console.error("BLOCKS activation failed",error);window.BLOCKS.notify(error.message||"실행 상태를 변경하지 못했어요.");}
-  finally{enableButton.disabled=false;}
+  try{const next=!project.is_enabled;const {data,error}=await sb.from("blocks_projects").update({is_enabled:next,updated_at:new Date().toISOString()}).eq("id",project.id).eq("owner_id",user.id).select("is_enabled").single();if(error)throw error;project.is_enabled=data.is_enabled;enableButton.textContent=next?"실행 중지":"실행 활성화";window.BLOCKS.notify(next?"프로젝트 실행을 활성화했어요.":"프로젝트 실행을 중지했어요.");}
+  catch(error){console.error(error);window.BLOCKS.notify(error.message||"실행 상태를 변경하지 못했어요.");}finally{enableButton.disabled=false;}
  }
- function renderEnable(){enableButton.textContent=project?.is_enabled?"실행 중지":"실행 활성화";enableButton.classList.toggle("primary",!!project?.is_enabled);}
  async function loadLogs(){
-  const host=$("#blocks-run-logs");const {data,error}=await sb.from("blocks_execution_logs").select("event_type,status,message,created_at").eq("project_id",project.id).order("created_at",{ascending:false}).limit(20);
-  host.replaceChildren();if(error||!data?.length){const empty=document.createElement("div");empty.className="bl-empty";empty.textContent=error?"실행 기록을 불러오지 못했어요.":"아직 실행 기록이 없어요.";host.append(empty);return;}
-  data.forEach(row=>{const item=document.createElement("div");item.className="bl-log";const strong=document.createElement("b");strong.textContent=row.status+" · "+row.event_type;const line=document.createElement("div");line.textContent=row.message||"실행 기록";const time=document.createElement("small");time.textContent=new Date(row.created_at).toLocaleString("ko-KR");item.append(strong,line,time);host.append(item);});
+  const host=$("#blocks-run-logs"),{data,error}=await sb.from("blocks_execution_logs").select("event_type,status,message,created_at").eq("project_id",project.id).order("created_at",{ascending:false}).limit(20);host.replaceChildren();
+  if(error||!data?.length){const empty=document.createElement("div");empty.className="bl-empty";empty.textContent=error?"실행 기록을 불러오지 못했어요.":"아직 실행 기록이 없어요.";host.append(empty);return;}
+  data.forEach(row=>{const item=document.createElement("div");item.className="bl-log";const title=document.createElement("b");title.textContent=row.status+" · "+row.event_type;const message=document.createElement("div");message.textContent=row.message||"실행 기록";const time=document.createElement("small");time.textContent=new Date(row.created_at).toLocaleString("ko-KR");item.append(title,message,time);host.append(item);});
  }
  async function init(){
   try{
    user=await window.BLOCKS.requireTester("./blocks-editor.html?id="+encodeURIComponent(projectId||""));if(!user)return;
    if(!projectId)throw new Error("프로젝트 정보가 없어요. 대시보드에서 프로젝트를 열어 주세요.");
    const {data,error}=await sb.from("blocks_projects").select("*").eq("id",projectId).eq("owner_id",user.id).single();if(error)throw error;project=data;
-   nameInput.value=project.name;blocks=Array.isArray(project.project_data?.blocks)?project.project_data.blocks:[];variables=Array.isArray(project.project_data?.variables)?project.project_data.variables:[];
+   nameInput.value=project.name;variables=Array.isArray(project.project_data?.variables)?project.project_data.variables:[];
    const {data:servers,error:serverError}=await sb.rpc("blocks_list_servers");if(serverError)throw serverError;server=(servers||[]).find(x=>x.server_id===project.server_id)||null;
-   if(server){const {data:resourceData,error:resourceError}=await sb.rpc("blocks_list_server_resources",{target_server_id:project.server_id});if(resourceError)console.warn("BLOCKS resource catalog unavailable",resourceError);else resources={channels:resourceData?.channels||[],roles:resourceData?.roles||[]};}
    $("#blocks-editor-server").textContent=(server?.server_name||"선택한 서버")+" · "+(server?.bot_connected?"TEND 봇 연결됨":"TEND 봇 초대 필요");
-   drawPalette();renderVariables();renderBlocks();renderEnable();setupDrop();setupCanvas();saveButton.disabled=false;
-   saveButton.addEventListener("click",save);enableButton.addEventListener("click",toggleEnabled);
-   $("#blocks-add-variable").addEventListener("click",()=>{const input=$("#blocks-variable-name"),value=input.value.trim().slice(0,40);if(!value)return;if(!variables.includes(value)){variables.push(value);renderVariables();markDirty();}input.value="";});
+   initBlockly();restoreProject(project.project_data||{});refreshVariableDropdowns();enableButton.textContent=project.is_enabled?"실행 중지":"실행 활성화";
+   saveButton.disabled=false;saveButton.addEventListener("click",save);enableButton.addEventListener("click",toggleEnabled);
+   $("#blocks-add-variable").addEventListener("click",()=>{const input=$("#blocks-variable-name"),value=input.value.trim().slice(0,40);if(value&&!variables.includes(value)){variables.push(value);refreshVariableDropdowns();markDirty();}input.value="";});
    nameInput.addEventListener("input",markDirty);
    await loadLogs();
    window.addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue="";}});
-  }catch(error){console.error("BLOCKS editor init failed",error);workspace.innerHTML='<div class="bl-empty">'+window.BLOCKS.escape(error.message||"편집기를 불러오지 못했어요.")+'</div>';}
+  }catch(error){console.error("BLOCKS editor init failed",error);$("#blocklyDiv").innerHTML='<div class="bl-empty">'+window.BLOCKS.escape(error.message||"편집기를 불러오지 못했어요.")+'</div>';}
  }
  init();
 })();
