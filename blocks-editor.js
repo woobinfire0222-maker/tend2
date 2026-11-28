@@ -52,7 +52,7 @@
   {type:"value_current_time",group:"값",kind:"value",label:"현재 시간",fields:[]}
  ];
  const byType=Object.fromEntries(definitions.map(d=>[d.type,d]));
- let user,project,server,blocks=[],variables=[],resources={channels:[],roles:[]},dragSource=null,dirty=false,activeValueInput=null;
+ let user,project,server,blocks=[],variables=[],resources={channels:[],roles:[]},dragSource=null,dirty=false,activeValueInput=null,selectedPaletteGroup='이벤트',canvasScale=1,canvasX=32,canvasY=42,canvasPanning=null;
  const defaults={event_message_create:{channel_filter:""},condition_contains:{keyword:""},condition_has_role:{role_id:""},action_send_message:{channel_id:"",content:"",mention_mode:"none",mention_id:"",delete_after_seconds:"",thread_mode:"none"},action_send_embed:{channel_id:"",embed_title:"",author:"",description:"",color:"#356DF3",footer:"",title_url:"",thumbnail_url:"",image_url:"",timestamp:"false"},action_reply:{content:"",reply_target:"event_message",target_message_id:"",fallback:"send_new",mention_author:"false"},action_add_role:{role_id:""},action_remove_role:{role_id:""},action_warn:{reason:""},control_wait:{seconds:"1"},data_set_variable:{variable:"",value:""},data_change_variable:{variable:"",amount:"1"}};
 
 Object.assign(defaults,{
@@ -66,13 +66,9 @@ value_text:{value:"텍스트"},value_number:{value:"0"},value_variable:{variable
  function makeBlock(type){const def=byType[type];return {id:crypto.randomUUID(),type,fields:{...(defaults[type]||{})}};}
  function markDirty(){dirty=true;$("#blocks-save-state").textContent="변경 사항 있음";saveButton.disabled=false;}
  function drawPalette(){
-  palette.replaceChildren();let group="";
-  definitions.forEach(def=>{
-   if(def.group!==group){group=def.group;const heading=document.createElement("div");heading.className="bl-palette-group";heading.textContent=group;palette.append(heading);}
-   const button=document.createElement("button");button.type="button";button.className="bl-palette-block "+def.kind;button.draggable=true;button.dataset.type=def.type;button.textContent=def.label;
-   button.addEventListener("click",()=>{if(def.kind==="value"){if(activeValueInput&&document.contains(activeValueInput)){insertValue(def.type,activeValueInput);}else window.BLOCKS.notify("먼저 작업 공간의 값 입력칸을 누른 뒤 이 블록을 선택해 주세요.");return;}addBlock(def.type);});button.addEventListener("dragstart",e=>{dragSource={kind:"new",type:def.type};e.dataTransfer.effectAllowed="copy";e.dataTransfer.setData("text/plain",def.type);});
-   palette.append(button);
-  });
+  const groups=[...new Set(definitions.map(def=>def.group))],tabs=$("#blocks-category-tabs");tabs.replaceChildren();palette.replaceChildren();
+  groups.forEach(group=>{const tab=document.createElement("button");tab.type="button";tab.className="bl-category-tab"+(selectedPaletteGroup===group?" active":"");tab.textContent=group;tab.setAttribute("role","tab");tab.setAttribute("aria-selected",String(selectedPaletteGroup===group));tab.addEventListener("click",()=>{selectedPaletteGroup=group;drawPalette();});tabs.append(tab);});
+  definitions.filter(def=>def.group===selectedPaletteGroup).forEach(def=>{const button=document.createElement("button");button.type="button";button.className="bl-palette-block "+def.kind;button.draggable=true;button.dataset.type=def.type;button.textContent=def.label;button.addEventListener("click",()=>{if(def.kind==="value"){if(activeValueInput&&document.contains(activeValueInput))insertValue(def.type,activeValueInput);else window.BLOCKS.notify("먼저 작업 공간의 값 입력칸을 누른 뒤 값 블록을 선택해 주세요.");return;}addBlock(def.type);});button.addEventListener("dragstart",e=>{dragSource={kind:"new",type:def.type};e.dataTransfer.effectAllowed="copy";e.dataTransfer.setData("text/plain",def.type);});palette.append(button);});
  }
  function renderVariables(){
   const host=$("#blocks-variable-list");host.replaceChildren();
@@ -122,37 +118,36 @@ value_text:{value:"텍스트"},value_number:{value:"0"},value_variable:{variable
  }
  function renderBlocks(){
   workspace.replaceChildren();count.textContent=blocks.length+" / 50";
-  if(!blocks.length){const empty=document.createElement("div");empty.className="bl-empty";empty.textContent="아직 블록이 없어요. 왼쪽에서 이벤트 블록부터 추가해 보세요.";workspace.append(empty);return;}
-  blocks.forEach((block,index)=>{
-   const def=byType[block.type];if(!def)return;
-   const card=document.createElement("article");card.className="bl-workspace-block";card.draggable=true;card.dataset.id=block.id;
-   card.addEventListener("dragstart",e=>{if(e.target.closest("input,textarea,select,button")){e.preventDefault();return;}dragSource={kind:"move",id:block.id};card.classList.add("dragging");e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","block:"+block.id);});
-   card.addEventListener("dragend",()=>card.classList.remove("dragging"));
-   const head=document.createElement("div");head.className="bl-block-head "+def.kind;
-   const title=document.createElement("span");title.textContent=(index+1)+". "+def.label;head.append(title);
-   const tools=document.createElement("div");tools.className="bl-block-tools";
-   [["↑",-1],["↓",1],["삭제","delete"]].forEach(([label,action])=>{const b=document.createElement("button");b.type="button";b.textContent=label;b.addEventListener("click",()=>{if(action==="delete"){blocks.splice(index,1);}else{const next=index+Number(action);if(next<0||next>=blocks.length)return;const item=blocks.splice(index,1)[0];blocks.splice(next,0,item);}renderBlocks();markDirty();});tools.append(b);});
-   head.append(tools);card.append(head);
-   if(def.fields.length){const fields=document.createElement("div");fields.className="bl-block-fields";def.fields.forEach(field=>fields.append(fieldElement(block,field)));card.append(fields);}
-   workspace.append(card);
+  if(!blocks.length){const empty=document.createElement("div");empty.className="bl-empty bl-canvas-empty";empty.textContent="아직 블록이 없어요. 왼쪽에서 이벤트 블록을 선택하거나 끌어와 시작하세요.";workspace.append(empty);return;}
+  let activeStack=null,stackHost=null;
+  blocks.forEach((block,index)=>{const def=byType[block.type];if(!def)return;
+   if(def.kind==="event"){activeStack=document.createElement("section");activeStack.className="bl-event-stack";activeStack.dataset.eventId=block.id;const eventCard=makeCard(block,def,index);eventCard.classList.add("bl-event-hat");activeStack.append(eventCard);stackHost=document.createElement("div");stackHost.className="bl-event-children";activeStack.append(stackHost);workspace.append(activeStack);}
+   else{if(!activeStack){activeStack=document.createElement("section");activeStack.className="bl-event-stack bl-orphan-stack";stackHost=document.createElement("div");stackHost.className="bl-event-children";activeStack.append(stackHost);workspace.append(activeStack);}const card=makeCard(block,def,index);card.classList.add("bl-connected-block");if(def.kind==="condition")card.classList.add("bl-condition-block");stackHost.append(card);}
   });
+  applyCanvasTransform();
+ }
+ function makeCard(block,def,index){
+  const card=document.createElement("article");card.className="bl-workspace-block";card.draggable=true;card.dataset.id=block.id;
+  card.addEventListener("dragstart",e=>{if(e.target.closest("input,textarea,select,button")){e.preventDefault();return;}dragSource={kind:"move",id:block.id};card.classList.add("dragging");e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","block:"+block.id);});card.addEventListener("dragend",()=>card.classList.remove("dragging"));
+  const head=document.createElement("div");head.className="bl-block-head "+def.kind;const title=document.createElement("span");title.textContent=def.label;head.append(title);const tools=document.createElement("div");tools.className="bl-block-tools";
+  [["↑",-1],["↓",1],["삭제","delete"]].forEach(([label,action])=>{const button=document.createElement("button");button.type="button";button.textContent=label;button.addEventListener("click",()=>{const current=blocks.findIndex(x=>x.id===block.id);if(current<0)return;if(action==="delete")blocks.splice(current,1);else{const next=current+Number(action);if(next<0||next>=blocks.length)return;const item=blocks.splice(current,1)[0];blocks.splice(next,0,item);}renderBlocks();markDirty();});tools.append(button);});head.append(tools);card.append(head);
+  if(def.fields.length){const fields=document.createElement("div");fields.className="bl-block-fields";def.fields.forEach(field=>fields.append(fieldElement(block,field)));card.append(fields);}return card;
+ }
+ function applyCanvasTransform(){const world=$("#blocks-workspace-list");if(!world)return;world.style.transform="translate("+canvasX+"px,"+canvasY+"px) scale("+canvasScale+")";$("#blocks-zoom-label").textContent=Math.round(canvasScale*100)+"%";}
+ function setupCanvas(){
+  const area=$("#blocks-workspace");area.addEventListener("contextmenu",e=>e.preventDefault());
+  area.addEventListener("mousedown",e=>{if(e.button===2||e.button===1){e.preventDefault();canvasPanning={x:e.clientX,y:e.clientY,originX:canvasX,originY:canvasY};area.classList.add("is-panning");}});
+  window.addEventListener("mousemove",e=>{if(!canvasPanning)return;canvasX=canvasPanning.originX+e.clientX-canvasPanning.x;canvasY=canvasPanning.originY+e.clientY-canvasPanning.y;applyCanvasTransform();});
+  window.addEventListener("mouseup",()=>{canvasPanning=null;area.classList.remove("is-panning");});
+  area.addEventListener("wheel",e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();canvasScale=Math.max(.45,Math.min(1.7,canvasScale*(e.deltaY<0?1.08:.92)));applyCanvasTransform();}},{passive:false});
+  $("#blocks-zoom-in").addEventListener("click",()=>{canvasScale=Math.min(1.7,canvasScale*1.12);applyCanvasTransform();});$("#blocks-zoom-out").addEventListener("click",()=>{canvasScale=Math.max(.45,canvasScale/1.12);applyCanvasTransform();});$("#blocks-zoom-reset").addEventListener("click",()=>{canvasScale=1;canvasX=32;canvasY=42;applyCanvasTransform();});
+  let touch=null;area.addEventListener("touchstart",e=>{if(e.touches.length===2)touch={x:(e.touches[0].clientX+e.touches[1].clientX)/2,y:(e.touches[0].clientY+e.touches[1].clientY)/2,ox:canvasX,oy:canvasY};},{passive:true});
+  area.addEventListener("touchmove",e=>{if(touch&&e.touches.length===2){const x=(e.touches[0].clientX+e.touches[1].clientX)/2,y=(e.touches[0].clientY+e.touches[1].clientY)/2;canvasX=touch.ox+x-touch.x;canvasY=touch.oy+y-touch.y;applyCanvasTransform();}},{passive:true});area.addEventListener("touchend",()=>{touch=null;});
  }
  function setupDrop(){
-  const area=$("#blocks-workspace");
-  area.addEventListener("dragover",e=>{if(dragSource){e.preventDefault();e.dataTransfer.dropEffect=dragSource.kind==="move"?"move":"copy";}});
-  area.addEventListener("drop",e=>{
-   if(!dragSource)return;
-   const targetField=e.target.closest(".block-field-input");
-   if(targetField&&targetField.dataset.kind==="value")return;
-   e.preventDefault();
-   if(dragSource.kind==="new")addBlock(dragSource.type);
-   else if(dragSource.kind==="move"){
-    const from=blocks.findIndex(b=>b.id===dragSource.id),target=e.target.closest(".bl-workspace-block"),to=target?blocks.findIndex(b=>b.id===target.dataset.id):blocks.length;
-    if(from>=0){const item=blocks.splice(from,1)[0];blocks.splice(Math.max(0,to>from?to-1:to),0,item);renderBlocks();markDirty();}
-   }
-  });
-  document.addEventListener("dragend",()=>{dragSource=null;});
-  document.addEventListener("drop",()=>{setTimeout(()=>{dragSource=null;},0);});
+  const area=$("#blocks-workspace");area.addEventListener("dragover",e=>{if(dragSource){e.preventDefault();e.dataTransfer.dropEffect=dragSource.kind==="move"?"move":"copy";}});
+  area.addEventListener("drop",e=>{if(!dragSource)return;const targetField=e.target.closest(".block-field-input");if(targetField&&targetField.dataset.kind==="value")return;e.preventDefault();if(dragSource.kind==="new")addBlock(dragSource.type);else if(dragSource.kind==="move"){const from=blocks.findIndex(b=>b.id===dragSource.id),target=e.target.closest(".bl-workspace-block"),to=target?blocks.findIndex(b=>b.id===target.dataset.id):blocks.length;if(from>=0){const item=blocks.splice(from,1)[0];blocks.splice(Math.max(0,to>from?to-1:to),0,item);renderBlocks();markDirty();}}});
+  document.addEventListener("dragend",()=>{dragSource=null;});document.addEventListener("drop",()=>{setTimeout(()=>{dragSource=null;},0);});
  }
  async function save(){
   if(blocks.length>50){window.BLOCKS.notify("블록은 최대 50개까지 저장할 수 있어요.");return false;}
@@ -190,7 +185,7 @@ value_text:{value:"텍스트"},value_number:{value:"0"},value_variable:{variable
    const {data:servers,error:serverError}=await sb.rpc("blocks_list_servers");if(serverError)throw serverError;server=(servers||[]).find(x=>x.server_id===project.server_id)||null;
    if(server){const {data:resourceData,error:resourceError}=await sb.rpc("blocks_list_server_resources",{target_server_id:project.server_id});if(resourceError)console.warn("BLOCKS resource catalog unavailable",resourceError);else resources={channels:resourceData?.channels||[],roles:resourceData?.roles||[]};}
    $("#blocks-editor-server").textContent=(server?.server_name||"선택한 서버")+" · "+(server?.bot_connected?"TEND 봇 연결됨":"TEND 봇 초대 필요");
-   drawPalette();renderVariables();renderBlocks();renderEnable();setupDrop();saveButton.disabled=false;
+   drawPalette();renderVariables();renderBlocks();renderEnable();setupDrop();setupCanvas();saveButton.disabled=false;
    saveButton.addEventListener("click",save);enableButton.addEventListener("click",toggleEnabled);
    $("#blocks-add-variable").addEventListener("click",()=>{const input=$("#blocks-variable-name"),value=input.value.trim().slice(0,40);if(!value)return;if(!variables.includes(value)){variables.push(value);renderVariables();markDirty();}input.value="";});
    nameInput.addEventListener("input",markDirty);
