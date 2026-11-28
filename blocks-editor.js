@@ -8,19 +8,19 @@
   {type:"event_member_join",group:"이벤트",kind:"event",label:"새 멤버가 들어오면",fields:[]},
   {type:"event_member_leave",group:"이벤트",kind:"event",label:"멤버가 나가면",fields:[]},
   {type:"condition_contains",group:"조건",kind:"condition",label:"메시지에 단어가 포함되면",fields:[{key:"keyword",label:"찾을 단어",placeholder:"예: 안녕하세요",kind:"value",full:true}]},
-  {type:"condition_has_role",group:"조건",kind:"condition",label:"사용자가 역할을 가지고 있으면",fields:[{key:"role_id",label:"역할 ID",placeholder:"Discord 역할 ID",kind:"text",full:true}]},
-  {type:"action_send_message",group:"동작",kind:"action",label:"메시지 보내기",fields:[{key:"channel_id",label:"보낼 채널 ID",placeholder:"채널 ID",kind:"text"},{key:"content",label:"메시지 내용",placeholder:"보낼 내용을 입력해 주세요.",kind:"textarea",full:true},{key:"mention_mode",label:"멘션 방식",kind:"select",options:[["none","멘션 없음"],["everyone","@everyone"],["here","@here"],["user","특정 사용자"],["role","특정 역할"]]},{key:"mention_id",label:"멘션 대상 ID",placeholder:"사용자 또는 역할 ID",kind:"text"},{key:"delete_after_seconds",label:"자동 삭제 (초)",placeholder:"사용 안 함",kind:"number"},{key:"thread_mode",label:"스레드",kind:"select",options:[["none","사용 안 함"],["create","새 스레드"],["reply","기존 스레드"]] }]},
+  {type:"condition_has_role",group:"조건",kind:"condition",label:"사용자가 역할을 가지고 있으면",fields:[{key:"role_id",label:"역할",placeholder:"역할 선택",kind:"role",full:true}]},
+  {type:"action_send_message",group:"동작",kind:"action",label:"메시지 보내기",fields:[{key:"channel_id",label:"보낼 채널",placeholder:"채널 선택",kind:"channel"},{key:"content",label:"메시지 내용",placeholder:"보낼 내용을 입력해 주세요.",kind:"textarea",full:true},{key:"mention_mode",label:"멘션 방식",kind:"select",options:[["none","멘션 없음"],["everyone","@everyone"],["here","@here"],["user","특정 사용자"],["role","특정 역할"]]},{key:"mention_id",label:"멘션 대상 ID",placeholder:"사용자 또는 역할 ID",kind:"text"},{key:"delete_after_seconds",label:"자동 삭제 (초)",placeholder:"사용 안 함",kind:"number"},{key:"thread_mode",label:"스레드",kind:"select",options:[["none","사용 안 함"],["create","새 스레드"],["reply","기존 스레드"]] }]},
   {type:"action_send_embed",group:"동작",kind:"action",label:"임베드 메시지 보내기",fields:[{key:"channel_id",label:"보낼 채널 ID",placeholder:"채널 ID",kind:"text"},{key:"embed_title",label:"제목",placeholder:"임베드 제목",kind:"text"},{key:"author",label:"작성자 표시",placeholder:"선택 입력",kind:"text"},{key:"description",label:"설명",placeholder:"임베드 본문",kind:"textarea",full:true},{key:"color",label:"색상 HEX",placeholder:"#356DF3",kind:"text"},{key:"footer",label:"하단 문구",placeholder:"선택 입력",kind:"text"},{key:"title_url",label:"제목 링크",placeholder:"https://",kind:"text"},{key:"thumbnail_url",label:"썸네일 URL",placeholder:"https://",kind:"text"},{key:"image_url",label:"큰 이미지 URL",placeholder:"https://",kind:"text"},{key:"timestamp",label:"시간 표시",kind:"select",options:[["false","표시 안 함"],["true","현재 시간 표시"]]}]},
   {type:"action_reply",group:"동작",kind:"action",label:"메시지에 답장하기",fields:[{key:"content",label:"답장 내용",placeholder:"답장 내용을 입력해 주세요.",kind:"textarea",full:true},{key:"reply_target",label:"답장 대상",kind:"select",options:[["event_message","현재 이벤트 메시지"],["latest_message","가장 최근 메시지"],["message_id","직접 지정한 메시지 ID"]]},{key:"target_message_id",label:"메시지 ID",placeholder:"직접 지정할 때 입력",kind:"text"},{key:"fallback",label:"대상 메시지가 없을 때",kind:"select",options:[["send_new","새 메시지로 전송"],["skip","동작 건너뛰기"]]},{key:"mention_author",label:"작성자 멘션",kind:"select",options:[["false","멘션하지 않음"],["true","작성자 멘션"]]}]},
-  {type:"action_add_role",group:"동작",kind:"action",label:"역할 지급하기",fields:[{key:"role_id",label:"지급할 역할 ID",placeholder:"역할 ID",kind:"text",full:true}]},
-  {type:"action_remove_role",group:"동작",kind:"action",label:"역할 회수하기",fields:[{key:"role_id",label:"회수할 역할 ID",placeholder:"역할 ID",kind:"text",full:true}]},
+  {type:"action_add_role",group:"동작",kind:"action",label:"역할 지급하기",fields:[{key:"role_id",label:"지급할 역할",placeholder:"역할 선택",kind:"role",full:true}]},
+  {type:"action_remove_role",group:"동작",kind:"action",label:"역할 회수하기",fields:[{key:"role_id",label:"회수할 역할",placeholder:"역할 선택",kind:"role",full:true}]},
   {type:"action_warn",group:"동작",kind:"action",label:"사용자에게 경고하기",fields:[{key:"reason",label:"경고 사유",placeholder:"경고 사유",kind:"textarea",full:true}]},
   {type:"control_wait",group:"제어",kind:"control",label:"잠시 기다리기",fields:[{key:"seconds",label:"대기 시간 (초, 최대 10)",placeholder:"1",kind:"number"}]},
   {type:"data_set_variable",group:"변수",kind:"data",label:"변수에 값 저장하기",fields:[{key:"variable",label:"변수 이름",placeholder:"변수명",kind:"text"},{key:"value",label:"저장할 값",placeholder:"값 또는 {{변수명}}",kind:"value"}]},
   {type:"data_change_variable",group:"변수",kind:"data",label:"변수 값 변경하기",fields:[{key:"variable",label:"변수 이름",placeholder:"변수명",kind:"text"},{key:"amount",label:"변경할 값",placeholder:"1",kind:"number"}]}
  ];
  const byType=Object.fromEntries(definitions.map(d=>[d.type,d]));
- let user,project,server,blocks=[],variables=[],dragSource=null,dirty=false;
+ let user,project,server,blocks=[],variables=[],resources={channels:[],roles:[]},dragSource=null,dirty=false;
  const defaults={event_message_create:{channel_filter:""},condition_contains:{keyword:""},condition_has_role:{role_id:""},action_send_message:{channel_id:"",content:"",mention_mode:"none",mention_id:"",delete_after_seconds:"",thread_mode:"none"},action_send_embed:{channel_id:"",embed_title:"",author:"",description:"",color:"#356DF3",footer:"",title_url:"",thumbnail_url:"",image_url:"",timestamp:"false"},action_reply:{content:"",reply_target:"event_message",target_message_id:"",fallback:"send_new",mention_author:"false"},action_add_role:{role_id:""},action_remove_role:{role_id:""},action_warn:{reason:""},control_wait:{seconds:"1"},data_set_variable:{variable:"",value:""},data_change_variable:{variable:"",amount:"1"}};
  function makeBlock(type){const def=byType[type];return {id:crypto.randomUUID(),type,fields:{...(defaults[type]||{})}};}
  function markDirty(){dirty=true;$("#blocks-save-state").textContent="변경 사항 있음";saveButton.disabled=false;}
@@ -52,6 +52,7 @@
   let input;
   if(field.kind==="textarea"){input=document.createElement("textarea");input.placeholder=field.placeholder||"";input.value=block.fields[field.key]??"";}
   else if(field.kind==="select"){input=document.createElement("select");(field.options||[]).forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;input.append(option);});input.value=block.fields[field.key]??(field.options?.[0]?.[0]||"");}
+  else if(field.kind==="channel"||field.kind==="role"){const items=resources[field.kind==="channel"?"channels":"roles"]||[];if(items.length){input=document.createElement("select");const first=document.createElement("option");first.value="";first.textContent=field.kind==="channel"?"채널을 선택해 주세요":"역할을 선택해 주세요";input.append(first);items.forEach(item=>{const option=document.createElement("option");option.value=item.id;option.textContent=(field.kind==="channel"?"#":"@")+item.name;input.append(option);});const current=block.fields[field.key]||"";if(current&&!items.some(item=>item.id===current)){const extra=document.createElement("option");extra.value=current;extra.textContent="저장된 ID · "+current;input.append(extra);}input.value=current;}else{input=document.createElement("input");input.type="text";input.placeholder=field.placeholder+" (목록 동기화 필요)";input.value=block.fields[field.key]??"";}}
   else{input=document.createElement("input");input.type=field.kind==="number"?"number":"text";input.placeholder=field.placeholder||"";input.value=block.fields[field.key]??"";if(field.kind==="number"){input.min="0";input.max=field.key==="seconds"?"10":"86400";}}
   input.className="block-field-input";input.dataset.key=field.key;input.dataset.kind=field.kind;input.addEventListener("input",()=>{block.fields[field.key]=input.value;markDirty();});
   input.addEventListener("change",()=>{block.fields[field.key]=input.value;markDirty();});
@@ -106,13 +107,14 @@
   saveButton.disabled=true;$("#blocks-save-state").textContent="저장 중…";
   const projectData={version:1,blocks,variables};
   try{
-   const {data,error}=await sb.from("blocks_projects").update({name:nameInput.value.trim().slice(0,60)||"새 프로젝트",project_data:projectData,updated_at:new Date().toISOString()}).eq("id",project.id).eq("owner_id",user.id).select("id,name,project_data,is_enabled").single();
+   const {data,error}=await sb.from("blocks_projects").update({name:nameInput.value.trim().slice(0,60)||"새 프로젝트",project_data:projectData,version:(project.version||1)+1,updated_at:new Date().toISOString()}).eq("id",project.id).eq("owner_id",user.id).select("id,name,project_data,is_enabled").single();
    if(error)throw error;project=data;blocks=data.project_data.blocks||[];variables=data.project_data.variables||[];dirty=false;$("#blocks-save-state").textContent="저장 완료";saveButton.disabled=false;renderBlocks();renderVariables();return true;
   }catch(error){console.error("BLOCKS project save failed",error);window.BLOCKS.notify(error.message||"저장하지 못했어요.");$("#blocks-save-state").textContent="저장 실패";saveButton.disabled=false;return false;}
  }
  async function toggleEnabled(){
   if(dirty){const ok=await save();if(!ok)return;}
   if(!server?.bot_connected){window.BLOCKS.notify("TEND 봇을 먼저 서버에 초대해 주세요.");return;}
+  if(!project.is_enabled&&!blocks.some(block=>String(block.type).startsWith("event_"))){window.BLOCKS.notify("실행하려면 이벤트 블록을 하나 이상 추가해 주세요.");return;}
   enableButton.disabled=true;
   try{
    const next=!project.is_enabled;
@@ -134,6 +136,7 @@
    const {data,error}=await sb.from("blocks_projects").select("*").eq("id",projectId).eq("owner_id",user.id).single();if(error)throw error;project=data;
    nameInput.value=project.name;blocks=Array.isArray(project.project_data?.blocks)?project.project_data.blocks:[];variables=Array.isArray(project.project_data?.variables)?project.project_data.variables:[];
    const {data:servers,error:serverError}=await sb.rpc("blocks_list_servers");if(serverError)throw serverError;server=(servers||[]).find(x=>x.server_id===project.server_id)||null;
+   if(server){const {data:resourceData,error:resourceError}=await sb.rpc("blocks_list_server_resources",{target_server_id:project.server_id});if(resourceError)console.warn("BLOCKS resource catalog unavailable",resourceError);else resources={channels:resourceData?.channels||[],roles:resourceData?.roles||[]};}
    $("#blocks-editor-server").textContent=(server?.server_name||"선택한 서버")+" · "+(server?.bot_connected?"TEND 봇 연결됨":"TEND 봇 초대 필요");
    drawPalette();renderVariables();renderBlocks();renderEnable();setupDrop();saveButton.disabled=false;
    saveButton.addEventListener("click",save);enableButton.addEventListener("click",toggleEnabled);
