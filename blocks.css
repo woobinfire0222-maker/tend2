@@ -430,3 +430,94 @@ body.bl-editor-page{height:100vh;height:100dvh;min-height:0;display:flex;flex-di
 /* Keep Blockly toolbox and flyout typography independent from workspace zoom */
 .bl-editor-sidebar{flex:0 0 250px;min-width:250px;transform:none!important}.bl-editor-sidebar .bl-palette,.bl-editor-sidebar .bl-category-tabs{zoom:1!important;transform:none!important}.bl-editor-main{min-width:0;flex:1}.bl-editor-main .blocklyToolboxDiv{transform:none!important}
 @media(max-width:760px){.bl-manager-overlay{padding:9px}.bl-manager{max-height:94dvh;border-radius:14px}.bl-manager>header{padding:14px}.bl-manager-body{padding:13px}.bl-manager-create{align-items:stretch}.bl-manager-create button{flex:0 0 auto}}
+
+
+/* FIX: Entry-style editor layout — compact left palette, dominant center workspace, small right inspector */
+.bl-editor-page .bl-editor-app{
+  display:grid!important;
+  grid-template-columns:190px minmax(0,1fr) 214px!important;
+  grid-template-rows:minmax(0,1fr);
+  align-items:stretch;
+  gap:9px;
+  width:100%;
+  max-width:1800px;
+  height:auto!important;
+  min-height:0!important;
+  flex:1 1 0;
+  padding:9px;
+  margin:0 auto;
+  overflow:hidden;
+}
+.bl-editor-page .bl-editor-sidebar{
+  grid-column:1;
+  grid-row:1;
+  width:auto;
+  min-width:0;
+  max-width:190px;
+  flex:initial;
+  padding:10px;
+  overflow:hidden;
+}
+.bl-editor-page .bl-editor-main{
+  grid-column:2;
+  grid-row:1;
+  width:100%;
+  min-width:0;
+  min-height:0;
+}
+.bl-editor-page .bl-editor-inspector{
+  grid-column:3;
+  grid-row:1;
+  display:flex;
+  width:auto;
+  min-width:0;
+  max-width:214px;
+  padding:10px;
+}
+.bl-editor-page .bl-editor-sidebar .bl-palette{
+  min-width:0;
+  overflow-x:hidden;
+}
+.bl-editor-page .bl-editor-sidebar .bl-palette-block{
+  width:100%;
+  min-width:0;
+}
+@media(max-width:1100px){
+  .bl-editor-page .bl-editor-app{
+    grid-template-columns:174px minmax(0,1fr)!important;
+  }
+  .bl-editor-page .bl-editor-sidebar{
+    grid-column:1;
+    grid-row:1;
+    max-width:none;
+  }
+  .bl-editor-page .bl-editor-main{
+    grid-column:2;
+    grid-row:1;
+  }
+  .bl-editor-page .bl-editor-inspector{
+    display:none;
+  }
+}
+@media(max-width:700px){
+  .bl-editor-page .bl-editor-app{
+    display:flex!important;
+    flex-direction:column;
+    gap:5px;
+    padding:5px;
+  }
+  .bl-editor-page .bl-editor-sidebar{
+    order:0;
+    width:100%;
+    max-width:none;
+    max-height:130px;
+    flex:0 0 auto;
+  }
+  .bl-editor-page .bl-editor-main{
+    order:1;
+    width:100%;
+    flex:1 1 0;
+    min-height:0;
+  }
+  .bl-editor-page .bl-editor-inspector{display:none}
+}
