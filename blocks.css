@@ -331,3 +331,27 @@ html.theme-dark .bl-workspace-block.bl-drop-before:before,html.theme-dark .bl-wo
 .bl-palette-block{cursor:grab}
 .bl-palette-block:active{cursor:grabbing}
 @media(prefers-reduced-motion:reduce){.bl-workspace-block{transition:none}}
+
+
+/* TEND BLOCKS - Blockly powered visual programming workspace */
+.bl-editor-app{grid-template-columns:minmax(0,1fr) 250px}
+.bl-editor-sidebar{display:none!important}
+.bl-editor-main{min-width:0}
+.bl-blockly-workspace{touch-action:none;background:var(--bl-bg)}
+#blocklyDiv{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+.bl-blockly-workspace .blocklySvg{background:transparent!important}
+.bl-blockly-workspace .blocklyToolboxDiv{background:var(--bl-card)!important;border-right:1px solid var(--bl-line);padding:8px 5px}
+.bl-blockly-workspace .blocklyTreeRow{height:38px!important;line-height:38px!important;border-radius:9px;margin:2px 5px;padding-right:12px}
+.bl-blockly-workspace .blocklyTreeLabel{font-family:inherit;font-size:12px;font-weight:750}
+.bl-blockly-workspace .blocklyFlyout{filter:drop-shadow(4px 0 12px #18243a12)}
+.bl-blockly-workspace .blocklyScrollbarHandle{fill:#91a0b5!important}
+.bl-blockly-workspace .blocklyMainBackground{stroke:none!important}
+html.theme-dark .bl-blockly-workspace .blocklyToolboxDiv{background:#172333!important;border-color:#344153}
+html.theme-dark .bl-blockly-workspace .blocklyTreeLabel{color:#edf3fb!important}
+html.theme-dark .bl-blockly-workspace .blocklyTreeRow:not(.blocklyTreeSelected):hover{background:#26364b!important}
+html.theme-dark .bl-blockly-workspace .blocklyFlyoutBackground{fill:#1b293a!important;fill-opacity:1!important}
+html.theme-dark .bl-blockly-workspace .blocklyText{fill:#fff}
+html.theme-dark .bl-blockly-workspace .blocklyEditableText rect{fill:#26364b!important;stroke:#50627b!important}
+html.theme-dark .bl-blockly-workspace .blocklyNonEditableText>rect{fill:#26364b!important}
+@media(max-width:1100px){.bl-editor-app{grid-template-columns:minmax(0,1fr)}.bl-editor-inspector{display:none}}
+@media(max-width:700px){.bl-editor-app{display:flex}.bl-editor-main{flex:1;min-height:0}.bl-blockly-workspace{min-height:0}.bl-editor-top{flex-wrap:wrap}}
