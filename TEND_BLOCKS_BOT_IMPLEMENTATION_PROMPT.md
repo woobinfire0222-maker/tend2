@@ -548,3 +548,46 @@ TEND BLOCKS 편집기는 Google Blockly 엔진을 사용해 Entry·Scratch 계�
 - 저장 성공을 표시하기 전에 Supabase가 성공 응답을 반환했는지 확인한다.
 - 저장 실패 시 dirty 상태를 유지하고 다시 저장할 수 있게 한다.
 - 테스트: 새 프로젝트 저장, 기존 v1 프로젝트를 열어 v2로 저장, 중첩 if/else 및 값 블록 저장, 채널·역할 ID 저장, 연속 2회 저장, 새로고침 후 복원, 50개 제한, 200KB 초과 방지.
+
+
+---
+
+# 19. 슬래쉬 명령어 이벤트 및 응답 블록
+
+- 이벤트 타입 event_slash_command를 지원한다. fields: COMMAND_NAME(1~32자, 소문자/숫자/밑줄), DESCRIPTION(1~100자), OPTION_NAME(선택, 같은 이름 규칙), OPTION_DESCRIPTION(1~100자), OPTION_REQUIRED(boolean).
+- 첫 버전은 선택적 문자열 옵션 1개만 지원한다. 옵션 이름이 비어 있으면 인자 없는 명령어다.
+- 동작 타입 action_interaction_respond: CONTENT와 EPHEMERAL(true=실행자만, false=공개).
+- schema v2 roots 최상위 이벤트로 저장한다. 컨텍스트에는 interaction, user, guild, channel, command_name, option_value를 넣는다.
+- 최초 응답은 한 번만 가능하다. 3초 제한 전에 defer 또는 응답하고, 이미 응답했다면 followup을 사용한다. 일반 action_reply를 interaction 응답에 재사용하지 않는다.
+- 기존 discord.py client와 app_commands.CommandTree를 재사용한다. 새 client/프로세스/worker 금지.
+- 활성 프로젝트의 슬래쉬 이벤트를 서버별 guild command로 등록한다. 프로젝트 활성화/비활성화/삭제/설정 변경 시 재동기화한다. 중복 명령어와 기존 TEND 명령어 충돌은 임의 덮어쓰기 없이 거부하고 로그를 남긴다. 기존 TEND 명령어가 삭제되지 않게 기존 command tree 등록을 보존한다.
+- 동적 옵션은 discord.py app_commands의 검증된 rename/describe 방식으로 문자열 옵션 하나를 등록한다. eval/exec/코드 생성 금지.
+- 서버 ID 일치, interaction 사용자, 프로젝트 활성 상태를 재검증한다. 50노드/깊이 8/repeat 20/15초 실행 제한 적용.
+- 테스트: 인자 없음/문자열 옵션, ephemeral/public, 3초 응답 제한, followup, 이름 중복, 기존 명령어 충돌, 프로젝트 비활성화 후 제거, 다른 서버 실행 거부.
+
+---
+
+# 20. 웹훅 전송 블록과 비밀 정보 관리
+
+- 동작 타입 action_webhook_send: CHANNEL_ID, WEBHOOK_NAME, USERNAME, AVATAR_URL, CONTENT, EMBED_TITLE, EMBED_DESCRIPTION, EMBED_COLOR.
+- 웹훅 토큰, 전체 웹훅 URL, 인증정보는 project_data에 절대 저장하지 않는다.
+- Supabase public.blocks_webhooks 테이블을 사용한다. 컬럼: id, project_id(FK cascade), server_id, channel_id, webhook_id(unique), webhook_token(secret), webhook_name, created_at, updated_at. unique(project_id,channel_id).
+- RLS ENABLE + FORCE. PUBLIC/anon/authenticated 권한 REVOKE, service_role만 SELECT/INSERT/UPDATE/DELETE. 브라우저 anon key에서 접근 금지.
+- service_role key는 DisHost의 서버 환경변수에서만 사용한다. 소스/웹페이지/GitHub/로그에 노출 금지.
+- 실행 시 project_id+channel_id로 기존 webhook을 조회하고 유효하면 재사용한다. 없거나 삭제/무효화되었으면 Manage Webhooks 권한 확인 후 기존 Discord client를 통해 생성하고 service-role로 upsert한다.
+- DB upsert 실패 시 방금 생성한 Discord webhook을 삭제해 고아 리소스를 남기지 않는다. 동시 실행 중복 생성 방지 lock을 둔다.
+- 전송 전 채널 소속, 서버 ID, 채널 타입, 봇 권한, 메시지/임베드 길이, HTTPS avatar URL, HEX 색상을 검증한다. allowed_mentions 기본 none.
+- token은 콘솔/실행 로그/사용자 응답/프로젝트 JSON에 절대 기록하지 않는다. 에러에는 안전한 원인만 기록한다.
+- 프로젝트 삭제 시 Discord webhook도 삭제한다. 봇 오프라인이면 정리 대기 후 다음 시작 때 삭제한다. 프로젝트 비활성화는 웹훅을 유지한다.
+- 토큰을 장기 메모리에 캐시하지 않는다. 기존 봇 프로세스와 client를 재사용한다.
+- 테스트: 최초 생성/재사용/다른 프로젝트 분리/삭제 후 재생성/권한 부족/DB 저장 실패 cleanup/토큰 미노출/텍스트 및 임베드 전송.
+
+---
+
+# 21. 튜토리얼 및 모바일 화면
+
+- blocks-tutorial.html은 로그인 없이 볼 수 있는 초보자 튜토리얼이다. 첫 자동화는 event_message_create → control_if → condition_contains → action_send_message 흐름으로 설명한다.
+- 별도 단계에서 event_slash_command + action_interaction_respond, action_webhook_send 사용법을 설명한다. 실제 대시보드로 가는 CTA만 사용하고 가짜 완료/저장 기능을 만들지 않는다.
+- 모바일 편집기는 body.bl-editor-page height:100dvh / flex column / overflow hidden, 상단 헤더 flex:none, 앱 flex:1 min-height:0, main flex column, toolbar flex:none, workspace flex:1 min-height:0으로 배치한다. 98px 같은 고정 헤더 높이 계산 금지.
+- 테스트 해상도: 390×844, 360×740, 844×390, 768×1024, 1366×768, 1920×1080. 페이지 전체 세로 overflow 없이 workspace가 남은 높이를 채우고 Blockly 도구/줌/터치가 가려지지 않아야 한다.
+- 코드 적용, Supabase migration, 실제 봇 런타임 구현, DisHost 재시작, Discord 명령어 sync 테스트를 각각 구분해 보고한다. 봇 런타임이 적용되기 전에는 기능 완료라고 하지 않는다.
