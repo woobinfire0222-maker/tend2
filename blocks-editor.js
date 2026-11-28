@@ -3,7 +3,7 @@
  const params=new URLSearchParams(location.search),projectId=params.get("id");
  const nameInput=$("#blocks-project-name"),saveButton=$("#blocks-save"),enableButton=$("#blocks-enable");
  const definitions=[
-  {type:"event_message_create",group:"이벤트",kind:"event",label:"새 메시지가 올라오면",fields:[{key:"channel_filter",label:"채널 ID (선택)",placeholder:"전체 채널",kind:"text"}]},
+  {type:"event_message_create",group:"이벤트",kind:"event",label:"새 메시지가 올라오면",fields:[{key:"channel_filter",label:"채널 제한",placeholder:"전체 채널",kind:"channel"}]},
   {type:"event_member_join",group:"이벤트",kind:"event",label:"새 멤버가 들어오면",fields:[]},
   {type:"event_member_leave",group:"이벤트",kind:"event",label:"멤버가 나가면",fields:[]},
   {type:"condition_contains",group:"조건",kind:"condition",label:"메시지에 단어가 포함되면",fields:[{key:"keyword",label:"찾을 단어",placeholder:"예: 안녕하세요",kind:"value",full:true}]},
@@ -67,7 +67,7 @@
     }else if(f.kind==="select"){
      this.appendDummyInput("FIELD_"+f.key).appendField(f.label).appendField(new Blockly.FieldDropdown(f.options),f.key.toUpperCase());
     }else{
-     this.appendDummyInput("FIELD_"+f.key).appendField(f.label).appendField(new Blockly.FieldTextInput(""),f.key.toUpperCase());
+     this.appendDummyInput("FIELD_"+f.key).appendField(f.label).appendField(f.kind==="channel"||f.kind==="role"?new Blockly.FieldDropdown(()=>resourceOptions(f.kind,f.key)):new Blockly.FieldTextInput(""),f.key.toUpperCase());
     }
    });
    if(d.kind==="event"){this.setNextStatement(true);this.setDeletable(true);}
@@ -94,14 +94,14 @@
   contents.splice(3,0,{kind:"category",name:"조건문",colour:"#e28c48",contents:[{kind:"block",type:"control_if"},{kind:"block",type:"control_if_else"},{kind:"block",type:"control_repeat_count"}]});
   return {kind:"categoryToolbox",contents};
  }
- function refreshVariableDropdowns(){
+ function resourceOptions(kind,key){\n  const list=kind==="channel"?resources.channels:resources.roles;\n  const options=list.slice(0,250).map(item=>[kind==="channel"?"#"+item.name+" · "+String(item.id).slice(-4):"@"+item.name,String(item.id)]);\n  const empty=kind==="channel"?(key==="channel_filter"?"전체 채널":"채널 선택"):"역할 선택";\n  return [[empty,""],...options];\n }\n async function loadServerResources(){\n  const state=$("#blocks-resource-state");if(state)state.textContent="채널과 역할을 불러오는 중…";\n  try{\n   const {data,error}=await sb.rpc("blocks_list_server_resources",{target_server_id:project.server_id});\n   if(error)throw error;\n   resources={channels:Array.isArray(data?.channels)?data.channels:[],roles:Array.isArray(data?.roles)?data.roles:[]};\n   if(state)state.textContent=`채널 ${resources.channels.length}개 · 역할 ${resources.roles.length}개 연결됨`;\n   return true;\n  }catch(error){\n   console.error("BLOCKS server resources failed",error);resources={channels:[],roles:[]};\n   if(state)state.textContent="목록을 불러오지 못했어요. 다시 시도해 주세요.";\n   return false;\n  }\n }\n function refreshVariableDropdowns(){
   if(!workspace)return;
   const opts=variables.length?variables.map(v=>[v,v]):[["변수 없음",""]];
   workspace.getAllBlocks(false).filter(b=>b.type==="value_variable").forEach(b=>{const field=b.getField("VARIABLE");if(field)field.menuGenerator_=opts;});
  }
  function initBlockly(){
   definitions.forEach(blockDef);registerSpecialBlocks();
-  workspace=Blockly.inject("blocklyDiv",{toolbox:buildToolbox(),renderer:"zelos",theme:Blockly.Theme.defineTheme("tendBlocks",{base:Blockly.Themes.Classic,componentStyles:{workspaceBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#101a27":"#f6f8fc",toolboxBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#172333":"#ffffff",toolboxForegroundColour:document.documentElement.classList.contains("theme-dark")?"#edf3fb":"#172033",flyoutBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#1b293a":"#ffffff",flyoutForegroundColour:document.documentElement.classList.contains("theme-dark")?"#edf3fb":"#172033",flyoutOpacity:1,scrollbarColour:"#8b9bb3",insertionMarkerColour:"#3978f6",insertionMarkerOpacity:.35,markerColour:"#3978f6",cursorColour:"#3978f6"}}),grid:{spacing:24,length:3,colour:document.documentElement.classList.contains("theme-dark")?"#344153":"#dce3ed",snap:true},zoom:{controls:true,wheel:true,startScale:1,maxScale:1.8,minScale:.45,scaleSpeed:1.12},move:{scrollbars:true,drag:true,wheel:true},trashcan:true,renderer:"zelos",sounds:false,oneBasedIndex:false});
+  workspace=Blockly.inject("blocklyDiv",{toolbox:buildToolbox(),renderer:"zelos",theme:Blockly.Theme.defineTheme("tendBlocks",{base:Blockly.Themes.Classic,componentStyles:{workspaceBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#101a27":"#f6f8fc",toolboxBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#172333":"#ffffff",toolboxForegroundColour:document.documentElement.classList.contains("theme-dark")?"#edf3fb":"#172033",flyoutBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#1b293a":"#ffffff",flyoutForegroundColour:document.documentElement.classList.contains("theme-dark")?"#edf3fb":"#172033",flyoutOpacity:1,scrollbarColour:"#8b9bb3",insertionMarkerColour:"#3978f6",insertionMarkerOpacity:.35,markerColour:"#3978f6",cursorColour:"#3978f6"}}),grid:{spacing:20,length:2,colour:document.documentElement.classList.contains("theme-dark")?"#344153":"#dce3ed",snap:true},zoom:{controls:true,wheel:true,startScale:.84,maxScale:1.55,minScale:.5,scaleSpeed:1.1},move:{scrollbars:true,drag:true,wheel:true},trashcan:true,renderer:"zelos",sounds:false,oneBasedIndex:false});
   workspace.addChangeListener(e=>{if(e.isUiEvent||e.type==="ui")return;markDirty();$("#blocks-count").textContent=workspace.getAllBlocks(false).length+" / 50";});
   $("#blocks-undo").addEventListener("click",()=>workspace.undo(false));
   $("#blocks-redo").addEventListener("click",()=>workspace.undo(true));
@@ -196,7 +196,7 @@
    $("#blocks-editor-server").textContent=(server?.server_name||"선택한 서버")+" · "+(server?.bot_connected?"TEND 봇 연결됨":"TEND 봇 초대 필요");
    initBlockly();restoreProject(project.project_data||{});refreshVariableDropdowns();enableButton.textContent=project.is_enabled?"실행 중지":"실행 활성화";
    saveButton.disabled=false;saveButton.addEventListener("click",save);enableButton.addEventListener("click",toggleEnabled);
-   $("#blocks-add-variable").addEventListener("click",()=>{const input=$("#blocks-variable-name"),value=input.value.trim().slice(0,40);if(value&&!variables.includes(value)){variables.push(value);refreshVariableDropdowns();markDirty();}input.value="";});
+   $("#blocks-refresh-resources").addEventListener("click",loadServerResources);\n    $("#blocks-add-variable").addEventListener("click",()=>{const input=$("#blocks-variable-name"),value=input.value.trim().slice(0,40);if(value&&!variables.includes(value)){variables.push(value);refreshVariableDropdowns();markDirty();}input.value="";});
    nameInput.addEventListener("input",markDirty);
    await loadLogs();
    window.addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue="";}});
