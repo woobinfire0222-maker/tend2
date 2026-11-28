@@ -474,6 +474,7 @@
     $$("[data-blacklist-user-delete]").forEach(btn=>btn.addEventListener("click",async()=>{const q=await sb.from("user_blacklists").delete().eq("id",btn.dataset.blacklistUserDelete).eq("server_id",sid());if(failed(q.error,"삭제하지 못했어요."))return;await loadBlacklists();}));
   }
   const featureFields = {
+    moderation:[],
     tickets:[["panel_channel_id","패널 게시 채널","channel:text"],["support_role_ids","담당 역할 ID (쉼표 구분)","list"],["category_id","티켓 카테고리","category"],["welcome_message","티켓 생성 안내","textarea"],["close_message","종료 안내","textarea"]],
     polls:[["default_duration_minutes","기본 진행 시간(분)","number"],["allow_multiple","복수 선택 허용","boolean"],["anonymous","익명 투표","boolean"],["results_channel_id","결과 채널","channel:text"]],
     welcome:[["channel_id","환영 채널","channel:text"],["message","환영 메시지 ({user}, {server} 사용 가능)","textarea"],["embed_color","임베드 색상 (HEX)","text"],["image_url","이미지 URL","text"]],
