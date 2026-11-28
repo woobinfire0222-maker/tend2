@@ -16,13 +16,13 @@
    sb.from("blocks_beta_testers").select("user_id,discord_id,is_active,granted_at,revoked_at").order("granted_at",{ascending:false}).limit(200)
   ]);
   if(a.error){$("#blocks-admin-list").innerHTML='<div class="empty">신청 목록 오류: '+escape(a.error.message)+'</div>';return;}
-  apps=a.data||[];testers=t.data||[];renderTesters();
+  apps=a.data||[];testers=t.data||[];
   $("#blocks-admin-count").textContent=apps.length+"건";
   $("#blocks-admin-pending").textContent=apps.filter(x=>x.status==="pending").length+"건";
   $("#blocks-admin-active").textContent=testers.filter(x=>x.is_active).length+"명";
-  render();
+  renderApplications();renderTesters();
  }
- function render(){
+ function renderApplications(){
   const filter=$("#blocks-admin-filter").value;
   const rows=apps.filter(x=>filter==="all"||x.status===filter);
   const host=$("#blocks-admin-list");host.replaceChildren();
@@ -38,11 +38,36 @@
    if(app.admin_note){const note=document.createElement("small");note.textContent="관리자 메모: "+app.admin_note;info.append(note);}
    const actions=document.createElement("div");actions.className="experiment-member-action";
    if(app.status==="pending"){
-    [["승인","approved"],["거절","rejected"]].forEach(([label,decision])=>{const b=document.createElement("button");b.className="btn "+(decision==="approved"?"btn-blue":"btn-light");b.textContent=label;b.addEventListener("click",()=>review(app,decision,b));actions.append(b);});
+    [["승인","approved"],["거절","rejected"]].forEach(([label,decision])=>{
+     const b=document.createElement("button");b.className="btn "+(decision==="approved"?"btn-blue":"btn-light");b.textContent=label;
+     b.addEventListener("click",()=>review(app,decision,b));actions.append(b);
+    });
    }else{
     const label=document.createElement("span");label.className="badge "+(app.status==="approved"?"green":"");label.textContent=statusLabel(app.status);actions.append(label);
    }
    card.append(info,actions);host.append(card);
+  });
+ }
+ function renderTesters(){
+  const host=$("#blocks-admin-testers");if(!host)return;host.replaceChildren();
+  if(!testers.length){host.innerHTML='<div class="empty">아직 승인된 테스터가 없어요.</div>';return;}
+  testers.forEach(t=>{
+   const row=document.createElement("div");row.className="experiment-member-row";
+   const info=document.createElement("div");info.className="experiment-member-info";
+   const title=document.createElement("strong");title.textContent=t.discord_id;
+   const meta=document.createElement("small");meta.textContent=(t.is_active?"베타 권한 활성":"권한 해제됨")+" · 승인일 "+new Date(t.granted_at).toLocaleString("ko-KR");
+   info.append(title,meta);
+   const action=document.createElement("div");action.className="experiment-member-action";
+   if(t.is_active){
+    const b=document.createElement("button");b.className="btn btn-light";b.textContent="권한 해제";
+    b.addEventListener("click",async()=>{
+     if(!confirm("이 계정의 TEND BLOCKS 베타 권한을 해제할까요?"))return;
+     b.disabled=true;const {data,error}=await sb.rpc("blocks_revoke_beta_access",{target_user_id:t.user_id});
+     if(error||!data?.ok){alert(error?.message||"권한을 해제하지 못했어요.");b.disabled=false;return;}
+     await load();
+    });action.append(b);
+   }
+   row.append(info,action);host.append(row);
   });
  }
  async function review(app,decision,button){
@@ -54,22 +79,7 @@
   if(error||data?.error){alert(error?.message||data?.error||"처리하지 못했어요.");button.disabled=false;return;}
   await load();
  }
- $("#blocks-admin-filter").addEventListener("change",render);
- $("#blocks-admin-refresh").addEventListener("click",load);
+ $("#blocks-admin-filter").addEventListener("change",renderApplications);
+ $("#blocks-admin-refresh").addEventListener("click",()=>load().catch(console.error));
  load().catch(error=>{console.error("BLOCKS admin load failed",error);$("#blocks-admin-list").textContent="관리 정보를 불러오지 못했어요.";});
 })();
-
-function renderTesters(){
- const host=$("#blocks-admin-testers");if(!host)return;host.replaceChildren();
- if(!testers.length){host.innerHTML='<div class="empty">아직 승인된 테스터가 없어요.</div>';return;}
- testers.forEach(t=>{
-  const row=document.createElement("div");row.className="experiment-member-row";
-  const info=document.createElement("div");info.className="experiment-member-info";
-  const title=document.createElement("strong");title.textContent=t.discord_id;
-  const meta=document.createElement("small");meta.textContent=(t.is_active?"베타 권한 활성":"권한 해제됨")+" · 승인일 "+new Date(t.granted_at).toLocaleString("ko-KR");
-  info.append(title,meta);
-  const action=document.createElement("div");action.className="experiment-member-action";
-  if(t.is_active){const b=document.createElement("button");b.className="btn btn-light";b.textContent="권한 해제";b.addEventListener("click",async()=>{if(!confirm("이 계정의 TEND BLOCKS 베타 권한을 해제할까요?"))return;b.disabled=true;const {data,error}=await sb.rpc("blocks_revoke_beta_access",{target_user_id:t.user_id});if(error||!data?.ok){alert(error?.message||"권한을 해제하지 못했어요.");b.disabled=false;return;}await load();});action.append(b);}
-  row.append(info,action);host.append(row);
- });
-}
