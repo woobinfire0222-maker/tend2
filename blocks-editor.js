@@ -217,6 +217,7 @@
    nameInput.value=project.name;variables=Array.isArray(project.project_data?.variables)?project.project_data.variables:[];
    const {data:servers,error:serverError}=await sb.rpc("blocks_list_servers");if(serverError)throw serverError;server=(servers||[]).find(x=>x.server_id===project.server_id)||null;
    $("#blocks-editor-server").textContent=(server?.server_name||"선택한 서버")+" · "+(server?.bot_connected?"TEND 봇 연결됨":"TEND 봇 초대 필요");
+   await loadServerResources();
    initBlockly();restoreProject(project.project_data||{});refreshVariableDropdowns();enableButton.textContent=project.is_enabled?"실행 중지":"실행 활성화";
    saveButton.disabled=false;saveButton.addEventListener("click",save);enableButton.addEventListener("click",toggleEnabled);
    $("#blocks-refresh-resources").addEventListener("click",loadServerResources);
