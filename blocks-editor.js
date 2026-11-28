@@ -135,7 +135,7 @@
  }
  function refreshVariableDropdowns(){
   if(!workspace)return;
-  workspace.getAllBlocks(false).forEach(b=>["VARIABLE","SIGNAL_ID","COMMAND_ID","OPTION_ID"].forEach(key=>{const field=b.getField(key);if(field)try{field.menuGenerator_=()=>managedOptions(key==="VARIABLE"?"variable":key==="SIGNAL_ID"?"signal":key==="COMMAND_ID"?"slash_command":"command_option");}catch{}}));
+  workspace.getAllBlocks(false).forEach(b=>["VARIABLE","SIGNAL_ID"].forEach(key=>{const field=b.getField(key);if(field)try{field.menuGenerator_=()=>managedOptions(key==="VARIABLE"?"variable":"signal");}catch{}}));
  }
  function initBlockly(){
   Object.assign(Blockly.Msg,{
@@ -261,12 +261,41 @@
   }catch(error){console.error("BLOCKS editor init failed",error);$("#blocklyDiv").innerHTML='<div class="bl-empty">'+window.BLOCKS.escape(error.message||"편집기를 불러오지 못했어요.")+'</div>';}
  }
  function setupManagers(){
-  const overlay=document.createElement("div");overlay.className="bl-manager-overlay bl-hidden";overlay.innerHTML=`<section class="bl-manager" role="dialog" aria-modal="true"><header><strong>프로젝트 요소 관리</strong><button type="button" data-close>닫기</button></header><nav class="bl-manager-tabs"><button data-tab="variables" class="active">변수</button><button data-tab="signals">신호</button></nav><div class="bl-manager-body"><section data-pane="variables"><p>프로젝트에서 사용할 값을 만들고 관리해요.</p><div class="bl-manager-create"><input id="manager-var-name" maxlength="40" placeholder="변수 이름"><button data-add="variable">변수 만들기</button></div><div id="manager-vars" class="bl-manager-list"></div></section><section data-pane="signals" class="bl-hidden"><p>같은 프로젝트 안에서 실행 흐름을 연결하는 신호예요.</p><div class="bl-manager-create"><input id="manager-signal-name" maxlength="40" placeholder="신호 이름"><button data-add="signal">신호 만들기</button></div><div id="manager-signals" class="bl-manager-list"></div></section></div></section>`;document.body.append(overlay);
-  let activeCommand=null;
-  const render=()=>{const fill=(id,arr)=>{const host=$("#"+id);host.replaceChildren();if(!arr.length){host.textContent="아직 만든 항목이 없어요.";return;}arr.forEach(item=>{const row=document.createElement("div");row.className="bl-manager-row";const label=document.createElement("span");label.textContent=item.name;const del=document.createElement("button");del.textContent="삭제";del.onclick=()=>{if(!confirm("삭제할까요?"))return;arr.splice(arr.indexOf(item),1);render();refreshVariableDropdowns();markDirty();};row.append(label,del);host.append(row);});};fill("manager-vars",variables);fill("manager-signals",signals);
-  const renderOptions=()=>{const cmd=slashCommands.find(x=>x.id===activeCommand),host=$("#manager-opt-list");host.replaceChildren();(cmd?.options||[]).forEach(opt=>{const row=document.createElement("div");row.className="bl-manager-row";const label=document.createElement("span");label.textContent=opt.name+" · "+opt.type+(opt.required?" · 필수":"");const del=document.createElement("button");del.textContent="삭제";del.onclick=()=>{cmd.options=cmd.options.filter(x=>x.id!==opt.id);renderOptions();markDirty();};row.append(label,del);host.append(row);});};
-  overlay.querySelector("[data-close]").onclick=()=>overlay.classList.add("bl-hidden");overlay.onclick=e=>{if(e.target===overlay)overlay.classList.add("bl-hidden");};overlay.querySelectorAll("[data-tab]").forEach(btn=>btn.onclick=()=>{overlay.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===btn));overlay.querySelectorAll("[data-pane]").forEach(x=>x.classList.toggle("bl-hidden",x.dataset.pane!==btn.dataset.tab));});
-  overlay.querySelectorAll("[data-add]").forEach(btn=>btn.onclick=()=>{const kind=btn.dataset.add;if(kind==="variable"||kind==="signal"){const input=$("#manager-"+(kind==="variable"?"var":"signal")+"-name"),name=input.value.trim();if(!name)return;if((kind==="variable"?variables:signals).some(x=>x.name===name))return window.BLOCKS.notify("같은 이름이 이미 있어요.");(kind==="variable"?variables:signals).push({id:crypto.randomUUID?.()||("id_"+Date.now()),name,...(kind==="variable"?{initial_value:0}:{})});input.value="";}markDirty();});
+  const overlay=document.createElement("div");
+  overlay.className="bl-manager-overlay bl-hidden";
+  overlay.innerHTML=`<section class="bl-manager" role="dialog" aria-modal="true"><header><strong>프로젝트 요소 관리</strong><button type="button" data-close>닫기</button></header><nav class="bl-manager-tabs"><button data-tab="variables" class="active">변수</button><button data-tab="signals">신호</button></nav><div class="bl-manager-body"><section data-pane="variables"><p>프로젝트에서 사용할 값을 만들고 관리해요.</p><div class="bl-manager-create"><input id="manager-var-name" maxlength="40" placeholder="변수 이름"><button data-add="variable">변수 만들기</button></div><div id="manager-vars" class="bl-manager-list"></div></section><section data-pane="signals" class="bl-hidden"><p>같은 프로젝트 안에서 실행 흐름을 연결하는 신호예요.</p><div class="bl-manager-create"><input id="manager-signal-name" maxlength="40" placeholder="신호 이름"><button data-add="signal">신호 만들기</button></div><div id="manager-signals" class="bl-manager-list"></div></section></div></section>`;
+  document.body.append(overlay);
+  const render=()=>{
+   const fill=(id,arr)=>{
+    const host=$("#"+id);host.replaceChildren();
+    if(!arr.length){host.textContent="아직 만든 항목이 없어요.";return;}
+    arr.forEach(item=>{
+     const row=document.createElement("div");row.className="bl-manager-row";
+     const label=document.createElement("span");label.textContent=item.name;
+     const del=document.createElement("button");del.textContent="삭제";
+     del.onclick=()=>{if(!confirm("삭제할까요?"))return;arr.splice(arr.indexOf(item),1);render();refreshVariableDropdowns();markDirty();};
+     row.append(label,del);host.append(row);
+    });
+   };
+   fill("manager-vars",variables);fill("manager-signals",signals);
+  };
+  overlay.querySelector("[data-close]").onclick=()=>overlay.classList.add("bl-hidden");
+  overlay.onclick=e=>{if(e.target===overlay)overlay.classList.add("bl-hidden");};
+  overlay.querySelectorAll("[data-tab]").forEach(btn=>btn.onclick=()=>{
+   overlay.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===btn));
+   overlay.querySelectorAll("[data-pane]").forEach(x=>x.classList.toggle("bl-hidden",x.dataset.pane!==btn.dataset.tab));
+  });
+  overlay.querySelectorAll("[data-add]").forEach(btn=>btn.onclick=()=>{
+   const kind=btn.dataset.add;
+   const input=$("#manager-"+(kind==="variable"?"var":"signal")+"-name");
+   const name=input.value.trim();
+   if(!name)return window.BLOCKS.notify("이름을 입력해 주세요.");
+   const arr=kind==="variable"?variables:signals;
+   if(arr.some(x=>x.name===name))return window.BLOCKS.notify("같은 이름이 이미 있어요.");
+   if(arr.length>=50)return window.BLOCKS.notify("항목은 최대 50개까지 만들 수 있어요.");
+   arr.push({id:crypto.randomUUID?.()||("id_"+Date.now()),name,...(kind==="variable"?{initial_value:0}:{})});
+   input.value="";render();refreshVariableDropdowns();markDirty();
+  });
   $("#blocks-manage-elements").onclick=()=>{render();overlay.classList.remove("bl-hidden");};
  }
  init();
