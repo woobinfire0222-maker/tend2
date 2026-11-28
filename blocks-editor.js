@@ -6,13 +6,11 @@
   {type:"event_message_create",group:"이벤트",kind:"event",label:"새 메시지가 올라오면",fields:[{key:"channel_filter",label:"채널 제한",placeholder:"전체 채널",kind:"channel"}]},
   {type:"event_member_join",group:"이벤트",kind:"event",label:"새 멤버가 들어오면",fields:[]},
   {type:"event_member_leave",group:"이벤트",kind:"event",label:"멤버가 나가면",fields:[]},
-  {type:"event_slash_command",group:"이벤트",kind:"event",label:"슬래시 명령어가 실행되었을 때",fields:[{key:"command_id",label:"명령어 선택",kind:"slash_command"}]},
   {type:"condition_contains",group:"조건",kind:"condition",label:"메시지에 단어가 포함되면",fields:[{key:"keyword",label:"찾을 단어",placeholder:"예: 안녕하세요",kind:"value",full:true}]},
   {type:"condition_has_role",group:"조건",kind:"condition",label:"사용자가 역할을 가지고 있으면",fields:[{key:"role_id",label:"역할",placeholder:"역할 선택",kind:"role",full:true}]},
   {type:"action_send_message",group:"동작",kind:"action",label:"메시지 보내기",fields:[{key:"channel_id",label:"보낼 채널",placeholder:"채널 선택",kind:"channel"},{key:"content",label:"메시지 내용",placeholder:"메시지 조립 블록을 연결해 주세요.",kind:"value",full:true},{key:"mention_mode",label:"멘션 방식",kind:"select",options:[["none","멘션 없음"],["everyone","@everyone"],["here","@here"],["user","특정 사용자"],["role","특정 역할"]]},{key:"mention_id",label:"멘션 대상 ID",placeholder:"사용자 또는 역할 ID",kind:"text"},{key:"delete_after_seconds",label:"자동 삭제 (초)",placeholder:"사용 안 함",kind:"number"},{key:"thread_mode",label:"스레드",kind:"select",options:[["none","사용 안 함"],["create","새 스레드"],["reply","기존 스레드"]] }]},
   {type:"action_send_embed",group:"동작",kind:"action",label:"임베드 메시지 보내기",fields:[{key:"channel_id",label:"보낼 채널",placeholder:"채널 선택",kind:"channel"},{key:"embed_title",label:"제목",placeholder:"임베드 제목",kind:"value"},{key:"author",label:"작성자 표시",placeholder:"선택 입력",kind:"value"},{key:"description",label:"설명",placeholder:"임베드 본문 블록 연결",kind:"value",full:true},{key:"color",label:"색상 HEX",placeholder:"#356DF3",kind:"text"},{key:"footer",label:"하단 문구",placeholder:"선택 입력",kind:"text"},{key:"title_url",label:"제목 링크",placeholder:"https://",kind:"text"},{key:"thumbnail_url",label:"썸네일 URL",placeholder:"https://",kind:"text"},{key:"image_url",label:"큰 이미지 URL",placeholder:"https://",kind:"text"},{key:"timestamp",label:"시간 표시",kind:"select",options:[["false","표시 안 함"],["true","현재 시간 표시"]]}]},
   {type:"action_reply",group:"동작",kind:"action",label:"메시지에 답장하기",fields:[{key:"content",label:"답장 내용",placeholder:"메시지 조립 블록을 연결해 주세요.",kind:"value",full:true},{key:"reply_target",label:"답장 대상",kind:"select",options:[["event_message","현재 이벤트 메시지"],["latest_message","가장 최근 메시지"],["message_id","직접 지정한 메시지 ID"]]},{key:"target_message_id",label:"메시지 ID",placeholder:"직접 지정할 때 입력",kind:"text"},{key:"fallback",label:"대상 메시지가 없을 때",kind:"select",options:[["send_new","새 메시지로 전송"],["skip","동작 건너뛰기"]]},{key:"mention_author",label:"작성자 멘션",kind:"select",options:[["false","멘션하지 않음"],["true","작성자 멘션"]]}]},
-  {type:"action_interaction_respond",group:"동작",kind:"action",label:"슬래쉬 명령어에 응답하기",fields:[{key:"content",label:"응답 내용",placeholder:"메시지 조립 블록을 연결해 주세요.",kind:"value",full:true},{key:"ephemeral",label:"응답 공개 범위",kind:"select",options:[["true","실행한 사람에게만 표시"],["false","서버에 공개"]]}]},
   {type:"action_webhook_send",group:"동작",kind:"action",label:"웹훅으로 메시지 보내기",fields:[{key:"channel_id",label:"보낼 채널",placeholder:"채널 선택",kind:"channel",full:true},{key:"webhook_name",label:"웹훅 이름",placeholder:"TEND 알림",kind:"text"},{key:"username",label:"표시 이름",placeholder:"TEND 알림",kind:"text"},{key:"avatar_url",label:"프로필 이미지 URL (선택)",placeholder:"https://",kind:"text",full:true},{key:"content",label:"메시지 내용",placeholder:"메시지 조립 블록을 연결해 주세요.",kind:"value",full:true},{key:"embed_title",label:"임베드 제목 (선택)",placeholder:"제목",kind:"text"},{key:"embed_description",label:"임베드 설명 (선택)",placeholder:"설명 블록 연결",kind:"value",full:true},{key:"embed_color",label:"임베드 색상 HEX",placeholder:"#356DF3",kind:"text"}]},
   {type:"action_add_role",group:"동작",kind:"action",label:"역할 지급하기",fields:[{key:"role_id",label:"지급할 역할",placeholder:"역할 선택",kind:"role",full:true}]},
   {type:"action_remove_role",group:"동작",kind:"action",label:"역할 회수하기",fields:[{key:"role_id",label:"회수할 역할",placeholder:"역할 선택",kind:"role",full:true}]},
@@ -48,13 +46,11 @@
   {type:"value_text",group:"값",kind:"value",label:"텍스트 값",fields:[{key:"value",label:"텍스트",placeholder:"텍스트 입력",kind:"text"}]},
   {type:"value_number",group:"값",kind:"value",label:"숫자 값",fields:[{key:"value",label:"숫자",placeholder:"0",kind:"number"}]},
   {type:"value_variable",group:"값",kind:"value",label:"변수 값",fields:[{key:"variable",label:"변수",kind:"variable"}]},
-  {type:"event_signal",group:"신호",kind:"event",label:"신호를 받았을 때",fields:[{key:"signal_id",label:"신호",kind:"signal"}]},
+  {type:"event_signal",group:"신호",kind:"event",label:"신호를 받으면",fields:[{key:"signal_id",label:"신호",kind:"signal"}]},
   {type:"data_broadcast_signal",group:"신호",kind:"data",label:"신호 보내기",fields:[{key:"signal_id",label:"신호",kind:"signal"}]},
   {type:"value_math",group:"계산",kind:"value",label:"계산",fields:[]},
   {type:"value_join",group:"값",kind:"value",label:"문장 이어 붙이기",fields:[]},
   {type:"value_date",group:"값",kind:"value",label:"현재 날짜",fields:[]},
-  {type:"value_command_user",group:"값",kind:"value",label:"명령어 실행자",fields:[]},
-  {type:"value_command_option",group:"값",kind:"value",label:"명령어 옵션 값",fields:[{key:"option_id",label:"옵션",kind:"command_option"}]},
   {type:"value_user_name",group:"값",kind:"value",label:"이벤트 사용자 이름",fields:[]},
   {type:"value_server_name",group:"값",kind:"value",label:"현재 서버 이름",fields:[]},
   {type:"value_channel_name",group:"값",kind:"value",label:"현재 채널 이름",fields:[]},
@@ -62,7 +58,7 @@
  const byType=Object.fromEntries(definitions.map(d=>[d.type,d]));
  let user,project,server,resources={channels:[],roles:[]},variables=[],dirty=false,workspace=null;
  const groups=["이벤트","조건","동작","제어","변수","신호","계산","값"];
- let signals=[],slashCommands=[];
+ let signals=[];
  const categoryFor=d=>d.group;
  const statementTypes=definitions.filter(d=>!["value"].includes(d.kind)).map(d=>d.type);
  function blockDef(d){
@@ -75,7 +71,7 @@
      const input=this.appendValueInput(f.key.toUpperCase()).appendField(f.label);
      input.setCheck(f.kind==="number"?"Number":null);
      input.connection.setShadowState(f.kind==="number"?{type:"value_number",fields:{NUMBER:0}}:{type:"value_text",fields:{TEXT:f.placeholder||"텍스트 입력"}});
-    }else if(["variable","signal","slash_command","command_option"].includes(f.kind)){
+    }else if(["variable","signal"].includes(f.kind)){
      this.appendDummyInput("FIELD_"+f.key).appendField(f.label).appendField(new Blockly.FieldDropdown(()=>managedOptions(f.kind)),f.key.toUpperCase());
     }else if(f.kind==="select"){
      this.appendDummyInput("FIELD_"+f.key).appendField(f.label).appendField(new Blockly.FieldDropdown(f.options),f.key.toUpperCase());
@@ -97,11 +93,9 @@
   Blockly.Blocks.value_text={init(){this.setColour(195);this.appendDummyInput().appendField("텍스트").appendField(new Blockly.FieldTextInput("텍스트"),"TEXT");this.setOutput(true,"String");}};
   Blockly.Blocks.value_number={init(){this.setColour(195);this.appendDummyInput().appendField("숫자").appendField(new Blockly.FieldNumber(0),"NUMBER");this.setOutput(true,"Number");}};
   Blockly.Blocks.value_variable={init(){this.setColour(195);this.appendDummyInput().appendField("변수").appendField(new Blockly.FieldDropdown(()=>managedOptions("variable")),"VARIABLE");this.setOutput(true);}};
-  Blockly.Blocks.event_signal={init(){this.setColour(45);this.appendDummyInput().appendField("신호").appendField(new Blockly.FieldDropdown(()=>managedOptions("signal")),"SIGNAL_ID").appendField("을 받았을 때");this.setNextStatement(true);}};
+  Blockly.Blocks.event_signal={init(){this.setColour(45);this.appendDummyInput().appendField("신호를 받으면").appendField(new Blockly.FieldDropdown(()=>managedOptions("signal")),"SIGNAL_ID");this.setNextStatement(true);}};
   Blockly.Blocks.data_broadcast_signal={init(){this.setColour(210);this.appendDummyInput().appendField("신호 보내기").appendField(new Blockly.FieldDropdown(()=>managedOptions("signal")),"SIGNAL_ID");this.setPreviousStatement(true);this.setNextStatement(true);}};
   Blockly.Blocks.value_date={init(){this.setColour(195);this.appendDummyInput().appendField("현재 날짜");this.setOutput(true,"String");}};
-  Blockly.Blocks.value_command_user={init(){this.setColour(195);this.appendDummyInput().appendField("명령어 실행자");this.setOutput(true,"String");}};
-  Blockly.Blocks.value_command_option={init(){this.setColour(195);this.appendDummyInput().appendField("명령어 옵션").appendField(new Blockly.FieldDropdown(()=>managedOptions("command_option")),"OPTION_ID");this.setOutput(true);}};
   Blockly.Blocks.value_join={init(){this.setColour(195);this.appendValueInput("A").setCheck(null).appendField("문장 이어 붙이기");this.appendValueInput("B").setCheck(null).appendField("+");this.setOutput(true,"String");}};
   Blockly.Blocks.value_math={init(){this.setColour(195);this.appendValueInput("A").setCheck("Number");this.appendDummyInput().appendField(new Blockly.FieldDropdown([["+","+"],["−","-"],["×","*"],["÷","/"],["나머지","%"]]),"OP");this.appendValueInput("B").setCheck("Number");this.setOutput(true,"Number");}};
   Blockly.Blocks.value_user_name={init(){this.setColour(195);this.appendDummyInput().appendField("사용자 이름");this.setOutput(true,"String");}};
@@ -117,8 +111,6 @@
  function managedOptions(kind){
   if(kind==="variable")return variables.length?variables.map(v=>[typeof v==="string"?v:v.name,String(typeof v==="string"?v:v.id)]):[["변수를 먼저 만들어 주세요",""]];
   if(kind==="signal")return signals.length?signals.map(v=>[v.name,String(v.id)]):[["신호를 먼저 만들어 주세요",""]];
-  if(kind==="slash_command")return slashCommands.length?slashCommands.map(v=>["/"+v.name,String(v.id)]):[["명령어를 먼저 만들어 주세요",""]];
-  if(kind==="command_option"){const cmd=slashCommands.find(v=>String(v.id)===String(workspace?.getAllBlocks(false).find(b=>b.type==="event_slash_command")?.getFieldValue("COMMAND_ID")));return cmd?.options?.length?cmd.options.map(v=>[v.name,String(v.id)]):[["옵션 없음",""]];}
   return [["선택할 항목 없음",""]];
  }
  function resourceOptions(kind,key){
@@ -189,7 +181,7 @@
  function chainToArray(block){const out=[];let current=block,guard=0;while(current&&guard++<50){out.push(nodeFromBlock(current));current=current.getNextBlock();}return out;}
  function projectJSON(){
   const roots=workspace.getTopBlocks(true).filter(b=>byType[b.type]?.kind==="event"||b.type.startsWith("event_")).map(nodeFromBlock);
-  return {schema_version:2,variables,signals,slash_commands:slashCommands,roots};
+  return {schema_version:2,variables,signals,roots};
  }
  function createBlock(type,fields={},parent=null,connection="next"){
   if(!Blockly.Blocks[type])return null;
@@ -255,7 +247,7 @@
    user=await window.BLOCKS.requireTester("./blocks-editor.html?id="+encodeURIComponent(projectId||""));if(!user)return;
    if(!projectId)throw new Error("프로젝트 정보가 없어요. 대시보드에서 프로젝트를 열어 주세요.");
    const {data,error}=await sb.from("blocks_projects").select("*").eq("id",projectId).eq("owner_id",user.id).single();if(error)throw error;project=data;
-   nameInput.value=project.name;variables=Array.isArray(project.project_data?.variables)?project.project_data.variables.map(v=>typeof v==="string"?{id:"legacy_"+Math.random().toString(36).slice(2),name:v,initial_value:0}:v):[];signals=Array.isArray(project.project_data?.signals)?project.project_data.signals:[];slashCommands=Array.isArray(project.project_data?.slash_commands)?project.project_data.slash_commands:[];
+   nameInput.value=project.name;variables=Array.isArray(project.project_data?.variables)?project.project_data.variables.map(v=>typeof v==="string"?{id:"legacy_"+Math.random().toString(36).slice(2),name:v,initial_value:0}:v):[];signals=Array.isArray(project.project_data?.signals)?project.project_data.signals:[];
    const {data:servers,error:serverError}=await sb.rpc("blocks_list_servers");if(serverError)throw serverError;server=(servers||[]).find(x=>x.server_id===project.server_id)||null;
    $("#blocks-editor-server").textContent=(server?.server_name||"선택한 서버")+" · "+(server?.bot_connected?"TEND 봇 연결됨":"TEND 봇 초대 필요");
    await loadServerResources();
@@ -269,13 +261,12 @@
   }catch(error){console.error("BLOCKS editor init failed",error);$("#blocklyDiv").innerHTML='<div class="bl-empty">'+window.BLOCKS.escape(error.message||"편집기를 불러오지 못했어요.")+'</div>';}
  }
  function setupManagers(){
-  const overlay=document.createElement("div");overlay.className="bl-manager-overlay bl-hidden";overlay.innerHTML=`<section class="bl-manager" role="dialog" aria-modal="true"><header><strong>프로젝트 요소 관리</strong><button type="button" data-close>닫기</button></header><nav class="bl-manager-tabs"><button data-tab="variables" class="active">변수</button><button data-tab="signals">신호</button><button data-tab="commands">슬래시 명령어</button></nav><div class="bl-manager-body"><section data-pane="variables"><p>프로젝트에서 사용할 값을 만들고 관리해요.</p><div class="bl-manager-create"><input id="manager-var-name" maxlength="40" placeholder="변수 이름"><button data-add="variable">변수 만들기</button></div><div id="manager-vars" class="bl-manager-list"></div></section><section data-pane="signals" class="bl-hidden"><p>같은 프로젝트 안에서 실행 흐름을 연결하는 신호예요.</p><div class="bl-manager-create"><input id="manager-signal-name" maxlength="40" placeholder="신호 이름"><button data-add="signal">신호 만들기</button></div><div id="manager-signals" class="bl-manager-list"></div></section><section data-pane="commands" class="bl-hidden"><p>이 명령어는 현재 프로젝트의 Discord 서버에만 등록되도록 저장돼요.</p><div class="bl-manager-create"><input id="manager-command-name" maxlength="32" placeholder="명령어 이름"><input id="manager-command-desc" maxlength="100" placeholder="명령어 설명"><button data-add="command">명령어 만들기</button></div><div id="manager-commands" class="bl-manager-list"></div><div id="manager-options" class="bl-hidden"><h4 id="manager-option-title">명령어 옵션</h4><div class="bl-manager-create"><input id="manager-opt-name" maxlength="32" placeholder="옵션 이름"><input id="manager-opt-desc" maxlength="100" placeholder="옵션 설명"><select id="manager-opt-type"><option value="string">문자열</option><option value="integer">정수</option><option value="number">실수</option><option value="boolean">참/거짓</option><option value="user">사용자</option><option value="channel">채널</option><option value="role">역할</option></select><label><input id="manager-opt-required" type="checkbox"> 필수</label><button id="manager-add-option">옵션 추가</button></div><div id="manager-opt-list" class="bl-manager-list"></div></div></section></div></section>`;document.body.append(overlay);
+  const overlay=document.createElement("div");overlay.className="bl-manager-overlay bl-hidden";overlay.innerHTML=`<section class="bl-manager" role="dialog" aria-modal="true"><header><strong>프로젝트 요소 관리</strong><button type="button" data-close>닫기</button></header><nav class="bl-manager-tabs"><button data-tab="variables" class="active">변수</button><button data-tab="signals">신호</button></nav><div class="bl-manager-body"><section data-pane="variables"><p>프로젝트에서 사용할 값을 만들고 관리해요.</p><div class="bl-manager-create"><input id="manager-var-name" maxlength="40" placeholder="변수 이름"><button data-add="variable">변수 만들기</button></div><div id="manager-vars" class="bl-manager-list"></div></section><section data-pane="signals" class="bl-hidden"><p>같은 프로젝트 안에서 실행 흐름을 연결하는 신호예요.</p><div class="bl-manager-create"><input id="manager-signal-name" maxlength="40" placeholder="신호 이름"><button data-add="signal">신호 만들기</button></div><div id="manager-signals" class="bl-manager-list"></div></section></div></section>`;document.body.append(overlay);
   let activeCommand=null;
-  const render=()=>{const fill=(id,arr,kind)=>{const host=$("#"+id);host.replaceChildren();if(!arr.length){host.textContent="아직 만든 항목이 없어요.";return;}arr.forEach(item=>{const row=document.createElement("div");row.className="bl-manager-row";const label=document.createElement("span");label.textContent=kind==="command"?"/"+item.name:item.name;const actions=document.createElement("div");if(kind==="command"){const opts=document.createElement("button");opts.textContent="옵션";opts.onclick=()=>{activeCommand=item.id;$("#manager-options").classList.remove("bl-hidden");$("#manager-option-title").textContent="/"+item.name+" 옵션";renderOptions();};actions.append(opts);}const del=document.createElement("button");del.textContent="삭제";del.onclick=()=>{if(!confirm("삭제할까요?"))return;arr.splice(arr.indexOf(item),1);render();refreshVariableDropdowns();markDirty();};actions.append(del);row.append(label,actions);host.append(row);});};fill("manager-vars",variables,"variable");fill("manager-signals",signals,"signal");fill("manager-commands",slashCommands,"command");};
+  const render=()=>{const fill=(id,arr)=>{const host=$("#"+id);host.replaceChildren();if(!arr.length){host.textContent="아직 만든 항목이 없어요.";return;}arr.forEach(item=>{const row=document.createElement("div");row.className="bl-manager-row";const label=document.createElement("span");label.textContent=item.name;const del=document.createElement("button");del.textContent="삭제";del.onclick=()=>{if(!confirm("삭제할까요?"))return;arr.splice(arr.indexOf(item),1);render();refreshVariableDropdowns();markDirty();};row.append(label,del);host.append(row);});};fill("manager-vars",variables);fill("manager-signals",signals);
   const renderOptions=()=>{const cmd=slashCommands.find(x=>x.id===activeCommand),host=$("#manager-opt-list");host.replaceChildren();(cmd?.options||[]).forEach(opt=>{const row=document.createElement("div");row.className="bl-manager-row";const label=document.createElement("span");label.textContent=opt.name+" · "+opt.type+(opt.required?" · 필수":"");const del=document.createElement("button");del.textContent="삭제";del.onclick=()=>{cmd.options=cmd.options.filter(x=>x.id!==opt.id);renderOptions();markDirty();};row.append(label,del);host.append(row);});};
   overlay.querySelector("[data-close]").onclick=()=>overlay.classList.add("bl-hidden");overlay.onclick=e=>{if(e.target===overlay)overlay.classList.add("bl-hidden");};overlay.querySelectorAll("[data-tab]").forEach(btn=>btn.onclick=()=>{overlay.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===btn));overlay.querySelectorAll("[data-pane]").forEach(x=>x.classList.toggle("bl-hidden",x.dataset.pane!==btn.dataset.tab));});
-  overlay.querySelectorAll("[data-add]").forEach(btn=>btn.onclick=()=>{const kind=btn.dataset.add;if(kind==="variable"||kind==="signal"){const input=$("#manager-"+(kind==="variable"?"var":"signal")+"-name"),name=input.value.trim();if(!name)return;if((kind==="variable"?variables:signals).some(x=>x.name===name))return window.BLOCKS.notify("같은 이름이 이미 있어요.");(kind==="variable"?variables:signals).push({id:crypto.randomUUID?.()||("id_"+Date.now()),name,...(kind==="variable"?{initial_value:0}:{})});input.value="";}else{const name=$("#manager-command-name").value.trim().toLowerCase().replace(/[^a-z0-9가-힣_-]/g,"").slice(0,32),description=$("#manager-command-desc").value.trim();if(!name||!description)return window.BLOCKS.notify("명령어 이름과 설명을 입력해 주세요.");if(slashCommands.some(x=>x.name===name))return window.BLOCKS.notify("이미 있는 명령어예요.");slashCommands.push({id:crypto.randomUUID?.()||("cmd_"+Date.now()),name,description,options:[]});$("#manager-command-name").value="";$("#manager-command-desc").value="";}render();refreshVariableDropdowns();markDirty();});
-  $("#manager-add-option").onclick=()=>{const cmd=slashCommands.find(x=>x.id===activeCommand);if(!cmd)return;const name=$("#manager-opt-name").value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,"").slice(0,32),description=$("#manager-opt-desc").value.trim();if(!name||!description)return window.BLOCKS.notify("옵션 이름과 설명을 입력해 주세요.");if(cmd.options.length>=25||cmd.options.some(x=>x.name===name))return window.BLOCKS.notify("옵션은 최대 25개이며 이름은 중복될 수 없어요.");cmd.options.push({id:crypto.randomUUID?.()||("opt_"+Date.now()),name,description,type:$("#manager-opt-type").value,required:$("#manager-opt-required").checked});$("#manager-opt-name").value="";$("#manager-opt-desc").value="";renderOptions();refreshVariableDropdowns();markDirty();};
+  overlay.querySelectorAll("[data-add]").forEach(btn=>btn.onclick=()=>{const kind=btn.dataset.add;if(kind==="variable"||kind==="signal"){const input=$("#manager-"+(kind==="variable"?"var":"signal")+"-name"),name=input.value.trim();if(!name)return;if((kind==="variable"?variables:signals).some(x=>x.name===name))return window.BLOCKS.notify("같은 이름이 이미 있어요.");(kind==="variable"?variables:signals).push({id:crypto.randomUUID?.()||("id_"+Date.now()),name,...(kind==="variable"?{initial_value:0}:{})});input.value="";}markDirty();});
   $("#blocks-manage-elements").onclick=()=>{render();overlay.classList.remove("bl-hidden");};
  }
  init();
