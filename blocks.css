@@ -546,3 +546,100 @@ body.bl-editor-page{height:100vh;height:100dvh;min-height:0;display:flex;flex-di
  .bl-editor-page .bl-editor-sidebar .bl-manager-launch .bl-editor-panel-head{font-size:10px}
  .bl-editor-page .bl-editor-sidebar .bl-manager-launch button{width:auto;padding:6px 9px}
 }
+
+
+/* BLOCKS editor: remove the separate library column and place project tools below Blockly categories */
+.bl-editor-page .bl-editor-app{
+  grid-template-columns:minmax(0,1fr) 214px!important;
+}
+.bl-editor-page .bl-editor-main{
+  grid-column:1!important;
+  grid-row:1!important;
+  min-width:0;
+}
+.bl-editor-page .bl-editor-inspector{
+  grid-column:2!important;
+  grid-row:1!important;
+}
+.bl-editor-page .bl-editor-sidebar,
+.bl-editor-page .bl-toolbox-holder{
+  display:none!important;
+}
+.bl-editor-page .blocklyToolboxDiv{
+  display:flex!important;
+  flex-direction:column!important;
+  box-sizing:border-box;
+  overflow:hidden!important;
+  background:#fff!important;
+}
+.bl-editor-page .blocklyToolboxDiv .blocklyToolboxContents{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+}
+.bl-editor-page .bl-toolbox-manager{
+  position:relative;
+  z-index:5;
+  flex:0 0 auto;
+  display:grid;
+  gap:5px;
+  padding:11px 10px 12px;
+  margin-top:auto;
+  border-top:1px solid #e7ebf2;
+  background:#fff;
+  color:#172033;
+}
+.bl-editor-page .bl-toolbox-manager strong{
+  font-size:12px;
+  line-height:1.35;
+  font-weight:750;
+}
+.bl-editor-page .bl-toolbox-manager p{
+  margin:0;
+  color:#748096;
+  font-size:10px;
+  line-height:1.45;
+}
+.bl-editor-page .bl-toolbox-manager button{
+  width:100%;
+  min-height:32px;
+  padding:7px 9px;
+  border:1px solid #dce3ed;
+  border-radius:8px;
+  background:#f7f9fc;
+  color:#26344b;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+}
+.bl-editor-page .bl-toolbox-manager button:hover{
+  border-color:#9bb8f5;
+  background:#eef4ff;
+}
+@media(max-width:1100px){
+  .bl-editor-page .bl-editor-app{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .bl-editor-page .bl-editor-inspector{display:none!important}
+}
+@media(max-width:700px){
+  .bl-editor-page .bl-editor-app{
+    display:flex!important;
+    flex-direction:column;
+  }
+  .bl-editor-page .bl-editor-main{
+    order:0;
+    flex:1 1 0;
+    min-height:0;
+  }
+  .bl-editor-page .blocklyToolboxDiv{
+    max-width:155px;
+  }
+  .bl-editor-page .bl-toolbox-manager{
+    padding:8px 7px;
+  }
+  .bl-editor-page .bl-toolbox-manager p{
+    font-size:9px;
+  }
+}
