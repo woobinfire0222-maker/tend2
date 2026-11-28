@@ -94,7 +94,27 @@
   contents.splice(3,0,{kind:"category",name:"조건문",colour:"#e28c48",contents:[{kind:"block",type:"control_if"},{kind:"block",type:"control_if_else"},{kind:"block",type:"control_repeat_count"}]});
   return {kind:"categoryToolbox",contents};
  }
- function resourceOptions(kind,key){\n  const list=kind==="channel"?resources.channels:resources.roles;\n  const options=list.slice(0,250).map(item=>[kind==="channel"?"#"+item.name+" · "+String(item.id).slice(-4):"@"+item.name,String(item.id)]);\n  const empty=kind==="channel"?(key==="channel_filter"?"전체 채널":"채널 선택"):"역할 선택";\n  return [[empty,""],...options];\n }\n async function loadServerResources(){\n  const state=$("#blocks-resource-state");if(state)state.textContent="채널과 역할을 불러오는 중…";\n  try{\n   const {data,error}=await sb.rpc("blocks_list_server_resources",{target_server_id:project.server_id});\n   if(error)throw error;\n   resources={channels:Array.isArray(data?.channels)?data.channels:[],roles:Array.isArray(data?.roles)?data.roles:[]};\n   if(state)state.textContent=`채널 ${resources.channels.length}개 · 역할 ${resources.roles.length}개 연결됨`;\n   return true;\n  }catch(error){\n   console.error("BLOCKS server resources failed",error);resources={channels:[],roles:[]};\n   if(state)state.textContent="목록을 불러오지 못했어요. 다시 시도해 주세요.";\n   return false;\n  }\n }\n function refreshVariableDropdowns(){
+ function resourceOptions(kind,key){
+  const list=kind==="channel"?resources.channels:resources.roles;
+  const options=list.slice(0,250).map(item=>[kind==="channel"?"#"+item.name+" · "+String(item.id).slice(-4):"@"+item.name,String(item.id)]);
+  const empty=kind==="channel"?(key==="channel_filter"?"전체 채널":"채널 선택"):"역할 선택";
+  return [[empty,""],...options];
+ }
+ async function loadServerResources(){
+  const state=$("#blocks-resource-state");if(state)state.textContent="채널과 역할을 불러오는 중…";
+  try{
+   const {data,error}=await sb.rpc("blocks_list_server_resources",{target_server_id:project.server_id});
+   if(error)throw error;
+   resources={channels:Array.isArray(data?.channels)?data.channels:[],roles:Array.isArray(data?.roles)?data.roles:[]};
+   if(state)state.textContent=`채널 ${resources.channels.length}개 · 역할 ${resources.roles.length}개 연결됨`;
+   return true;
+  }catch(error){
+   console.error("BLOCKS server resources failed",error);resources={channels:[],roles:[]};
+   if(state)state.textContent="목록을 불러오지 못했어요. 다시 시도해 주세요.";
+   return false;
+  }
+ }
+ function refreshVariableDropdowns(){
   if(!workspace)return;
   const opts=variables.length?variables.map(v=>[v,v]):[["변수 없음",""]];
   workspace.getAllBlocks(false).filter(b=>b.type==="value_variable").forEach(b=>{const field=b.getField("VARIABLE");if(field)field.menuGenerator_=opts;});
@@ -196,7 +216,8 @@
    $("#blocks-editor-server").textContent=(server?.server_name||"선택한 서버")+" · "+(server?.bot_connected?"TEND 봇 연결됨":"TEND 봇 초대 필요");
    initBlockly();restoreProject(project.project_data||{});refreshVariableDropdowns();enableButton.textContent=project.is_enabled?"실행 중지":"실행 활성화";
    saveButton.disabled=false;saveButton.addEventListener("click",save);enableButton.addEventListener("click",toggleEnabled);
-   $("#blocks-refresh-resources").addEventListener("click",loadServerResources);\n    $("#blocks-add-variable").addEventListener("click",()=>{const input=$("#blocks-variable-name"),value=input.value.trim().slice(0,40);if(value&&!variables.includes(value)){variables.push(value);refreshVariableDropdowns();markDirty();}input.value="";});
+   $("#blocks-refresh-resources").addEventListener("click",loadServerResources);
+    $("#blocks-add-variable").addEventListener("click",()=>{const input=$("#blocks-variable-name"),value=input.value.trim().slice(0,40);if(value&&!variables.includes(value)){variables.push(value);refreshVariableDropdowns();markDirty();}input.value="";});
    nameInput.addEventListener("input",markDirty);
    await loadLogs();
    window.addEventListener("beforeunload",e=>{if(dirty){e.preventDefault();e.returnValue="";}});
