@@ -17,5 +17,52 @@
     discordName(user){const m=user?.user_metadata||{};const d=(user?.identities||[]).find(x=>x.provider==="discord")?.identity_data||{};return m.global_name||m.user_name||m.preferred_username||m.username||d.global_name||d.username||d.preferred_username||"Discord 사용자";},
     async syncGuilds(session){const token=session?.provider_token;if(!token)return false;const {data,error}=await sb.functions.invoke("discord-action",{body:{action:"cache_guilds",provider_token:token}});if(error||data?.error){console.warn("Discord guild cache failed",error||data);return false;}return true;}
   };
+  api.applyTheme=()=>{
+    let dark=false;try{dark=localStorage.getItem("tend-theme")==="dark"}catch{}
+    document.documentElement.classList.toggle("theme-dark",dark);
+    document.querySelectorAll(".bl-theme-toggle").forEach(button=>{
+      button.textContent=dark?"☀":"◐";
+      button.setAttribute("aria-label",dark?"화이트 모드로 변경":"다크 모드로 변경");
+      button.setAttribute("aria-pressed",String(dark));
+    });
+  };
+  api.logout=()=>{
+    if(!sb)return;
+    if(document.querySelector(".tend-account-confirm"))return;
+    const overlay=document.createElement("div");
+    overlay.className="tend-account-confirm";
+    overlay.innerHTML='<section class="tend-account-confirm-card tend-logout-card" role="dialog" aria-modal="true" aria-labelledby="tend-logout-title"><div class="tend-confirm-kicker">LOG OUT</div><h2 id="tend-logout-title">정말 로그아웃할까요?</h2><p class="tend-confirm-desc">로그아웃하면 TEND 이용을 위해 다시 로그인해야 해요.</p><div class="tend-logout-actions"><button type="button" class="btn tend-logout-yes">로그아웃</button><button type="button" class="btn btn-light tend-logout-no">취소</button></div></section>';
+    const close=()=>overlay.remove();
+    overlay.querySelector(".tend-logout-no").addEventListener("click",close);
+    overlay.addEventListener("click",event=>{if(event.target===overlay)close()});
+    overlay.addEventListener("keydown",event=>{if(event.key==="Escape")close()});
+    overlay.querySelector(".tend-logout-yes").addEventListener("click",async()=>{
+      const buttons=[...overlay.querySelectorAll("button")];buttons.forEach(button=>button.disabled=true);
+      const yes=overlay.querySelector(".tend-logout-yes");yes.textContent="로그아웃 중…";
+      const {error}=await sb.auth.signOut({scope:"local"});
+      if(error){console.error("BLOCKS logout failed",error);buttons.forEach(button=>button.disabled=false);yes.textContent="로그아웃";api.notify("로그아웃에 실패했어요. 다시 시도해 주세요.");return}
+      try{localStorage.removeItem("tend-auth-next")}catch{}
+      location.href="./index.html";
+    });
+    document.body.append(overlay);
+    overlay.querySelector(".tend-logout-no").focus();
+  };
+  const bindTheme=()=>{
+    api.applyTheme();
+    document.querySelectorAll(".bl-theme-toggle").forEach(button=>{
+      if(button.dataset.themeBound)return;button.dataset.themeBound="1";
+      button.addEventListener("click",()=>{
+        const dark=!document.documentElement.classList.contains("theme-dark");
+        try{localStorage.setItem("tend-theme",dark?"dark":"light")}catch{}
+        document.documentElement.classList.toggle("theme-dark",dark);
+        document.querySelectorAll(".bl-theme-toggle").forEach(item=>{
+          item.textContent=dark?"☀":"◐";
+          item.setAttribute("aria-label",dark?"화이트 모드로 변경":"다크 모드로 변경");
+          item.setAttribute("aria-pressed",String(dark));
+        });
+      });
+    });
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bindTheme,{once:true});else bindTheme();
   window.BLOCKS=api;
 })();
