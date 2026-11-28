@@ -79,7 +79,7 @@ value_text:{value:"텍스트"},value_number:{value:"0"},value_variable:{variable
   variables.forEach(variable=>{
    const chip=document.createElement("button");chip.type="button";chip.className="bl-variable-chip";chip.draggable=true;chip.textContent=variable;chip.title="입력칸으로 끌어 놓기";
    chip.addEventListener("dragstart",e=>{dragSource={kind:"variable",name:variable};e.dataTransfer.effectAllowed="copy";e.dataTransfer.setData("text/plain","variable:"+variable);});
-   chip.addEventListener("click",()=>window.BLOCKS.notify("변수 '"+variable+"'를 입력칸으로 끌어 놓을 수 있어요."));
+   chip.addEventListener("click",()=>{if(activeValueInput){const input=activeValueInput;input.value="{{"+variable+"}}";const card=input.closest(".bl-workspace-block"),block=blocks.find(x=>x.id===card?.dataset.id);if(block){block.fields[input.dataset.key]=input.value;markDirty();}}else window.BLOCKS.notify("먼저 텍스트 값 입력칸을 누른 뒤 변수를 선택해 주세요.");});
    host.append(chip);
   });
  }
