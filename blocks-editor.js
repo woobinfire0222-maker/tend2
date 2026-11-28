@@ -70,7 +70,7 @@ value_text:{value:"텍스트"},value_number:{value:"0"},value_variable:{variable
   definitions.forEach(def=>{
    if(def.group!==group){group=def.group;const heading=document.createElement("div");heading.className="bl-palette-group";heading.textContent=group;palette.append(heading);}
    const button=document.createElement("button");button.type="button";button.className="bl-palette-block "+def.kind;button.draggable=true;button.dataset.type=def.type;button.textContent=def.label;
-   button.addEventListener("click",()=>{if(def.kind==="value"&&activeValueInput){insertValue(def.type,activeValueInput);return;}addBlock(def.type);});button.addEventListener("dragstart",e=>{dragSource={kind:"new",type:def.type};e.dataTransfer.effectAllowed="copy";e.dataTransfer.setData("text/plain",def.type);});
+   button.addEventListener("click",()=>{if(def.kind==="value"){if(activeValueInput&&document.contains(activeValueInput)){insertValue(def.type,activeValueInput);}else window.BLOCKS.notify("먼저 작업 공간의 값 입력칸을 누른 뒤 이 블록을 선택해 주세요.");return;}addBlock(def.type);});button.addEventListener("dragstart",e=>{dragSource={kind:"new",type:def.type};e.dataTransfer.effectAllowed="copy";e.dataTransfer.setData("text/plain",def.type);});
    palette.append(button);
   });
  }
