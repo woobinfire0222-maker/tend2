@@ -66,7 +66,7 @@
   try{
    session=await window.BLOCKS.session();user=await window.BLOCKS.requireTester("./blocks-dashboard.html");if(!user)return;
    $("#blocks-user").textContent=window.BLOCKS.discordName(user);
-   $("#blocks-logout").addEventListener("click",async()=>{if(confirm("TEND BLOCKS에서 로그아웃할까요?")){await sb.auth.signOut({scope:"local"});location.href="./blocks.html";}});
+   $("#blocks-logout").addEventListener("click",()=>window.BLOCKS.logout());
    select.addEventListener("change",async()=>{renderServerState();await loadProjects();});
    $("#blocks-server-refresh").addEventListener("click",async()=>{session=await window.BLOCKS.session();const ok=await window.BLOCKS.syncGuilds(session);if(!ok)window.BLOCKS.notify("Discord 서버 권한을 새로고침하지 못했어요. 다시 로그인해 주세요.");await loadServers();});
    create.addEventListener("click",createProject);
