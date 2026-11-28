@@ -44,7 +44,7 @@ function showAccountConfirm(u){
  if(avatar){const img=document.createElement("img");img.src=avatar;img.alt="Discord 프로필 사진";img.referrerPolicy="no-referrer";img.onerror=()=>img.remove();avatarBox.append(img)}else avatarBox.textContent=(name[0]||"D").toUpperCase();
  overlay.querySelector(".tend-confirm-info strong").textContent=name;
  overlay.querySelector(".tend-confirm-info small").textContent=id?"Discord ID · "+id:"Discord 계정";
- overlay.querySelector(".tend-confirm-yes").addEventListener("click",()=>{overlay.remove();profileName=name;goto("dashboard")});
+ overlay.querySelector(".tend-confirm-yes").addEventListener("click",()=>{overlay.remove();profileName=name;let next="";try{next=localStorage.getItem("tend-auth-next")||"";localStorage.removeItem("tend-auth-next")}catch{}if(next){try{const target=new URL(next,location.origin);if(target.origin===location.origin){location.href=target.href;return}}catch{}}goto("dashboard")});
  overlay.querySelector(".tend-confirm-no").addEventListener("click",async()=>{const button=overlay.querySelector(".tend-confirm-no");button.disabled=true;button.textContent="계정 연결 해제 중…";const {error}=await sb.auth.signOut({scope:"local"});overlay.remove();if(error){console.error("Discord signout failed:",error);notify("계정 전환에 실패했어요. 다시 시도해 주세요.")}else{user=null;notify("다른 Discord 계정으로 로그인해 주세요.")}});
  document.body.append(overlay);
 }
