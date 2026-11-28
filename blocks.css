@@ -673,3 +673,18 @@ body.bl-editor-page{height:100vh;height:100dvh;min-height:0;display:flex;flex-di
   outline:2px solid #3978f6;
   outline-offset:-2px;
 }
+
+
+/* Project manager inherits the exact native Blockly category row structure */
+.bl-editor-page .blocklyToolboxDiv .bl-toolbox-manager-row{
+  cursor:pointer!important;
+  user-select:none;
+  margin-top:0!important;
+}
+.bl-editor-page .blocklyToolboxDiv .bl-toolbox-manager-row:hover{
+  background-color:#edf3ff;
+}
+.bl-editor-page .blocklyToolboxDiv .bl-toolbox-manager-row:focus-visible{
+  outline:2px solid #3978f6;
+  outline-offset:-2px;
+}
