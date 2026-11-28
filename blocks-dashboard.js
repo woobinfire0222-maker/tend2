@@ -60,7 +60,7 @@
    const {data,error}=await sb.from("blocks_projects").insert({owner_id:user.id,server_id:selected.server_id,name:clean,project_data:{version:1,blocks:[],variables:[]},is_enabled:false}).select("id").single();
    if(error)throw error;
    location.href="./blocks-editor.html?id="+encodeURIComponent(data.id);
-  }catch(error){console.error("BLOCKS project create failed",error);window.BLOCKS.notify(error.message||"프로젝트를 만들지 못했어요.");create.disabled=false;create.textContent="＋ 새 프로젝트";}
+  }catch(error){console.error("BLOCKS project create failed",error);window.BLOCKS.notify(error.message||"프로젝트를 만들지 못했어요.");create.disabled=false;create.textContent="코딩 시작";}
  }
  async function init(){
   try{
