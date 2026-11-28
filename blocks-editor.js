@@ -157,6 +157,13 @@
   });
   definitions.forEach(blockDef);registerSpecialBlocks();
   workspace=Blockly.inject("blocklyDiv",{toolbox:buildToolbox(),renderer:"zelos",theme:Blockly.Theme.defineTheme("tendBlocks",{base:Blockly.Themes.Classic,componentStyles:{workspaceBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#101a27":"#f6f8fc",toolboxBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#172333":"#ffffff",toolboxForegroundColour:document.documentElement.classList.contains("theme-dark")?"#edf3fb":"#172033",flyoutBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#1b293a":"#ffffff",flyoutForegroundColour:document.documentElement.classList.contains("theme-dark")?"#edf3fb":"#172033",flyoutOpacity:1,scrollbarColour:"#8b9bb3",insertionMarkerColour:"#3978f6",insertionMarkerOpacity:.35,markerColour:"#3978f6",cursorColour:"#3978f6"}}),grid:{spacing:20,length:2,colour:document.documentElement.classList.contains("theme-dark")?"#344153":"#dce3ed",snap:true},zoom:{controls:true,wheel:true,startScale:.84,maxScale:1.55,minScale:.5,scaleSpeed:1.1},move:{scrollbars:true,drag:true,wheel:true},trashcan:true,renderer:"zelos",sounds:false,oneBasedIndex:false});
+  const toolboxHolder=$("#blocks-toolbox-holder");
+  const toolboxElement=workspace.getToolbox?.()?.getHtmlDiv?.();
+  if(toolboxHolder&&toolboxElement){
+   toolboxHolder.appendChild(toolboxElement);
+   toolboxElement.setAttribute("aria-label","블록 라이브러리");
+   requestAnimationFrame(()=>{Blockly.svgResize(workspace);workspace.resizeContents?.();});
+  }
   const keepFlyoutAtDefaultScale=()=>{const flyout=workspace.getFlyout?.();if(!flyout)return;if(typeof flyout.setScale==="function")flyout.setScale(1);else{const flyoutWorkspace=flyout.getWorkspace?.();if(flyoutWorkspace&&flyoutWorkspace.scale!==1)flyoutWorkspace.setScale(1);}};
   workspace.addChangeListener(e=>{if(e.type==="viewport_change")requestAnimationFrame(keepFlyoutAtDefaultScale);if(e.isUiEvent||e.type==="ui")return;markDirty();$("#blocks-count").textContent=workspace.getAllBlocks(false).length+" / 50";});
   requestAnimationFrame(keepFlyoutAtDefaultScale);
