@@ -157,3 +157,112 @@ html.theme-dark .bl-bottom-cta{background:linear-gradient(120deg,#172743,#111a29
  .bl-editor-title .bl-brand{font-size:12px}.bl-palette-block{min-width:108px}
  .bl-block-tools button{min-width:28px}
 }
+
+
+/* TEND BLOCKS visual consistency and accessible theme system */
+:root{color-scheme:light}
+.bl-brand img{border-radius:11px;overflow:hidden}
+.bl-theme-toggle{width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--bl-line);border-radius:11px;background:var(--bl-card);color:var(--bl-ink);font-size:17px;font-weight:800;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
+.bl-theme-toggle:hover{transform:translateY(-1px);border-color:#9bb5fa}
+.bl-theme-toggle:focus-visible,.bl-btn:focus-visible,.bl-nav-link:focus-visible{outline:3px solid #7fa2ff;outline-offset:3px}
+.bl-hero-copy h1{max-width:690px;font-size:clamp(38px,5.1vw,64px);line-height:1.12;word-break:keep-all}
+.bl-hero-copy h1 span{display:inline-block}
+.bl-eyebrow{line-height:1.35}
+.bl-nav-actions{gap:10px}
+.bl-nav-actions .bl-theme-toggle{flex:0 0 auto}
+.bl-field input:focus,.bl-field textarea:focus,.bl-field select:focus,.bl-server-row select:focus,.bl-editor-title input:focus{outline:0;border-color:#789cff;box-shadow:0 0 0 3px #356df322}
+.bl-block-field input:focus,.bl-block-field textarea:focus,.bl-block-field select:focus{outline:0;border-color:#789cff;box-shadow:0 0 0 3px #356df322}
+.bl-btn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+.bl-project-card,.bl-feature-card,.bl-library-card,.bl-panel,.bl-step,.bl-log{transition:background-color .2s,border-color .2s,color .2s,box-shadow .2s}
+@media(max-width:620px){
+ .bl-hero-copy h1{font-size:clamp(34px,9vw,45px);line-height:1.16;letter-spacing:-.065em}
+ .bl-nav-actions{gap:7px}
+ .bl-theme-toggle{width:35px;height:35px}
+}
+html.theme-dark{color-scheme:dark}
+html.theme-dark body.blocks-page{--bl-ink:#f1f4fa;--bl-muted:#aab5c5;--bl-line:#344052;--bl-bg:#10151d;--bl-card:#1b2430;--bl-blue:#6b91ff;--bl-blue2:#4e7af0;--bl-shadow:0 18px 55px rgba(0,0,0,.28);background:#10151d;color:#f1f4fa}
+html.theme-dark .bl-nav{background:rgba(22,29,39,.94);border-color:#344052;color:#f1f4fa}
+html.theme-dark .bl-nav-link,html.theme-dark .bl-brand,html.theme-dark .bl-footer,html.theme-dark .bl-footer a{color:#f1f4fa}
+html.theme-dark .bl-hero{background:linear-gradient(180deg,#182231 0%,#10151d 100%);color:#f1f4fa}
+html.theme-dark .bl-hero:before{background:radial-gradient(circle,rgba(71,105,174,.28) 0,transparent 68%)}
+html.theme-dark .bl-hero p,html.theme-dark .bl-section-head p,html.theme-dark .bl-feature-card p,html.theme-dark .bl-library-card p,html.theme-dark .bl-step p,html.theme-dark .bl-project-card p,html.theme-dark .bl-sub,html.theme-dark .bl-help{color:#aab5c5}
+html.theme-dark .bl-eyebrow{background:#202e45;border-color:#3b5277;color:#a9c0ff}
+html.theme-dark .bl-trust-strip{background:#151d28;border-color:#344052;color:#b8c3d3}
+html.theme-dark .bl-trust-strip .bl-wrap{color:#b8c3d3}
+html.theme-dark .bl-feature-card,html.theme-dark .bl-library-card,html.theme-dark .bl-step,html.theme-dark .bl-panel,html.theme-dark .bl-project-card{background:#1b2430;border-color:#344052;color:#f1f4fa}
+html.theme-dark .bl-feature-card:hover{border-color:#5878bd;box-shadow:0 18px 45px rgba(0,0,0,.25)}
+html.theme-dark .bl-feature-card h3,html.theme-dark .bl-library-card h3,html.theme-dark .bl-step h3,html.theme-dark .bl-page-head h1,html.theme-dark .bl-page-head h2,html.theme-dark .bl-form-wrap h1{color:#f1f4fa}
+html.theme-dark .bl-feature-icon.blue{background:#24395d;color:#a9c0ff}
+html.theme-dark .bl-feature-icon.violet{background:#342b4c;color:#c6aaff}
+html.theme-dark .bl-feature-icon.green{background:#1c3d35;color:#8be0bd}
+html.theme-dark .bl-feature-icon.orange{background:#493523;color:#ffc58c}
+html.theme-dark .bl-block-showcase{background:linear-gradient(180deg,transparent,#1a2636 50%,transparent)}
+html.theme-dark .bl-library-note{color:#aab5c5}
+html.theme-dark .bl-bottom-cta{background:#172130;color:#f1f4fa}
+html.theme-dark .bl-bottom-cta p{color:#aab5c5}
+html.theme-dark .bl-footer{background:#10151d;border-color:#344052}
+html.theme-dark .bl-btn{background:#222d3b;border-color:#40506a;color:#f1f4fa}
+html.theme-dark .bl-btn:hover{background:#2a3748;border-color:#5a6e8e}
+html.theme-dark .bl-btn.primary{background:#356df3;border-color:#356df3;color:#fff}
+html.theme-dark .bl-btn.primary:hover{background:#285bd8}
+html.theme-dark .bl-theme-toggle{background:#222d3b;border-color:#40506a;color:#f1f4fa}
+html.theme-dark .bl-theme-toggle:hover{background:#2c394b;border-color:#6684bd}
+html.theme-dark .bl-status{background:#202a38;border-color:#3b4a60;color:#c4cedc}
+html.theme-dark .bl-status.success{background:#17382f;border-color:#285c4b;color:#9ae4c3}
+html.theme-dark .bl-status.error{background:#3b252b;border-color:#70404a;color:#ffb1b8}
+html.theme-dark .bl-field label,html.theme-dark .bl-server-row label{color:#dbe3ef}
+html.theme-dark .bl-field input,html.theme-dark .bl-field textarea,html.theme-dark .bl-field select,html.theme-dark .bl-server-row select,html.theme-dark .bl-editor-title input,.bl-editor-title input{background:#121a25;border-color:#3c4b60;color:#f1f4fa}
+html.theme-dark .bl-field input::placeholder,html.theme-dark .bl-field textarea::placeholder,html.theme-dark .bl-variable-tools input::placeholder{color:#8795a9;opacity:1}
+html.theme-dark .bl-field select option,html.theme-dark .bl-server-row select option,html.theme-dark .bl-block-field select option{background:#1b2430;color:#f1f4fa}
+html.theme-dark .bl-editor-page{background:#10151d}
+html.theme-dark .bl-editor-top,html.theme-dark .bl-editor-panel{background:#1b2430;border-color:#344052;color:#f1f4fa}
+html.theme-dark .bl-editor-panel-head{background:#202b39;border-color:#344052;color:#eaf0f8}
+html.theme-dark .bl-workspace{background-color:#121a25;background-image:radial-gradient(#3a4a60 1px,transparent 1px)}
+html.theme-dark .bl-workspace-hint{color:#aab5c5}
+html.theme-dark .bl-workspace-block{background:#1c2836;border-color:#40516a;box-shadow:0 7px 18px rgba(0,0,0,.22)}
+html.theme-dark .bl-block-fields{background:#1c2836}
+html.theme-dark .bl-block-field label,html.theme-dark .bl-block-field>span{color:#c0cada}
+html.theme-dark .bl-block-field input,html.theme-dark .bl-block-field textarea,html.theme-dark .bl-block-field select{background:#111923;border-color:#40516a;color:#f1f4fa}
+html.theme-dark .bl-variable-tools input{background:#111923;border-color:#40516a;color:#f1f4fa}
+html.theme-dark .bl-variable-tools button{background:#35465e;color:#fff}
+html.theme-dark .bl-variable-chip{background:#392b3a;border-color:#68465a;color:#ffbfd6}
+html.theme-dark .bl-side-info{background:#1b2430;color:#b6c1d1}
+html.theme-dark .bl-side-info strong{color:#f1f4fa}
+html.theme-dark .bl-log{background:#121a25;border-color:#344052;color:#b6c1d1}
+html.theme-dark .bl-log b{color:#f1f4fa}
+html.theme-dark .bl-empty{background:#17212d;border-color:#40516a;color:#aab5c5}
+html.theme-dark .bl-preview{background:#1b2634;border-color:#3a4a60;color:#edf2fa}
+html.theme-dark .bl-preview-top,html.theme-dark .bl-preview-foot{border-color:#344052;color:#c0cada}
+html.theme-dark .bl-preview-block{background:#243653;border-color:#3e5b89;color:#e3ecff}
+html.theme-dark .bl-preview-block.purple{background:#352b4b;border-color:#594777;color:#e9ddff}
+html.theme-dark .bl-preview-block.green{background:#1e3b34;border-color:#356452;color:#c9f4e1}
+html.theme-dark .bl-floating-chip{background:#202b39;border-color:#40516a;color:#dce6f4}
+html.theme-dark .bl-orbit{border-color:#6986bb55}
+html.theme-dark .bl-hero-meta,html.theme-dark .bl-hero-meta span{color:#b5c0d0}
+html.theme-dark .bl-cta-inner{color:#f1f4fa}
+html.theme-dark .bl-toast{background:#e9eef7;color:#17202b;box-shadow:0 14px 35px rgba(0,0,0,.4)}
+html.theme-dark .bl-editor-actions .bl-help{color:#aab5c5}
+html.theme-dark .bl-editor-top .bl-brand{color:#f1f4fa}
+html.theme-dark .bl-nav .bl-btn:not(.primary){background:#202b39}
+html.theme-dark .tend-account-confirm{background:rgba(3,8,15,.72)}
+html.theme-dark .tend-account-confirm-card{background:#1b2430;border-color:#3a4658;box-shadow:0 28px 90px rgba(0,0,0,.55)}
+html.theme-dark .tend-account-confirm-card h2{color:#f1f4fa}
+html.theme-dark .tend-confirm-desc{color:#aab5c5}
+html.theme-dark .tend-logout-actions .btn-light{background:#222d3b;border-color:#40506a;color:#f1f4fa}
+@media(prefers-reduced-motion:reduce){.bl-theme-toggle,.bl-btn,.bl-feature-card{transition:none}}
+/* Same logout confirmation component used by the main TEND portal */
+.tend-account-confirm{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:22px;background:rgba(15,23,42,.42);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:tend-confirm-fade 420ms cubic-bezier(.16,1,.3,1) both}
+.tend-account-confirm-card{width:min(100%,390px);padding:30px;border:1px solid rgba(255,255,255,.72);border-radius:24px;background:rgba(255,255,255,.97);box-shadow:0 28px 90px rgba(15,23,42,.2);animation:tend-confirm-rise 560ms cubic-bezier(.16,1,.3,1) both}
+.tend-confirm-kicker{font-size:10px;font-weight:800;letter-spacing:.14em;color:#7c8799}
+.tend-account-confirm-card h2{margin:10px 0 7px;font-size:24px;letter-spacing:-.055em;color:#171b24}
+.tend-confirm-desc{margin:0;color:#78808d;font-size:13px;line-height:1.6}
+.tend-account-confirm-card .btn{width:100%;min-height:46px;justify-content:center}
+.tend-logout-card{display:flex;flex-direction:column;gap:0}
+.tend-logout-actions{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:26px;width:100%}
+.tend-logout-actions .btn{display:flex;box-sizing:border-box;width:100%;min-height:48px;margin:0;padding:0 16px;align-items:center;justify-content:center;line-height:1.2;white-space:nowrap;border-radius:11px;font-size:13px;font-weight:750}
+.tend-logout-actions .tend-logout-yes{background:#e5484d;border:1px solid #e5484d;color:#fff}
+.tend-logout-actions .tend-logout-yes:hover{background:#d9363e;border-color:#d9363e}
+.tend-logout-actions .btn-light{background:#fff;border:1px solid #e3e7ee;color:#292d36}
+@keyframes tend-confirm-fade{from{opacity:0}to{opacity:1}}
+@keyframes tend-confirm-rise{from{opacity:0;transform:translate3d(0,16px,0) scale(.985)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.tend-account-confirm,.tend-account-confirm-card{animation:none}}
