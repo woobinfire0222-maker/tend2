@@ -355,3 +355,7 @@ html.theme-dark .bl-blockly-workspace .blocklyEditableText rect{fill:#26364b!imp
 html.theme-dark .bl-blockly-workspace .blocklyNonEditableText>rect{fill:#26364b!important}
 @media(max-width:1100px){.bl-editor-app{grid-template-columns:minmax(0,1fr)}.bl-editor-inspector{display:none}}
 @media(max-width:700px){.bl-editor-app{display:flex}.bl-editor-main{flex:1;min-height:0}.bl-blockly-workspace{min-height:0}.bl-editor-top{flex-wrap:wrap}}
+
+
+.bl-canvas-tools #blocks-undo,.bl-canvas-tools #blocks-redo,.bl-canvas-tools #blocks-cleanup{min-width:30px;padding:0 7px}
+@media(max-width:700px){.bl-canvas-tools #blocks-cleanup{display:none}.bl-canvas-tools button{font-size:11px}}
