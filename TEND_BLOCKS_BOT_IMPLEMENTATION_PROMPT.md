@@ -531,3 +531,20 @@ TEND BLOCKS 편집기는 Google Blockly 엔진을 사용해 Entry·Scratch 계�
 - 편집기 새로고침 후에도 같은 이름과 ID가 복원된다.
 - 다른 서버의 ID, 삭제된 ID, 권한 없는 리소스는 실행되지 않는다.
 - 역할 테이블이 비어 있으면 봇 동기화 상태를 안내한다. 빈 목록을 정상 연결로 표시하지 않는다.
+
+
+---
+
+# 18. 저장 스키마 v2 및 DB 호환성 (필수)
+
+- 현재 에디터의 저장 데이터는 `{schema_version:2, variables:[...], roots:[...]}`이다.
+- 데이터베이스 `blocks_projects.project_data`의 검증 제약조건은 schema_version 2일 때 roots 배열과 variables 배열을 허용해야 한다.
+- 구버전 `{version:1, blocks:[...]}` 데이터도 읽을 수 있도록 기존 blocks 배열 스키마를 계속 허용한다.
+- v2 저장 시 DB 제약조건이 v1의 blocks 배열을 필수로 요구해서는 안 된다.
+- 저장은 반드시 현재 로그인 사용자 ID와 프로젝트 ID를 함께 조건으로 업데이트한다. 서버 ID를 클라이언트가 바꿀 수 없어야 한다.
+- 저장 후 반환 데이터에는 id, owner_id, server_id, name, project_data, is_enabled, version, updated_at을 포함한다. 저장 직후 project 객체의 server_id/version이 사라지면 안 된다.
+- 50개 블록 제한은 중첩된 자식 블록과 값 블록까지 모두 센다. 200KB 제한은 UTF-8 바이트 기준으로 검사한다.
+- 저장 실패 시 사용자가 원인을 확인할 수 있도록 Supabase message/details를 개발자 콘솔에 기록하고 사용자에게는 안전한 오류 메시지를 표시한다.
+- 저장 성공을 표시하기 전에 Supabase가 성공 응답을 반환했는지 확인한다.
+- 저장 실패 시 dirty 상태를 유지하고 다시 저장할 수 있게 한다.
+- 테스트: 새 프로젝트 저장, 기존 v1 프로젝트를 열어 v2로 저장, 중첩 if/else 및 값 블록 저장, 채널·역할 ID 저장, 연속 2회 저장, 새로고침 후 복원, 50개 제한, 200KB 초과 방지.
