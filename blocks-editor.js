@@ -135,7 +135,7 @@
   if(!block)return null;
   const node={id:block.id,type:block.type,fields:{},values:{}};
   block.inputList.forEach(input=>{
-   if(input.type===Blockly.inputTypes.VALUE){const child=block.getInputTargetBlock(input.name);if(child)node.values[input.name]=nodeFromBlock(child);}
+   if(input.type===1){const child=block.getInputTargetBlock(input.name);if(child)node.values[input.name]=nodeFromBlock(child);}
   });
   block.inputList.forEach(input=>input.fieldRow.forEach(field=>{if(field.name)node.fields[field.name]=field.getValue();}));
   if(block.type==="control_if"||block.type==="control_if_else"||block.type==="control_repeat_count"){
