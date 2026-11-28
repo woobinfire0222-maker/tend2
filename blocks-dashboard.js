@@ -23,6 +23,25 @@
   servers.forEach(server=>{const op=document.createElement("option");op.value=server.server_id;op.textContent=server.server_name+(server.bot_connected?"":" · 봇 초대 필요");select.append(op);});
   select.disabled=false;selected=servers[0];select.value=selected.server_id;renderServerState();await loadProjects();
  }
+ function countProjectBlocks(data){
+  if(!data||typeof data!=="object")return 0;
+  if(data.schema_version===2&&Array.isArray(data.roots)){
+   const seen=new Set();
+   const countNode=node=>{
+    if(!node||typeof node!=="object"||seen.has(node))return 0;
+    seen.add(node);
+    let total=1;
+    if(node.values&&typeof node.values==="object")Object.values(node.values).forEach(child=>{total+=countNode(child);});
+    if(Array.isArray(node.children))node.children.forEach(child=>{total+=countNode(child);});
+    if(Array.isArray(node.else_children))node.else_children.forEach(child=>{total+=countNode(child);});
+    if(node.next)total+=countNode(node.next);
+    return total;
+   };
+   return data.roots.reduce((total,node)=>total+countNode(node),0);
+  }
+  if(Array.isArray(data.blocks))return data.blocks.length;
+  return 0;
+ }
  function renderServerState(){
   selected=servers.find(x=>x.server_id===select.value)||null;create.disabled=!selected;
   inviteBox.replaceChildren();inviteBox.classList.add("bl-hidden");
@@ -43,7 +62,7 @@
   data.forEach(project=>{
    const card=document.createElement("article");card.className="bl-project-card";
    const title=document.createElement("h3");title.textContent=project.name;
-   const desc=document.createElement("p");desc.textContent=(project.project_data?.blocks||[]).length+"개 블록 · "+new Date(project.updated_at||project.created_at).toLocaleString("ko-KR");
+   const desc=document.createElement("p");desc.textContent=countProjectBlocks(project.project_data)+"개 블록 · "+new Date(project.updated_at||project.created_at).toLocaleString("ko-KR");
    const meta=document.createElement("div");meta.className="bl-project-meta";
    const status=document.createElement("span");status.className="bl-pill "+(project.is_enabled?"green":"gray");status.textContent=project.is_enabled?"실행 활성화":"저장됨";meta.append(status);
    const open=document.createElement("a");open.className="bl-btn primary";open.href="./blocks-editor.html?id="+encodeURIComponent(project.id);open.textContent="코딩 시작 →";
