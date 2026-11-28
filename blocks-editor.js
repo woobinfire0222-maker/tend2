@@ -150,19 +150,26 @@
   definitions.forEach(blockDef);registerSpecialBlocks();
   workspace=Blockly.inject("blocklyDiv",{toolbox:buildToolbox(),renderer:"zelos",theme:Blockly.Theme.defineTheme("tendBlocks",{base:Blockly.Themes.Classic,componentStyles:{workspaceBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#101a27":"#f6f8fc",toolboxBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#172333":"#ffffff",toolboxForegroundColour:document.documentElement.classList.contains("theme-dark")?"#edf3fb":"#172033",flyoutBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#1b293a":"#ffffff",flyoutForegroundColour:document.documentElement.classList.contains("theme-dark")?"#edf3fb":"#172033",flyoutOpacity:1,scrollbarColour:"#8b9bb3",insertionMarkerColour:"#3978f6",insertionMarkerOpacity:.35,markerColour:"#3978f6",cursorColour:"#3978f6"}}),grid:{spacing:20,length:2,colour:document.documentElement.classList.contains("theme-dark")?"#344153":"#dce3ed",snap:true},zoom:{controls:true,wheel:true,startScale:.84,maxScale:1.55,minScale:.5,scaleSpeed:1.1},move:{scrollbars:true,drag:true,wheel:true},trashcan:true,renderer:"zelos",sounds:false,oneBasedIndex:false});
   const toolboxElement=workspace.getToolbox?.()?.getHtmlDiv?.()||document.querySelector("#blocks-workspace .blocklyToolboxDiv")||document.querySelector(".blocklyToolboxDiv");
-  const managerLaunch=document.createElement("section");
-  managerLaunch.className="bl-toolbox-manager";
-  managerLaunch.innerHTML='<strong>프로젝트 요소</strong><p>변수와 신호를 만들고 관리해요.</p><button id="blocks-manage-elements" type="button">요소 관리 열기</button>';
   if(toolboxElement){
-   toolboxElement.setAttribute("aria-label","블록 카테고리 및 프로젝트 요소");
-   toolboxElement.style.display="flex";
-   toolboxElement.style.flexDirection="column";
-   toolboxElement.appendChild(managerLaunch);
+   toolboxElement.setAttribute("aria-label","블록 카테고리");
+   const categoryRows=Array.from(toolboxElement.querySelectorAll(".blocklyTreeRow"));
+   const valueRow=categoryRows.find(row=>row.textContent.trim()==="값");
+   const managerRow=document.createElement("div");
+   managerRow.id="blocks-manage-elements";
+   managerRow.className="blocklyTreeRow bl-toolbox-manager-row";
+   managerRow.setAttribute("role","button");
+   managerRow.setAttribute("tabindex","0");
+   managerRow.setAttribute("aria-label","프로젝트 요소 관리");
+   managerRow.innerHTML='<span class="blocklyTreeLabel">프로젝트 요소 관리</span>';
+   if(valueRow)valueRow.insertAdjacentElement("afterend",managerRow);
+   else toolboxElement.querySelector(".blocklyToolboxContents,.blocklyTreeRoot")?.append(managerRow);
+   const openManager=()=>{const overlay=document.querySelector(".bl-manager-overlay");if(overlay){overlay.dispatchEvent(new Event("blocks-open-manager"));}else console.error("BLOCKS project manager dialog is not ready.");};
+   managerRow.addEventListener("click",openManager);
+   managerRow.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();openManager();}});
+   if(!managerRow.isConnected)console.error("BLOCKS project manager row could not be inserted below the Values category.");
    requestAnimationFrame(()=>{Blockly.svgResize(workspace);workspace.resizeContents?.();});
   }else{
-   const toolbar=document.querySelector(".bl-canvas-toolbar");
-   if(toolbar)toolbar.insertAdjacentElement("afterend",managerLaunch);
-   console.warn("BLOCKS toolbox element was not found; project manager placed below the workspace toolbar.");
+   console.error("BLOCKS Blockly toolbox was not found; project element manager was not inserted.");
   }
   const keepFlyoutAtDefaultScale=()=>{const flyout=workspace.getFlyout?.();if(!flyout)return;if(typeof flyout.setScale==="function")flyout.setScale(1);else{const flyoutWorkspace=flyout.getWorkspace?.();if(flyoutWorkspace&&flyoutWorkspace.scale!==1)flyoutWorkspace.setScale(1);}};
   workspace.addChangeListener(e=>{if(e.type==="viewport_change")requestAnimationFrame(keepFlyoutAtDefaultScale);if(e.isUiEvent||e.type==="ui")return;markDirty();$("#blocks-count").textContent=workspace.getAllBlocks(false).length+" / 50";});
@@ -304,9 +311,9 @@
    arr.push({id:crypto.randomUUID?.()||("id_"+Date.now()),name,...(kind==="variable"?{initial_value:0}:{})});
    input.value="";render();refreshVariableDropdowns();markDirty();
   });
+  overlay.addEventListener("blocks-open-manager",()=>{render();overlay.classList.remove("bl-hidden");});
   const manageButton=$("#blocks-manage-elements");
   if(manageButton)manageButton.onclick=()=>{render();overlay.classList.remove("bl-hidden");};
-  else console.error("BLOCKS project manager button was not created.");
  }
  init();
 })();
