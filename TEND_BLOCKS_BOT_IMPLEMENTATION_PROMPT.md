@@ -466,3 +466,68 @@ TEND BLOCKS 편집기는 Google Blockly 엔진을 사용해 Entry·Scratch 계�
 - 50노드/8단계/200KB 제한.
 - 잘못된 root, 잘못된 next, 잘못된 values/children 타입 거부.
 - 기존 v1 프로젝트 로드와 원본 보존.
+
+
+---
+
+# 17. Discord 역할·채널 ID 실연동 (필수)
+
+편집기의 역할/채널 선택창은 표시용 문자열을 저장하면 안 된다. 사용자가 선택한 Discord 리소스의 실제 snowflake ID를 저장해야 한다.
+
+## 17-1. 데이터 조회 계약
+- 편집기는 선택한 서버의 리소스를 다음 RPC로 조회한다.
+  `public.blocks_list_server_resources(target_server_id text)`
+- RPC 결과 형식:
+  `{ "channels": [{"id":"채널ID","name":"채널명","type":"text"}], "roles": [{"id":"역할ID","name":"역할명","mentionable":true}] }`
+- 호출은 로그인한 베타 테스터 세션에서만 한다. 서버 ID는 현재 프로젝트의 server_id를 사용한다. 임의 서버 ID를 받아 조회하지 않는다.
+- RPC 내부에서 blocks_is_beta_tester()와 blocks_has_server_access(target_server_id)를 반드시 확인한다.
+- 프런트엔드 anon key로 직접 전체 Discord 인벤토리 테이블을 조회하지 않는다. 서버 리소스 RPC만 사용한다.
+- 목록이 비어 있거나 조회에 실패하면 가짜 목록이나 ID를 만들지 말고, 편집기에 실패 상태와 새로고침 동작을 표시한다.
+
+## 17-2. 실제 ID 저장 규칙
+- channel 필드: channel_id 문자열을 저장한다.
+- role 필드: role_id 문자열을 저장한다.
+- 화면에는 #채널명 / @역할명 형태로 표시하되, JSON fields에는 ID만 기록한다.
+- 채널/역할 이름이 바뀌어도 ID가 같으면 기존 프로젝트 연결은 유지한다.
+- 삭제되었거나 현재 서버에 속하지 않는 ID는 실행 시 거부하고 실행 로그에 기록한다.
+- 모든 리소스는 반드시 project.server_id에 속해야 한다. 다른 서버의 ID를 재사용하지 않는다.
+- 채널 동작 전 봇의 View Channel / Send Messages 등 필요한 권한을 확인한다.
+- 역할 지급/회수 전 Manage Roles 권한과 봇 역할의 계층을 확인한다. @everyone, managed role, 봇보다 높거나 같은 역할은 변경할 수 없다.
+
+## 17-3. 편집기 필드
+다음 필드는 숫자/문자열 직접 입력 대신 동적 Discord 리소스 드롭다운을 사용한다.
+- event_message_create.fields.CHANNEL_FILTER: 전체 채널 또는 실제 채널 선택
+- condition_has_role.fields.ROLE_ID: 역할 선택
+- condition_channel_is.fields.CHANNEL_ID: 채널 선택
+- action_send_message.fields.CHANNEL_ID: 메시지 전송 채널 선택
+- action_send_embed.fields.CHANNEL_ID: 임베드 전송 채널 선택
+- action_add_role.fields.ROLE_ID: 지급 역할 선택
+- action_remove_role.fields.ROLE_ID: 회수 역할 선택
+- action_set_slowmode.fields.CHANNEL_ID: 슬로우모드 적용 채널 선택
+- 선택창은 채널/역할 이름을 보여주고 실제 ID를 value로 사용한다.
+- 프로젝트를 다시 열었을 때 기존 ID가 여전히 목록에 있으면 해당 이름으로 표시한다. 목록에 없으면 "서버에서 삭제되었거나 동기화되지 않은 항목"으로 표시하고 임의 ID로 대체하지 않는다.
+
+## 17-4. 봇 인벤토리 동기화
+봇은 이미 실행 중인 기존 Discord client를 사용한다. 새 봇 프로세스나 별도 클라이언트를 만들지 않는다.
+- 봇 시작 시 모든 연결 서버의 guild.channels와 guild.roles를 Supabase에 동기화한다.
+- 서버 입장 시 즉시 동기화한다.
+- on_guild_channel_create/update/delete, on_guild_role_create/update/delete 이벤트에서 해당 서버의 인벤토리를 갱신한다.
+- 채널 테이블: public.discord_server_channels
+  - server_id, channel_id, channel_name, channel_type, can_view, can_send, is_active, synced_at
+  - 복합키 server_id + channel_id로 upsert.
+  - can_send는 봇이 해당 텍스트/포럼 채널에서 실제 메시지를 보낼 수 있을 때만 true.
+- 역할 테이블: public.discord_server_roles
+  - server_id, role_id, role_name, mentionable, is_everyone
+  - 복합키 server_id + role_id로 upsert.
+  - @everyone도 저장하되 is_everyone=true로 표시한다. 선택 RPC에서는 제외한다.
+- 동기화 완료 후 서버에서 삭제된 리소스는 해당 서버 범위에서만 정리한다.
+- 동기화 실패는 로그에 남기고 기존 TEND 관리/검열/명령어 기능을 중단하지 않는다.
+- Supabase service role key는 봇의 서버 환경변수에서만 사용한다. 브라우저 코드, GitHub 공개 파일, 응답 메시지에 절대 넣지 않는다.
+- 128MB 환경에 맞게 전체 동기화는 시작/서버 변경 시에만 실행하고, 짧은 간격의 무거운 반복 폴링은 금지한다.
+
+## 17-5. 검증
+- 서버에 채널/역할이 있는 경우 선택창에 이름이 표시된다.
+- 블록을 저장한 JSON에는 채널명/역할명이 아니라 정확한 ID가 들어간다.
+- 편집기 새로고침 후에도 같은 이름과 ID가 복원된다.
+- 다른 서버의 ID, 삭제된 ID, 권한 없는 리소스는 실행되지 않는다.
+- 역할 테이블이 비어 있으면 봇 동기화 상태를 안내한다. 빈 목록을 정상 연결로 표시하지 않는다.
