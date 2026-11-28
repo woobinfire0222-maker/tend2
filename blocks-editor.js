@@ -18,10 +18,51 @@
   {type:"control_wait",group:"제어",kind:"control",label:"잠시 기다리기",fields:[{key:"seconds",label:"대기 시간 (초, 최대 10)",placeholder:"1",kind:"number"}]},
   {type:"data_set_variable",group:"변수",kind:"data",label:"변수에 값 저장하기",fields:[{key:"variable",label:"변수 이름",placeholder:"변수명",kind:"text"},{key:"value",label:"저장할 값",placeholder:"값 또는 {{변수명}}",kind:"value"}]},
   {type:"data_change_variable",group:"변수",kind:"data",label:"변수 값 변경하기",fields:[{key:"variable",label:"변수 이름",placeholder:"변수명",kind:"text"},{key:"amount",label:"변경할 값",placeholder:"1",kind:"number"}]}
+,
+{type:"event_message_edit",group:"이벤트",kind:"event",label:"메시지가 수정되면",fields:[]},
+  {type:"event_message_delete",group:"이벤트",kind:"event",label:"메시지가 삭제되면",fields:[]},
+  {type:"event_reaction_add",group:"이벤트",kind:"event",label:"메시지에 반응이 추가되면",fields:[{key:"emoji",label:"이모지 필터 (선택)",placeholder:"예: 👍",kind:"text"}]},
+  {type:"condition_starts_with",group:"조건",kind:"condition",label:"메시지가 특정 글자로 시작하면",fields:[{key:"text",label:"시작 문자열",placeholder:"!",kind:"value",full:true}]},
+  {type:"condition_ends_with",group:"조건",kind:"condition",label:"메시지가 특정 글자로 끝나면",fields:[{key:"text",label:"끝 문자열",placeholder:"?",kind:"value",full:true}]},
+  {type:"condition_equals",group:"조건",kind:"condition",label:"메시지가 정확히 일치하면",fields:[{key:"text",label:"비교할 메시지",placeholder:"정확한 문장",kind:"value",full:true}]},
+  {type:"condition_channel_is",group:"조건",kind:"condition",label:"특정 채널에서 실행 중이면",fields:[{key:"channel_id",label:"채널",placeholder:"채널 선택",kind:"channel",full:true}]},
+  {type:"condition_has_attachment",group:"조건",kind:"condition",label:"첨부파일이 있으면",fields:[{key:"expected",label:"첨부파일 조건",kind:"select",options:[["true","첨부파일 있음"],["false","첨부파일 없음"]]}]},
+  {type:"condition_is_bot",group:"조건",kind:"condition",label:"작성자가 봇 계정이면",fields:[{key:"expected",label:"작성자 유형",kind:"select",options:[["true","봇 계정"],["false","일반 사용자"]]}]},
+  {type:"condition_message_length",group:"조건",kind:"condition",label:"메시지 글자 수를 비교하면",fields:[{key:"operator",label:"비교 방식",kind:"select",options:[["gte","이상"],["lte","이하"],["eq","같음"]]},{key:"length",label:"글자 수",placeholder:"10",kind:"number"}]},
+  {type:"condition_username_contains",group:"조건",kind:"condition",label:"사용자 이름에 단어가 포함되면",fields:[{key:"text",label:"찾을 단어",placeholder:"이름 일부",kind:"value",full:true}]},
+  {type:"action_delete_message",group:"동작",kind:"action",label:"현재 메시지 삭제하기",fields:[{key:"reason",label:"내부 사유 (선택)",placeholder:"자동화 규칙",kind:"text"}]},
+  {type:"action_add_reaction",group:"동작",kind:"action",label:"현재 메시지에 반응 추가",fields:[{key:"emoji",label:"이모지",placeholder:"👍",kind:"text"}]},
+  {type:"action_send_dm",group:"동작",kind:"action",label:"작성자에게 DM 보내기",fields:[{key:"content",label:"DM 내용",placeholder:"개인 메시지 내용",kind:"textarea",full:true}]},
+  {type:"action_set_nickname",group:"동작",kind:"action",label:"사용자 닉네임 변경",fields:[{key:"nickname",label:"새 닉네임",placeholder:"{{username}} 님",kind:"value",full:true}]},
+  {type:"action_create_thread",group:"동작",kind:"action",label:"현재 메시지에 스레드 만들기",fields:[{key:"name",label:"스레드 이름",placeholder:"새 토론",kind:"value"},{key:"auto_archive_minutes",label:"자동 보관",kind:"select",options:[["60","1시간"],["1440","1일"],["4320","3일"],["10080","7일"]]}]},
+  {type:"action_pin_message",group:"동작",kind:"action",label:"현재 메시지 고정하기",fields:[{key:"pin",label:"고정 상태",kind:"select",options:[["true","고정"],["false","고정 해제"]]}]},
+  {type:"action_set_slowmode",group:"동작",kind:"action",label:"채널 슬로우모드 설정",fields:[{key:"channel_id",label:"채널",placeholder:"채널 선택",kind:"channel"},{key:"seconds",label:"간격 (초)",placeholder:"5",kind:"number"}]},
+  {type:"action_log",group:"동작",kind:"action",label:"실행 기록에 메모 남기기",fields:[{key:"message",label:"기록 내용",placeholder:"자동화 단계 완료",kind:"value",full:true}]},
+  {type:"control_stop",group:"제어",kind:"control",label:"현재 자동화 즉시 중단",fields:[]},
+  {type:"control_cooldown",group:"제어",kind:"control",label:"사용자별 쿨다운 적용",fields:[{key:"seconds",label:"쿨다운 (초)",placeholder:"30",kind:"number"}]},
+  {type:"control_random",group:"제어",kind:"control",label:"확률 조건으로 분기",fields:[{key:"chance",label:"성공 확률 (%)",placeholder:"50",kind:"number"}]},
+  {type:"data_append_variable",group:"변수",kind:"data",label:"변수 뒤에 텍스트 이어붙이기",fields:[{key:"variable",label:"변수 이름",placeholder:"message",kind:"text"},{key:"text",label:"추가할 텍스트",placeholder:"내용",kind:"value"}]},
+  {type:"data_math_variable",group:"변수",kind:"data",label:"숫자 변수 계산하기",fields:[{key:"variable",label:"변수 이름",placeholder:"count",kind:"text"},{key:"operator",label:"계산",kind:"select",options:[["add","더하기"],["subtract","빼기"],["multiply","곱하기"],["divide","나누기"]]},{key:"amount",label:"숫자",placeholder:"1",kind:"number"}]},
+  {type:"value_text",group:"값",kind:"value",label:"텍스트 값",fields:[{key:"value",label:"텍스트",placeholder:"텍스트 입력",kind:"text"}]},
+  {type:"value_number",group:"값",kind:"value",label:"숫자 값",fields:[{key:"value",label:"숫자",placeholder:"0",kind:"number"}]},
+  {type:"value_variable",group:"값",kind:"value",label:"변수 값",fields:[{key:"variable",label:"변수 이름",placeholder:"변수 선택",kind:"text"}]},
+  {type:"value_user_name",group:"값",kind:"value",label:"이벤트 사용자 이름",fields:[]},
+  {type:"value_server_name",group:"값",kind:"value",label:"현재 서버 이름",fields:[]},
+  {type:"value_channel_name",group:"값",kind:"value",label:"현재 채널 이름",fields:[]},
+  {type:"value_current_time",group:"값",kind:"value",label:"현재 시간",fields:[]}
  ];
  const byType=Object.fromEntries(definitions.map(d=>[d.type,d]));
  let user,project,server,blocks=[],variables=[],resources={channels:[],roles:[]},dragSource=null,dirty=false;
  const defaults={event_message_create:{channel_filter:""},condition_contains:{keyword:""},condition_has_role:{role_id:""},action_send_message:{channel_id:"",content:"",mention_mode:"none",mention_id:"",delete_after_seconds:"",thread_mode:"none"},action_send_embed:{channel_id:"",embed_title:"",author:"",description:"",color:"#356DF3",footer:"",title_url:"",thumbnail_url:"",image_url:"",timestamp:"false"},action_reply:{content:"",reply_target:"event_message",target_message_id:"",fallback:"send_new",mention_author:"false"},action_add_role:{role_id:""},action_remove_role:{role_id:""},action_warn:{reason:""},control_wait:{seconds:"1"},data_set_variable:{variable:"",value:""},data_change_variable:{variable:"",amount:"1"}};
+
+Object.assign(defaults,{
+event_message_edit:{},event_message_delete:{},event_reaction_add:{emoji:""},
+condition_starts_with:{text:""},condition_ends_with:{text:""},condition_equals:{text:""},condition_channel_is:{channel_id:""},condition_has_attachment:{expected:"true"},condition_is_bot:{expected:"false"},condition_message_length:{operator:"gte",length:"10"},condition_username_contains:{text:""},
+action_delete_message:{reason:""},action_add_reaction:{emoji:"👍"},action_send_dm:{content:""},action_set_nickname:{nickname:""},action_create_thread:{name:"새 스레드",auto_archive_minutes:"1440"},action_pin_message:{pin:"true"},action_set_slowmode:{channel_id:"",seconds:"5"},action_log:{message:""},
+control_stop:{},control_cooldown:{seconds:"30"},control_random:{chance:"50"},
+data_append_variable:{variable:"",text:""},data_math_variable:{variable:"",operator:"add",amount:"1"},
+value_text:{value:"텍스트"},value_number:{value:"0"},value_variable:{variable:""},value_user_name:{},value_server_name:{},value_channel_name:{},value_current_time:{}
+});
  function makeBlock(type){const def=byType[type];return {id:crypto.randomUUID(),type,fields:{...(defaults[type]||{})}};}
  function markDirty(){dirty=true;$("#blocks-save-state").textContent="변경 사항 있음";saveButton.disabled=false;}
  function drawPalette(){
