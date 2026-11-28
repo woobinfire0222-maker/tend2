@@ -186,12 +186,12 @@
  }
  async function save(){
   const all=workspace.getAllBlocks(false);if(all.length>50){window.BLOCKS.notify("프로젝트에는 최대 50개 블록까지 사용할 수 있어요.");return false;}
-  const data=projectJSON();if(JSON.stringify(data).length>200000){window.BLOCKS.notify("프로젝트 데이터가 너무 커요.");return false;}
+  const data=projectJSON();if(new TextEncoder().encode(JSON.stringify(data)).length>190000){window.BLOCKS.notify("프로젝트 데이터가 너무 커요. 블록이나 긴 텍스트를 줄여 주세요.");return false;}
   saveButton.disabled=true;$("#blocks-save-state").textContent="저장 중…";
   try{
-   const {data:updated,error}=await sb.from("blocks_projects").update({name:nameInput.value.trim().slice(0,60)||"새 프로젝트",project_data:data,version:(project.version||1)+1,updated_at:new Date().toISOString()}).eq("id",project.id).eq("owner_id",user.id).select("id,name,project_data,is_enabled").single();
+   const {data:updated,error}=await sb.from("blocks_projects").update({name:nameInput.value.trim().slice(0,60)||"새 프로젝트",project_data:data,version:(project.version||1)+1,updated_at:new Date().toISOString()}).eq("id",project.id).eq("owner_id",user.id).select("id,owner_id,server_id,name,project_data,is_enabled,version,updated_at").single();
    if(error)throw error;project=updated;dirty=false;$("#blocks-save-state").textContent="저장 완료";saveButton.disabled=false;return true;
-  }catch(error){console.error("BLOCKS project save failed",error);window.BLOCKS.notify(error.message||"저장하지 못했어요.");$("#blocks-save-state").textContent="저장 실패";saveButton.disabled=false;return false;}
+  }catch(error){console.error("BLOCKS project save failed",error);const reason=error?.message||error?.details||error?.hint||"저장하지 못했어요.";window.BLOCKS.notify("저장 실패: "+reason);$("#blocks-save-state").textContent="저장 실패 · 다시 시도해 주세요";saveButton.disabled=false;return false;}
  }
  async function toggleEnabled(){
   if(dirty&&!await save())return;
