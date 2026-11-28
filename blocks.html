@@ -3,18 +3,18 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101725"><title>TEND BLOCKS — 서버 자동화를 직접 만들다</title>
 <meta name="description" content="블록을 연결해 Discord 서버의 자동화를 직접 설계하는 TEND BLOCKS. 베타테스터를 모집합니다.">
-<link rel="icon" href="./TEND.png"><link rel="stylesheet" href="./blocks.css?v=20261128-3">
+<link rel="icon" href="./2.png"><link rel="stylesheet" href="./blocks.css?v=20261128-4">
 <script>(()=>{try{if(localStorage.getItem("tend-theme")==="dark")document.documentElement.classList.add("theme-dark")}catch{}})();</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js?v=20261029-2"></script><script src="./blocks-common.js?v=20261128-3"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js?v=20261029-2"></script><script src="./blocks-common.js?v=20261128-4"></script>
 </head><body class="blocks-page blocks-home">
 <nav class="bl-nav"><div class="bl-wrap bl-nav-inner">
-<a class="bl-brand" href="./blocks.html"><img src="./TEND.png" alt="">TEND <span>BLOCKS</span></a>
+<a class="bl-brand" href="./blocks.html"><img src="./2.png" alt="">TEND <span>BLOCKS</span></a>
 <div class="bl-nav-actions"><a class="bl-nav-link" href="#features">기능</a><a class="bl-nav-link" href="#how">이용 방법</a><a class="bl-nav-link" href="#blocks">블록</a><button class="bl-theme-toggle" type="button" aria-label="테마 변경">◐</button><a class="bl-btn primary" href="./blocks-beta.html">베타 신청</a></div>
 </div></nav>
 <main>
 <section class="bl-hero bl-hero-v2"><div class="bl-hero-glow"></div><div class="bl-wrap bl-hero-grid">
-<div class="bl-hero-copy reveal"><span class="bl-eyebrow"><i class="bl-dot"></i> TEND BLOCKS · CLOSED BETA</span>
-<h1>서버 운영의 반복을<br><span>나만의 블록으로.</span></h1>
+<div class="bl-hero-copy reveal"><span class="bl-eyebrow">TEND BLOCKS · CLOSED BETA</span>
+<h1>블록 코딩으로,<br><span>나만의 TEND 봇을 만들다.</span></h1>
 <p>코드를 작성하지 않아도 괜찮아요. 필요한 블록을 끌어와 연결하고, 조건과 동작을 조합해 Discord 서버에 맞는 자동화를 직접 만들어 보세요.</p>
 <div class="bl-actions"><button class="bl-btn primary" id="blocks-start">내 작업 공간 열기 <span>→</span></button><a class="bl-btn" href="./blocks-beta.html">베타테스터 신청</a></div>
 <div class="bl-hero-meta"><span><i></i> 승인된 테스터 전용</span><span>프로젝트당 최대 50개 블록</span><span>내 서버별 프로젝트 관리</span></div></div>
@@ -51,10 +51,10 @@
 </div></div></section>
 <section class="bl-section bl-safety-section"><div class="bl-wrap bl-safety-grid"><div class="reveal"><span class="bl-eyebrow">BUILT FOR CONTROL</span><h2>안전하게 실행하고,<br><em>가볍게 유지해요.</em></h2><p>임의 코드를 실행하는 방식이 아니라, 검증된 블록 종류만 사용하는 구조를 지향해요. 실행 제한과 서버 권한 확인을 적용해 안정적인 베타 환경을 만들고 있어요.</p></div><div class="bl-safety-points reveal"><div><b>50</b><span>프로젝트당 최대 블록 수</span></div><div><b>Allowlist</b><span>허용된 블록만 실행</span></div><div><b>Server</b><span>서버 권한을 확인한 뒤 실행</span></div></div></div></section>
 <section class="bl-bottom-cta"><div class="bl-wrap bl-cta-inner reveal"><div><span class="bl-eyebrow">JOIN THE CLOSED BETA</span><h2>먼저 만들어 보고,<br>함께 더 좋게.</h2><p>베타테스터로 참여해 TEND BLOCKS의 첫 자동화를 만들어 보세요.</p></div><a class="bl-btn primary" href="./blocks-beta.html">베타테스터 신청하기 <span>→</span></a></div></section>
-</main><footer class="bl-footer"><div class="bl-wrap"><a class="bl-brand" href="./blocks.html"><img src="./TEND.png" alt="">TEND <span>BLOCKS</span></a><span>Part of TEND · Discord automation workspace</span><a href="./index.html">TEND 홈으로</a></div></footer>
-<script src="./blocks-home.js?v=20261128-3"></script>
+</main><footer class="bl-footer"><div class="bl-wrap"><a class="bl-brand" href="./blocks.html"><img src="./2.png" alt="">TEND <span>BLOCKS</span></a><span>Part of TEND · Discord automation workspace</span><a href="./index.html">TEND 홈으로</a></div></footer>
+<script src="./blocks-home.js?v=20261128-4"></script>
 <script>
-(()=>{const root=document.documentElement;document.querySelector(".bl-theme-toggle")?.addEventListener("click",()=>{const dark=!root.classList.contains("theme-dark");root.classList.toggle("theme-dark",dark);try{localStorage.setItem("tend-theme",dark?"dark":"light")}catch{}});
+(()=>{const root=document.documentElement;
 const nodes=document.querySelectorAll(".reveal");if("IntersectionObserver"in window){const io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add("is-visible");io.unobserve(e.target)}}),{threshold:.12});nodes.forEach(n=>io.observe(n))}else nodes.forEach(n=>n.classList.add("is-visible"));
 })();
 </script></body></html>
