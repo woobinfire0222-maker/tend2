@@ -82,7 +82,7 @@
   Blockly.Blocks.control_repeat_count={init(){this.setColour(25);this.appendDummyInput().appendField("반복하기").appendField(new Blockly.FieldNumber(3,1,20,1),"TIMES").appendField("번");this.appendStatementInput("DO").appendField("실행");this.setPreviousStatement(true);this.setNextStatement(true);}};
   Blockly.Blocks.value_text={init(){this.setColour(195);this.appendDummyInput().appendField("텍스트").appendField(new Blockly.FieldTextInput("텍스트"),"TEXT");this.setOutput(true,"String");}};
   Blockly.Blocks.value_number={init(){this.setColour(195);this.appendDummyInput().appendField("숫자").appendField(new Blockly.FieldNumber(0),"NUMBER");this.setOutput(true,"Number");}};
-  Blockly.Blocks.value_variable={init(){this.setColour(195);this.appendDummyInput().appendField("변수").appendField(new Blockly.FieldDropdown([["변수 선택",""]]),"VARIABLE");this.setOutput(true);}};
+  Blockly.Blocks.value_variable={init(){this.setColour(195);this.appendDummyInput().appendField("변수").appendField(new Blockly.FieldTextInput("변수명"),"VARIABLE");this.setOutput(true);}};
   Blockly.Blocks.value_user_name={init(){this.setColour(195);this.appendDummyInput().appendField("사용자 이름");this.setOutput(true,"String");}};
   Blockly.Blocks.value_server_name={init(){this.setColour(195);this.appendDummyInput().appendField("서버 이름");this.setOutput(true,"String");}};
   Blockly.Blocks.value_channel_name={init(){this.setColour(195);this.appendDummyInput().appendField("채널 이름");this.setOutput(true,"String");}};
@@ -91,7 +91,6 @@
  function buildToolbox(){
   const contents=groups.map(group=>({kind:"category",name:group,colour:({이벤트:"#e6a23c",조건:"#9a76dc",동작:"#38a879",제어:"#e28c48",변수:"#4b8fe8",값:"#2999b9"})[group],contents:definitions.filter(d=>d.group===group).map(d=>({kind:"block",type:d.type}))}));
   contents.splice(3,0,{kind:"category",name:"조건문",colour:"#e28c48",contents:[{kind:"block",type:"control_if"},{kind:"block",type:"control_if_else"},{kind:"block",type:"control_repeat_count"}]});
-  contents[contents.length-1].contents.push(...["value_text","value_number","value_variable","value_user_name","value_server_name","value_channel_name","value_current_time"].map(type=>({kind:"block",type})));
   return {kind:"categoryToolbox",contents};
  }
  function refreshVariableDropdowns(){
