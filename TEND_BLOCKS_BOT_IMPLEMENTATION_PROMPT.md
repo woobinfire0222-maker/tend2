@@ -228,3 +228,116 @@ eval, exec, compile, 임의 Python/JavaScript, 동적 import, 쉘 명령, 임의
 수정 파일, 추가 모듈, 환경변수, 테스트 결과, 미구현 항목을 보고한다. 구현하지 않은 블록을 지원한다고 보고하지 않는다. Discord API 제약으로 구현할 수 없는 항목은 편집기에서 비활성화하거나 사용자에게 안내한다.
 
 최종 원칙: 기존 TEND 봇을 유지하고, allowlist 블록만 안전하게 실행하며, 128MB 환경에서 이벤트 기반으로 가볍게 동작한다.
+
+
+---
+
+# 15. 2세대 편집기와 중첩 실행 구조
+
+기존의 평면형 블록 목록을 최종 UX로 간주하지 않는다. Entry/Scratch 계열의 시각적 블록 편집기처럼 동작해야 한다. 기존 TEND 로그인·Supabase·봇 프로세스·관리 기능은 유지한다.
+
+## 15-1. 편집기 화면
+- 데스크톱: 상단 프로젝트 바, 왼쪽 카테고리/블록 서랍, 중앙 무한 작업 캔버스, 선택적 오른쪽 속성 패널.
+- 모바일: 상단 작업 바, 카테고리 탭, 블록 서랍은 접거나 짧게 표시하고 캔버스가 대부분을 차지한다. 가로 overflow 금지.
+- 블록 전체를 한 번에 세로로 나열하지 않는다. 카테고리 탭을 누르면 그 카테고리 블록만 표시한다. 카테고리는 이벤트, 조건, 동작, 제어, 변수, 값, 고급.
+- 블록 검색을 제공한다.
+- 다크/화이트 모드는 localStorage의 tend-theme 값을 공유한다. 첫 화면부터 적용한다. 입력, select, textarea, 모달, 팝오버, 블록, 캔버스, 툴팁, 빈 상태, CTA, 푸터까지 모든 화면을 양쪽 테마로 확인한다.
+- 모든 TEND/BLOCKS 로고는 공통 규칙으로 동일한 둥근 모서리를 적용한다. 소개, 베타 신청, 대시보드, 편집기, 관리자 화면 모두 동일해야 한다.
+- 로그인/로그아웃은 기존 TEND Discord OAuth login.html과 기존 세션을 그대로 사용한다.
+
+## 15-2. 캔버스 조작
+- 무한 캔버스처럼 동작한다. 우클릭 또는 가운데 버튼 드래그로 상하좌우 패닝. 우클릭 컨텍스트 메뉴는 캔버스에서 차단한다.
+- 휠/버튼 확대·축소 40~180%, 가능하면 포인터 위치 기준.
+- 모바일 두 손가락 패닝/핀치 줌. 한 손가락은 블록 선택/드래그에 사용.
+- 점 격자 배경, 연결선, 스냅 표시, 드롭 위치 미리보기를 제공한다.
+- 블록을 놓은 위치와 대상 블록을 기준으로 연결/중첩한다. 목록 맨 끝에 무조건 추가하지 않는다.
+- 실행 취소/다시 실행, 복제, 삭제, 자동 정렬, 줌 초기화. 입력 중 Delete 키로 블록을 지우지 않는다.
+
+## 15-3. 블록 연결 의미
+- 이벤트는 모자형 시작 블록이며 최상위에만 배치한다. 각 이벤트마다 독립 자동화 스택.
+- 일반 동작/변수/제어 블록은 위·아래 연결 탭이 있는 퍼즐형 블록.
+- 조건은 C자형 컨테이너이며 내부 children 스택을 갖는다. 조건이 참일 때만 내부를 실행한다. 조건 뒤의 next는 컨테이너 밖에서 이어진다.
+- if/else는 then과 else의 독립 스택.
+- 반복은 제한된 횟수의 C자형 블록으로만 제공한다. 무한 반복 금지.
+- 이벤트 안에 조건, 조건 안에 동작, 조건 다음에 후속 동작을 연결할 수 있어야 한다. 단순히 들여쓰기나 색만 바꾼 것은 중첩 구현이 아니다.
+- 이벤트는 최상위, 값 블록은 값 슬롯, 조건/제어 컨테이너는 statement 스택에만 놓을 수 있다.
+
+## 15-4. 프로젝트 JSON v2
+권장 구조:
+~~~json
+{
+  "schema_version": 2,
+  "variables": ["count"],
+  "roots": [
+    {
+      "id": "uuid",
+      "type": "event_message_create",
+      "fields": {"channel_filter": ""},
+      "next": {
+        "id": "uuid",
+        "type": "control_if",
+        "fields": {"condition": "contains", "keyword": "안녕"},
+        "children": [
+          {"id": "uuid", "type": "action_reply", "fields": {"content": "안녕하세요!"}}
+        ],
+        "next": {"id": "uuid", "type": "action_log", "fields": {"message": "처리 완료"}}
+      }
+    }
+  ]
+}
+~~~
+- roots에는 event_*만 허용. 각 root의 next는 순서대로 연결되는 다음 statement.
+- 컨테이너의 children은 배열로 통일. if_else는 then과 else 배열.
+- control_if는 조건이 참일 때 children 실행. control_if_else는 then/else 분기.
+- control_repeat_count는 1~20회. 반복 중첩 2단계, 전체 실행 단계 50, 총 실행시간 15초.
+- ID는 UUID, 중복 금지. 트리 깊이 8, 전체 노드 50, JSON 200KB.
+- 기존 v1 blocks 배열은 읽을 수 있어야 한다. event_*부터 다음 event_* 전까지를 root의 next 체인으로 변환한다. 의미가 불명확한 조건 범위를 추측하지 않는다.
+- 저장은 v2. 로드는 v1/v2 모두 지원.
+
+## 15-5. 추가 블록 카탈로그
+기존 블록은 유지하고 아래 블록을 추가한다. 편집기, 검증기, 봇 실행기, 테스트의 이름과 필드는 반드시 동일해야 한다.
+
+### 조건
+- condition_member_is_bot
+- condition_member_has_role
+- condition_member_is_owner
+- condition_message_contains_any
+- condition_message_contains_all
+- condition_variable_compare (equal/not_equal/greater/less/contains)
+- condition_time_range (명시된 서버 시간대 기준)
+- condition_has_permission
+- condition_channel_is
+
+### 동작
+- action_edit_message: 현재 이벤트 또는 지정 메시지 수정, 같은 서버/채널 검증.
+- action_create_channel: Manage Channels 권한, 이름/종류/카테고리 검증.
+- action_set_channel_topic: Manage Channels 권한, 주제 길이 제한.
+- action_timeout_member: Moderate Members 권한, 기간 상한, 서버 소속/역할 계층 확인.
+- action_remove_timeout: 권한과 역할 계층 확인.
+- action_create_poll: Discord poll 지원 여부 확인 후 생성.
+- 기존 메시지/임베드/답장/역할/경고/삭제/반응/DM/닉네임/스레드/고정/슬로우모드/로그 동작 유지.
+
+### 제어와 변수
+- control_if, control_if_else, control_repeat_count.
+- data_get_variable.
+- 기존 wait/stop/cooldown/random 및 변수 변경/추가/수학 블록 유지.
+- 백그라운드 무제한 실행이나 병렬 무제한 실행 금지.
+
+## 15-6. 봇 런타임
+- 기존 Discord client와 listener를 재사용하고 기존 명령어·검열·경고·공지 기능을 덮어쓰지 않는다.
+- v2 트리를 깊이 우선으로 실행한다. 모든 노드는 allowlist 검증.
+- 이벤트 root만 이벤트와 매칭한다. 각 root는 독립 실행하며 동시 실행 제한 적용.
+- if/if_else의 children/then/else는 제한된 컨텍스트로 실행.
+- 모든 동작 직전에 서버 소속, 채널/역할 ID, Discord 권한, 역할 계층, 길이를 재검증.
+- 저장된 마지막 유효 프로젝트만 실행. 잘못된 node는 해당 실행만 실패 처리.
+- v1은 안전한 변환 후 검증. 모호하면 실행하지 말고 로그에 기록.
+- 128MB 환경 최적화: 새 봇 프로세스/클라이언트/워커 금지, 제한된 캐시, 이벤트 기반, 제한된 동시성.
+
+## 15-7. 테스트
+- 1920×1080, 1366×768, 768px, 390px, 360px에서 가로 overflow 0.
+- 카테고리, 검색, drag/drop, 우클릭 패닝, zoom, 모바일 pinch, 값/변수 슬롯 삽입.
+- 이벤트 내부 연결, 조건 내부 children, 조건 다음 next, if/else 두 분기.
+- 저장/재로드 후 구조·순서·필드 보존. v1→v2 마이그레이션.
+- 양 테마 모든 페이지의 CTA/입력/모달/푸터/로고 대비.
+- 50노드 초과, 깊이 8 초과, 200KB 초과, 미지원 type, 중복 ID, 다른 서버 ID 거부.
+- 실제 미구현 기능을 완료했다고 보고하지 않는다. 소스 점검과 실제 브라우저 시각 테스트를 구분해 보고한다.
