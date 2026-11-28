@@ -335,7 +335,7 @@
 
 /* TEND BLOCKS - Blockly powered visual programming workspace */
 .bl-editor-app{grid-template-columns:minmax(0,1fr) 250px}
-.bl-editor-sidebar{display:none!important}
+
 .bl-editor-main{min-width:0}
 .bl-blockly-workspace{touch-action:none;background:var(--bl-bg)}
 #blocklyDiv{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
