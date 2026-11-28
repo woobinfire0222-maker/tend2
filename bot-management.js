@@ -59,6 +59,7 @@
     ]]
   ];
   const features = [
+    ["moderation","자동검열","금지어·반복 메시지·초대 링크 등 서버 채팅 자동 검사"],
     ["tickets","티켓봇","패널, 담당 역할, 양식, 종료·재개 및 기록"],
     ["polls","투표","복수 선택, 익명 여부, 마감 시간 및 결과"],
     ["welcome","환영 메시지","입장 안내, 채널, 임베드 및 이미지"],
@@ -581,8 +582,36 @@
     const q=await sb.from("server_feature_settings").select("feature_key,settings,enabled").eq("server_id",sid());
     if(q.error){box.innerHTML='<div class="empty">기능 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>';return;}
     const rows=new Map((q.data||[]).map(r=>[r.feature_key,r]));
-    box.innerHTML=features.map(f=>{const r=rows.get(f[0]),enabled=!!r?.enabled;return '<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>'+escapeHtml(f[1])+'</strong><small>'+escapeHtml(f[2])+'</small></div><span class="badge '+(enabled?"green":"")+'">'+(enabled?"사용 중":"중지")+'</span></div><button type="button" class="btn btn-light" data-feature-edit="'+f[0]+'">자세히 설정 <span>→</span></button></article>';}).join("");
-    $$("[data-feature-edit]").forEach(btn=>btn.addEventListener("click",()=>{const key=btn.dataset.featureEdit,feature=features.find(f=>f[0]===key),r=rows.get(key);void openFeatureEditor(key,feature,r?.settings||{},!!r?.enabled);}));
+    box.innerHTML=features.map(f=>{
+      const r=rows.get(f[0]),enabled=!!r?.enabled;
+      return '<article class="feature-setting-card"><div class="feature-setting-head"><div><strong>'+escapeHtml(f[1])+'</strong><small>'+escapeHtml(f[2])+'</small></div><span class="badge '+(enabled?"green":"")+'" data-feature-state="'+f[0]+'">'+(enabled?"사용 중":"중지")+'</span></div><div class="feature-setting-actions"><label class="feature-toggle" aria-label="'+escapeHtml(f[1])+' 사용 여부"><input type="checkbox" data-feature-toggle="'+f[0]+'" '+(enabled?"checked":"")+'><span class="feature-toggle-track"></span></label><button type="button" class="btn btn-light" data-feature-edit="'+f[0]+'">세부 설정 <span>→</span></button></div></article>';
+    }).join("");
+    $$("[data-feature-edit]").forEach(btn=>btn.addEventListener("click",()=>{
+      const key=btn.dataset.featureEdit,feature=features.find(f=>f[0]===key),r=rows.get(key);
+      void openFeatureEditor(key,feature,r?.settings||{},!!r?.enabled);
+    }));
+    $$("[data-feature-toggle]").forEach(toggle=>toggle.addEventListener("change",async()=>{
+      const key=toggle.dataset.featureToggle,feature=features.find(f=>f[0]===key),row=rows.get(key),nextEnabled=toggle.checked;
+      toggle.disabled=true;
+      const card=toggle.closest(".feature-setting-card");
+      const badge=card?.querySelector("[data-feature-state]");
+      if(badge){badge.textContent="적용 중…";badge.className="badge amber";}
+      const saved=await sb.from("server_feature_settings").upsert({
+        server_id:sid(),feature_key:key,settings:row?.settings||{},enabled:nextEnabled,updated_at:new Date().toISOString()
+      },{onConflict:"server_id,feature_key"});
+      if(saved.error){
+        console.error("Feature toggle update failed:",saved.error);
+        toggle.checked=!nextEnabled;
+        if(badge){badge.textContent=row?.enabled?"사용 중":"중지";badge.className="badge "+(row?.enabled?"green":"");}
+        notify("기능 상태를 변경하지 못했어요: "+(saved.error.message||"잠시 후 다시 시도해 주세요."));
+        toggle.disabled=false;
+        return;
+      }
+      if(badge){badge.textContent=nextEnabled?"사용 중":"중지";badge.className="badge "+(nextEnabled?"green":"");}
+      toggle.disabled=false;
+      notify(feature[1]+" 기능을 "+(nextEnabled?"켰어요.":"껐어요."));
+      await loadFeatures();
+    }));
   }
   async function loadJobs() {
     const t=$("#bot-jobs-list");if(!t||!sid())return;
