@@ -105,6 +105,10 @@ value_text:{value:"텍스트"},value_number:{value:"0"},value_variable:{variable
    else if(dragSource.kind==="new"&&dragSource.type==="value_text")input.value="텍스트";
    else if(dragSource.kind==="new"&&dragSource.type==="value_number")input.value="0";
    else if(dragSource.kind==="new"&&dragSource.type==="value_variable")input.value="{{변수명}}";
+   else if(dragSource.kind==="new"&&dragSource.type==="value_user_name")input.value="{{user_name}}";
+   else if(dragSource.kind==="new"&&dragSource.type==="value_server_name")input.value="{{server_name}}";
+   else if(dragSource.kind==="new"&&dragSource.type==="value_channel_name")input.value="{{channel_name}}";
+   else if(dragSource.kind==="new"&&dragSource.type==="value_current_time")input.value="{{current_time}}";
    block.fields[field.key]=input.value;markDirty();
   });
   wrap.append(input);return wrap;
