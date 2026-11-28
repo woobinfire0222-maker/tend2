@@ -17,15 +17,6 @@
     discordName(user){const m=user?.user_metadata||{};const d=(user?.identities||[]).find(x=>x.provider==="discord")?.identity_data||{};return m.global_name||m.user_name||m.preferred_username||m.username||d.global_name||d.username||d.preferred_username||"Discord 사용자";},
     async syncGuilds(session){const token=session?.provider_token;if(!token)return false;const {data,error}=await sb.functions.invoke("discord-action",{body:{action:"cache_guilds",provider_token:token}});if(error||data?.error){console.warn("Discord guild cache failed",error||data);return false;}return true;}
   };
-  api.applyTheme=()=>{
-    let dark=false;try{dark=localStorage.getItem("tend-theme")==="dark"}catch{}
-    document.documentElement.classList.toggle("theme-dark",dark);
-    document.querySelectorAll(".bl-theme-toggle").forEach(button=>{
-      button.textContent=dark?"☀":"◐";
-      button.setAttribute("aria-label",dark?"화이트 모드로 변경":"다크 모드로 변경");
-      button.setAttribute("aria-pressed",String(dark));
-    });
-  };
   api.logout=()=>{
     if(!sb)return;
     if(document.querySelector(".tend-account-confirm"))return;
@@ -47,22 +38,5 @@
     document.body.append(overlay);
     overlay.querySelector(".tend-logout-no").focus();
   };
-  const bindTheme=()=>{
-    api.applyTheme();
-    document.querySelectorAll(".bl-theme-toggle").forEach(button=>{
-      if(button.dataset.themeBound)return;button.dataset.themeBound="1";
-      button.addEventListener("click",()=>{
-        const dark=!document.documentElement.classList.contains("theme-dark");
-        try{localStorage.setItem("tend-theme",dark?"dark":"light")}catch{}
-        document.documentElement.classList.toggle("theme-dark",dark);
-        document.querySelectorAll(".bl-theme-toggle").forEach(item=>{
-          item.textContent=dark?"☀":"◐";
-          item.setAttribute("aria-label",dark?"화이트 모드로 변경":"다크 모드로 변경");
-          item.setAttribute("aria-pressed",String(dark));
-        });
-      });
-    });
-  };
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bindTheme,{once:true});else bindTheme();
   window.BLOCKS=api;
 })();
