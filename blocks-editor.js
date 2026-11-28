@@ -63,6 +63,7 @@
     if(f.kind==="value"||f.kind==="number"){
      const input=this.appendValueInput(f.key.toUpperCase()).appendField(f.label);
      input.setCheck(f.kind==="number"?"Number":"String");
+     input.connection.setShadowState(f.kind==="number"?{type:"value_number",fields:{NUMBER:0}}:{type:"value_text",fields:{TEXT:f.placeholder||"텍스트 입력"}});
     }else if(f.kind==="select"){
      this.appendDummyInput("FIELD_"+f.key).appendField(f.label).appendField(new Blockly.FieldDropdown(f.options),f.key.toUpperCase());
     }else{
