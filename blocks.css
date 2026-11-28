@@ -521,3 +521,28 @@ body.bl-editor-page{height:100vh;height:100dvh;min-height:0;display:flex;flex-di
   }
   .bl-editor-page .bl-editor-inspector{display:none}
 }
+
+
+/* BLOCKS: put the real Blockly toolbox in the dedicated left library panel */
+.bl-editor-page .bl-editor-app{grid-template-columns:190px minmax(0,1fr) 214px!important}
+.bl-editor-page .bl-editor-sidebar{display:flex!important;flex-direction:column;min-width:0;overflow:hidden}
+.bl-editor-page .bl-toolbox-holder{position:relative;display:flex;flex:1 1 0;min-height:100px;min-width:0;overflow:hidden;border:1px solid var(--bl-line);border-radius:10px;background:#fff}
+.bl-editor-page .bl-toolbox-holder>.blocklyToolboxDiv{position:relative!important;inset:auto!important;left:auto!important;top:auto!important;width:100%!important;height:100%!important;max-height:100%!important;overflow:auto!important;border:0!important;box-sizing:border-box}
+.bl-editor-page .bl-toolbox-holder .blocklyTreeRoot{padding:5px 3px}
+.bl-editor-page .bl-toolbox-holder .blocklyTreeRow{width:calc(100% - 8px);box-sizing:border-box}
+.bl-editor-page .bl-editor-sidebar .bl-manager-launch{display:grid;gap:7px;flex:0 0 auto;padding:7px 1px 1px}
+.bl-editor-page .bl-editor-sidebar .bl-manager-launch .bl-editor-panel-head{padding:2px 0 0;border:0;margin:0}
+.bl-editor-page .bl-editor-sidebar .bl-manager-launch p{font-size:10px;line-height:1.45}
+.bl-editor-page .bl-editor-sidebar .bl-manager-launch button{width:100%;cursor:pointer}
+@media(max-width:1100px){
+ .bl-editor-page .bl-editor-app{grid-template-columns:174px minmax(0,1fr)!important}
+}
+@media(max-width:700px){
+ .bl-editor-page .bl-editor-app{display:flex!important;flex-direction:column}
+ .bl-editor-page .bl-editor-sidebar{max-height:180px;flex:0 0 180px;padding:8px}
+ .bl-editor-page .bl-toolbox-holder{min-height:65px}
+ .bl-editor-page .bl-editor-sidebar .bl-manager-launch{grid-template-columns:auto 1fr auto;align-items:center;padding-top:4px}
+ .bl-editor-page .bl-editor-sidebar .bl-manager-launch p{display:none}
+ .bl-editor-page .bl-editor-sidebar .bl-manager-launch .bl-editor-panel-head{font-size:10px}
+ .bl-editor-page .bl-editor-sidebar .bl-manager-launch button{width:auto;padding:6px 9px}
+}
