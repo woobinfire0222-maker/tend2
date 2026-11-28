@@ -18,8 +18,8 @@
   {type:"action_remove_role",group:"동작",kind:"action",label:"역할 회수하기",fields:[{key:"role_id",label:"회수할 역할",placeholder:"역할 선택",kind:"role",full:true}]},
   {type:"action_warn",group:"동작",kind:"action",label:"사용자에게 경고하기",fields:[{key:"reason",label:"경고 사유",placeholder:"경고 사유",kind:"textarea",full:true}]},
   {type:"control_wait",group:"제어",kind:"control",label:"잠시 기다리기",fields:[{key:"seconds",label:"대기 시간 (초, 최대 10)",placeholder:"1",kind:"number"}]},
-  {type:"data_set_variable",group:"변수",kind:"data",label:"변수에 값 저장하기",fields:[{key:"variable",label:"변수 이름",placeholder:"변수명",kind:"text"},{key:"value",label:"저장할 값",placeholder:"값 또는 {{변수명}}",kind:"value"}]},
-  {type:"data_change_variable",group:"변수",kind:"data",label:"변수 값 변경하기",fields:[{key:"variable",label:"변수 이름",placeholder:"변수명",kind:"text"},{key:"amount",label:"변경할 값",placeholder:"1",kind:"number"}]}
+  {type:"data_set_variable",group:"변수",kind:"data",label:"변수에 값 저장하기",fields:[{key:"variable",label:"변수",kind:"variable"},{key:"value",label:"저장할 값",placeholder:"값 블록 연결",kind:"value"}]},
+  {type:"data_change_variable",group:"변수",kind:"data",label:"변수 값 변경하기",fields:[{key:"variable",label:"변수",kind:"variable"},{key:"amount",label:"변경할 값",placeholder:"1",kind:"number"}]}
 ,
 {type:"event_message_edit",group:"이벤트",kind:"event",label:"메시지가 수정되면",fields:[]},
   {type:"event_message_delete",group:"이벤트",kind:"event",label:"메시지가 삭제되면",fields:[]},
@@ -43,11 +43,18 @@
   {type:"control_stop",group:"제어",kind:"control",label:"현재 자동화 즉시 중단",fields:[]},
   {type:"control_cooldown",group:"제어",kind:"control",label:"사용자별 쿨다운 적용",fields:[{key:"seconds",label:"쿨다운 (초)",placeholder:"30",kind:"number"}]},
   {type:"control_random",group:"제어",kind:"control",label:"확률 조건으로 분기",fields:[{key:"chance",label:"성공 확률 (%)",placeholder:"50",kind:"number"}]},
-  {type:"data_append_variable",group:"변수",kind:"data",label:"변수 뒤에 텍스트 이어붙이기",fields:[{key:"variable",label:"변수 이름",placeholder:"message",kind:"text"},{key:"text",label:"추가할 텍스트",placeholder:"내용",kind:"value"}]},
+  {type:"data_append_variable",group:"변수",kind:"data",label:"변수 뒤에 텍스트 이어붙이기",fields:[{key:"variable",label:"변수",kind:"variable"},{key:"text",label:"추가할 텍스트",placeholder:"내용",kind:"value"}]},
   {type:"data_math_variable",group:"변수",kind:"data",label:"숫자 변수 계산하기",fields:[{key:"variable",label:"변수",kind:"variable"},{key:"operator",label:"계산",kind:"select",options:[["add","더하기"],["subtract","빼기"],["multiply","곱하기"],["divide","나누기"]]},{key:"amount",label:"숫자",placeholder:"1",kind:"number"}]},
   {type:"value_text",group:"값",kind:"value",label:"텍스트 값",fields:[{key:"value",label:"텍스트",placeholder:"텍스트 입력",kind:"text"}]},
   {type:"value_number",group:"값",kind:"value",label:"숫자 값",fields:[{key:"value",label:"숫자",placeholder:"0",kind:"number"}]},
-  {type:"value_variable",group:"값",kind:"value",label:"변수 값",fields:[{key:"variable",label:"변수 이름",placeholder:"변수 선택",kind:"text"}]},
+  {type:"value_variable",group:"값",kind:"value",label:"변수 값",fields:[{key:"variable",label:"변수",kind:"variable"}]},
+  {type:"event_signal",group:"신호",kind:"event",label:"신호를 받았을 때",fields:[{key:"signal_id",label:"신호",kind:"signal"}]},
+  {type:"data_broadcast_signal",group:"신호",kind:"data",label:"신호 보내기",fields:[{key:"signal_id",label:"신호",kind:"signal"}]},
+  {type:"value_math",group:"계산",kind:"value",label:"계산",fields:[]},
+  {type:"value_join",group:"값",kind:"value",label:"문장 이어 붙이기",fields:[]},
+  {type:"value_date",group:"값",kind:"value",label:"현재 날짜",fields:[]},
+  {type:"value_command_user",group:"값",kind:"value",label:"명령어 실행자",fields:[]},
+  {type:"value_command_option",group:"값",kind:"value",label:"명령어 옵션 값",fields:[{key:"option_id",label:"옵션",kind:"command_option"}]},
   {type:"value_user_name",group:"값",kind:"value",label:"이벤트 사용자 이름",fields:[]},
   {type:"value_server_name",group:"값",kind:"value",label:"현재 서버 이름",fields:[]},
   {type:"value_channel_name",group:"값",kind:"value",label:"현재 채널 이름",fields:[]},
@@ -66,7 +73,7 @@
    (d.fields||[]).forEach(f=>{
     if(f.kind==="value"||f.kind==="number"){
      const input=this.appendValueInput(f.key.toUpperCase()).appendField(f.label);
-     input.setCheck(f.kind==="number"?"Number":"String");
+     input.setCheck(f.kind==="number"?"Number":null);
      input.connection.setShadowState(f.kind==="number"?{type:"value_number",fields:{NUMBER:0}}:{type:"value_text",fields:{TEXT:f.placeholder||"텍스트 입력"}});
     }else if(["variable","signal","slash_command","command_option"].includes(f.kind)){
      this.appendDummyInput("FIELD_"+f.key).appendField(f.label).appendField(new Blockly.FieldDropdown(()=>managedOptions(f.kind)),f.key.toUpperCase());
@@ -139,10 +146,20 @@
   workspace.getAllBlocks(false).forEach(b=>["VARIABLE","SIGNAL_ID","COMMAND_ID","OPTION_ID"].forEach(key=>{const field=b.getField(key);if(field)try{field.menuGenerator_=()=>managedOptions(key==="VARIABLE"?"variable":key==="SIGNAL_ID"?"signal":key==="COMMAND_ID"?"slash_command":"command_option");}catch{}}));
  }
  function initBlockly(){
+  Object.assign(Blockly.Msg,{
+   DUPLICATE_BLOCK:"블록 복제",ADD_COMMENT:"주석 추가",REMOVE_COMMENT:"주석 삭제",DUPLICATE_COMMENT:"주석 복제",
+   INLINE_INPUTS:"입력값 가로로 정렬",EXTERNAL_INPUTS:"입력값 세로로 정렬",
+   COLLAPSE_BLOCK:"블록 접기",EXPAND_BLOCK:"블록 펼치기",DISABLE_BLOCK:"블록 비활성화",ENABLE_BLOCK:"블록 활성화",
+   DELETE_BLOCK:"블록 삭제",DELETE_X_BLOCKS:"블록 %1개 삭제",HELP:"도움말",
+   UNDO:"실행 취소",REDO:"다시 실행",CLEAN_UP:"블록 정렬",DELETE_ALL_BLOCKS:"모든 블록 삭제",
+   PASTE_BLOCK:"블록 붙여넣기",CUT:"잘라내기",COPY:"복사",PASTE:"붙여넣기",
+   COPY_TO_CLIPBOARD:"클립보드에 복사",DUPLICATE:"복제",COMMENT:"주석"
+  });
   definitions.forEach(blockDef);registerSpecialBlocks();
   workspace=Blockly.inject("blocklyDiv",{toolbox:buildToolbox(),renderer:"zelos",theme:Blockly.Theme.defineTheme("tendBlocks",{base:Blockly.Themes.Classic,componentStyles:{workspaceBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#101a27":"#f6f8fc",toolboxBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#172333":"#ffffff",toolboxForegroundColour:document.documentElement.classList.contains("theme-dark")?"#edf3fb":"#172033",flyoutBackgroundColour:document.documentElement.classList.contains("theme-dark")?"#1b293a":"#ffffff",flyoutForegroundColour:document.documentElement.classList.contains("theme-dark")?"#edf3fb":"#172033",flyoutOpacity:1,scrollbarColour:"#8b9bb3",insertionMarkerColour:"#3978f6",insertionMarkerOpacity:.35,markerColour:"#3978f6",cursorColour:"#3978f6"}}),grid:{spacing:20,length:2,colour:document.documentElement.classList.contains("theme-dark")?"#344153":"#dce3ed",snap:true},zoom:{controls:true,wheel:true,startScale:.84,maxScale:1.55,minScale:.5,scaleSpeed:1.1},move:{scrollbars:true,drag:true,wheel:true},trashcan:true,renderer:"zelos",sounds:false,oneBasedIndex:false});
-  workspace.addChangeListener(e=>{if(e.type==="viewport_change"){const flyout=workspace.getFlyout?.()?.getWorkspace?.();if(flyout&&flyout.scale!==1)flyout.setScale(1);}if(e.isUiEvent||e.type==="ui")return;markDirty();$("#blocks-count").textContent=workspace.getAllBlocks(false).length+" / 50";});
-  requestAnimationFrame(()=>{const flyout=workspace.getFlyout?.()?.getWorkspace?.();if(flyout&&flyout.scale!==1)flyout.setScale(1);});
+  const keepFlyoutAtDefaultScale=()=>{const flyout=workspace.getFlyout?.();if(!flyout)return;if(typeof flyout.setScale==="function")flyout.setScale(1);else{const flyoutWorkspace=flyout.getWorkspace?.();if(flyoutWorkspace&&flyoutWorkspace.scale!==1)flyoutWorkspace.setScale(1);}};
+  workspace.addChangeListener(e=>{if(e.type==="viewport_change")requestAnimationFrame(keepFlyoutAtDefaultScale);if(e.isUiEvent||e.type==="ui")return;markDirty();$("#blocks-count").textContent=workspace.getAllBlocks(false).length+" / 50";});
+  requestAnimationFrame(keepFlyoutAtDefaultScale);
   $("#blocks-undo").addEventListener("click",()=>workspace.undo(false));
   $("#blocks-redo").addEventListener("click",()=>workspace.undo(true));
   $("#blocks-cleanup").addEventListener("click",()=>workspace.cleanUp());
