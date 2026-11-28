@@ -10,7 +10,7 @@
   {type:"condition_contains",group:"조건",kind:"condition",label:"메시지에 단어가 포함되면",fields:[{key:"keyword",label:"찾을 단어",placeholder:"예: 안녕하세요",kind:"value",full:true}]},
   {type:"condition_has_role",group:"조건",kind:"condition",label:"사용자가 역할을 가지고 있으면",fields:[{key:"role_id",label:"역할",placeholder:"역할 선택",kind:"role",full:true}]},
   {type:"action_send_message",group:"동작",kind:"action",label:"메시지 보내기",fields:[{key:"channel_id",label:"보낼 채널",placeholder:"채널 선택",kind:"channel"},{key:"content",label:"메시지 내용",placeholder:"보낼 내용을 입력해 주세요.",kind:"textarea",full:true},{key:"mention_mode",label:"멘션 방식",kind:"select",options:[["none","멘션 없음"],["everyone","@everyone"],["here","@here"],["user","특정 사용자"],["role","특정 역할"]]},{key:"mention_id",label:"멘션 대상 ID",placeholder:"사용자 또는 역할 ID",kind:"text"},{key:"delete_after_seconds",label:"자동 삭제 (초)",placeholder:"사용 안 함",kind:"number"},{key:"thread_mode",label:"스레드",kind:"select",options:[["none","사용 안 함"],["create","새 스레드"],["reply","기존 스레드"]] }]},
-  {type:"action_send_embed",group:"동작",kind:"action",label:"임베드 메시지 보내기",fields:[{key:"channel_id",label:"보낼 채널 ID",placeholder:"채널 ID",kind:"text"},{key:"embed_title",label:"제목",placeholder:"임베드 제목",kind:"text"},{key:"author",label:"작성자 표시",placeholder:"선택 입력",kind:"text"},{key:"description",label:"설명",placeholder:"임베드 본문",kind:"textarea",full:true},{key:"color",label:"색상 HEX",placeholder:"#356DF3",kind:"text"},{key:"footer",label:"하단 문구",placeholder:"선택 입력",kind:"text"},{key:"title_url",label:"제목 링크",placeholder:"https://",kind:"text"},{key:"thumbnail_url",label:"썸네일 URL",placeholder:"https://",kind:"text"},{key:"image_url",label:"큰 이미지 URL",placeholder:"https://",kind:"text"},{key:"timestamp",label:"시간 표시",kind:"select",options:[["false","표시 안 함"],["true","현재 시간 표시"]]}]},
+  {type:"action_send_embed",group:"동작",kind:"action",label:"임베드 메시지 보내기",fields:[{key:"channel_id",label:"보낼 채널",placeholder:"채널 선택",kind:"channel"},{key:"embed_title",label:"제목",placeholder:"임베드 제목",kind:"text"},{key:"author",label:"작성자 표시",placeholder:"선택 입력",kind:"text"},{key:"description",label:"설명",placeholder:"임베드 본문",kind:"textarea",full:true},{key:"color",label:"색상 HEX",placeholder:"#356DF3",kind:"text"},{key:"footer",label:"하단 문구",placeholder:"선택 입력",kind:"text"},{key:"title_url",label:"제목 링크",placeholder:"https://",kind:"text"},{key:"thumbnail_url",label:"썸네일 URL",placeholder:"https://",kind:"text"},{key:"image_url",label:"큰 이미지 URL",placeholder:"https://",kind:"text"},{key:"timestamp",label:"시간 표시",kind:"select",options:[["false","표시 안 함"],["true","현재 시간 표시"]]}]},
   {type:"action_reply",group:"동작",kind:"action",label:"메시지에 답장하기",fields:[{key:"content",label:"답장 내용",placeholder:"답장 내용을 입력해 주세요.",kind:"textarea",full:true},{key:"reply_target",label:"답장 대상",kind:"select",options:[["event_message","현재 이벤트 메시지"],["latest_message","가장 최근 메시지"],["message_id","직접 지정한 메시지 ID"]]},{key:"target_message_id",label:"메시지 ID",placeholder:"직접 지정할 때 입력",kind:"text"},{key:"fallback",label:"대상 메시지가 없을 때",kind:"select",options:[["send_new","새 메시지로 전송"],["skip","동작 건너뛰기"]]},{key:"mention_author",label:"작성자 멘션",kind:"select",options:[["false","멘션하지 않음"],["true","작성자 멘션"]]}]},
   {type:"action_add_role",group:"동작",kind:"action",label:"역할 지급하기",fields:[{key:"role_id",label:"지급할 역할",placeholder:"역할 선택",kind:"role",full:true}]},
   {type:"action_remove_role",group:"동작",kind:"action",label:"역할 회수하기",fields:[{key:"role_id",label:"회수할 역할",placeholder:"역할 선택",kind:"role",full:true}]},
@@ -52,7 +52,7 @@
   {type:"value_current_time",group:"값",kind:"value",label:"현재 시간",fields:[]}
  ];
  const byType=Object.fromEntries(definitions.map(d=>[d.type,d]));
- let user,project,server,blocks=[],variables=[],resources={channels:[],roles:[]},dragSource=null,dirty=false;
+ let user,project,server,blocks=[],variables=[],resources={channels:[],roles:[]},dragSource=null,dirty=false,activeValueInput=null;
  const defaults={event_message_create:{channel_filter:""},condition_contains:{keyword:""},condition_has_role:{role_id:""},action_send_message:{channel_id:"",content:"",mention_mode:"none",mention_id:"",delete_after_seconds:"",thread_mode:"none"},action_send_embed:{channel_id:"",embed_title:"",author:"",description:"",color:"#356DF3",footer:"",title_url:"",thumbnail_url:"",image_url:"",timestamp:"false"},action_reply:{content:"",reply_target:"event_message",target_message_id:"",fallback:"send_new",mention_author:"false"},action_add_role:{role_id:""},action_remove_role:{role_id:""},action_warn:{reason:""},control_wait:{seconds:"1"},data_set_variable:{variable:"",value:""},data_change_variable:{variable:"",amount:"1"}};
 
 Object.assign(defaults,{
@@ -70,7 +70,7 @@ value_text:{value:"텍스트"},value_number:{value:"0"},value_variable:{variable
   definitions.forEach(def=>{
    if(def.group!==group){group=def.group;const heading=document.createElement("div");heading.className="bl-palette-group";heading.textContent=group;palette.append(heading);}
    const button=document.createElement("button");button.type="button";button.className="bl-palette-block "+def.kind;button.draggable=true;button.dataset.type=def.type;button.textContent=def.label;
-   button.addEventListener("click",()=>addBlock(def.type));button.addEventListener("dragstart",e=>{dragSource={kind:"new",type:def.type};e.dataTransfer.effectAllowed="copy";e.dataTransfer.setData("text/plain",def.type);});
+   button.addEventListener("click",()=>{if(def.kind==="value"&&activeValueInput){insertValue(def.type,activeValueInput);return;}addBlock(def.type);});button.addEventListener("dragstart",e=>{dragSource={kind:"new",type:def.type};e.dataTransfer.effectAllowed="copy";e.dataTransfer.setData("text/plain",def.type);});
    palette.append(button);
   });
  }
@@ -87,6 +87,13 @@ value_text:{value:"텍스트"},value_number:{value:"0"},value_variable:{variable
   if(blocks.length>=50){window.BLOCKS.notify("프로젝트에는 최대 50개 블록까지 추가할 수 있어요.");return;}
   const block=makeBlock(type);if(Number.isInteger(index))blocks.splice(index,0,block);else blocks.push(block);renderBlocks();markDirty();
  }
+ function insertValue(type,input){
+  const tokens={value_text:"텍스트",value_number:"0",value_variable:"{{변수명}}",value_user_name:"{{user_name}}",value_server_name:"{{server_name}}",value_channel_name:"{{channel_name}}",value_current_time:"{{current_time}}"};
+  if(!(type in tokens)||!input)return;
+  input.value=tokens[type];const card=input.closest(".bl-workspace-block"),block=blocks.find(x=>x.id===card?.dataset.id);
+  if(block){block.fields[input.dataset.key]=input.value;markDirty();}
+  input.focus();
+ }
  function fieldElement(block,field){
   const wrap=document.createElement("label");wrap.className="bl-block-field"+(field.full?" full":"");
   const title=document.createElement("span");title.textContent=field.label;wrap.append(title);
@@ -95,7 +102,7 @@ value_text:{value:"텍스트"},value_number:{value:"0"},value_variable:{variable
   else if(field.kind==="select"){input=document.createElement("select");(field.options||[]).forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;input.append(option);});input.value=block.fields[field.key]??(field.options?.[0]?.[0]||"");}
   else if(field.kind==="channel"||field.kind==="role"){const items=resources[field.kind==="channel"?"channels":"roles"]||[];if(items.length){input=document.createElement("select");const first=document.createElement("option");first.value="";first.textContent=field.kind==="channel"?"채널을 선택해 주세요":"역할을 선택해 주세요";input.append(first);items.forEach(item=>{const option=document.createElement("option");option.value=item.id;option.textContent=(field.kind==="channel"?"#":"@")+item.name;input.append(option);});const current=block.fields[field.key]||"";if(current&&!items.some(item=>item.id===current)){const extra=document.createElement("option");extra.value=current;extra.textContent="저장된 ID · "+current;input.append(extra);}input.value=current;}else{input=document.createElement("input");input.type="text";input.placeholder=field.placeholder+" (목록 동기화 필요)";input.value=block.fields[field.key]??"";}}
   else{input=document.createElement("input");input.type=field.kind==="number"?"number":"text";input.placeholder=field.placeholder||"";input.value=block.fields[field.key]??"";if(field.kind==="number"){input.min="0";input.max=field.key==="seconds"?"10":"86400";}}
-  input.className="block-field-input";input.dataset.key=field.key;input.dataset.kind=field.kind;input.addEventListener("input",()=>{block.fields[field.key]=input.value;markDirty();});
+  input.className="block-field-input";input.dataset.key=field.key;input.dataset.kind=field.kind;if(field.kind==="value")input.addEventListener("focus",()=>{activeValueInput=input;});input.addEventListener("input",()=>{block.fields[field.key]=input.value;markDirty();});
   input.addEventListener("change",()=>{block.fields[field.key]=input.value;markDirty();});
   input.addEventListener("dragover",e=>{if(field.kind==="value"&&dragSource){e.preventDefault();input.style.outline="2px solid #356df3";}});
   input.addEventListener("dragleave",()=>{input.style.outline="";});
