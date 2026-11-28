@@ -395,3 +395,31 @@ html.theme-dark .bl-resource-tools button{background:#243246;border-color:#40536
  .bl-canvas-toolbar{height:35px;padding:0 7px}
  .bl-canvas-tools button{height:24px;min-width:24px;padding:0 5px}
 }
+
+/* Mobile viewport-safe Blockly editor layout */
+body.bl-editor-page{height:100vh;height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.bl-editor-page .bl-editor-top{position:relative;top:auto;flex:0 0 auto;height:auto;min-height:54px}
+.bl-editor-page .bl-editor-app{flex:1 1 0;height:auto!important;min-height:0!important;max-height:none;overflow:hidden}
+.bl-editor-page .bl-editor-main{display:flex;flex-direction:column;min-height:0;height:100%;overflow:hidden}
+.bl-editor-page .bl-canvas-toolbar{flex:0 0 39px;min-height:0}
+.bl-editor-page .bl-blockly-workspace{position:relative;flex:1 1 0;height:auto;min-height:0!important;overflow:hidden}
+.bl-editor-page #blocklyDiv{position:absolute;inset:0;width:100%;height:100%}
+@media(max-width:700px){
+ body.bl-editor-page{height:100dvh;overflow:hidden}
+ .bl-editor-page .bl-editor-top{width:100%;gap:6px}
+ .bl-editor-page .bl-editor-title{width:auto;flex:1 1 100%;min-width:0}
+ .bl-editor-page .bl-editor-actions{width:100%;display:flex;justify-content:flex-end;flex-wrap:wrap}
+ .bl-editor-page .bl-editor-app{flex:1 1 0;height:auto!important;min-height:0!important;padding:4px;gap:4px}
+ .bl-editor-page .bl-editor-main{flex:1 1 0;min-height:0}
+ .bl-editor-page .bl-canvas-toolbar{height:34px;flex-basis:34px;min-height:34px;padding:0 5px}
+ .bl-editor-page .bl-canvas-toolbar>div:first-child{min-width:55px}
+ .bl-editor-page .bl-canvas-tools{gap:2px}
+ .bl-editor-page .bl-canvas-tools button{height:24px;min-width:23px;padding:0 4px}
+ .bl-editor-page .bl-blockly-workspace{flex:1 1 0;min-height:0!important}
+ .bl-editor-page .blocklyToolboxDiv{max-width:108px}
+}
+@media(max-height:520px) and (max-width:900px){
+ .bl-editor-page .bl-editor-top{padding-top:4px;padding-bottom:4px}
+ .bl-editor-page .bl-editor-title .bl-brand img{width:22px;height:22px}
+ .bl-editor-page .bl-editor-actions .bl-btn{min-height:23px;padding:3px 6px}
+}
