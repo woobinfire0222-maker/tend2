@@ -341,3 +341,128 @@ eval, exec, compile, 임의 Python/JavaScript, 동적 import, 쉘 명령, 임의
 - 양 테마 모든 페이지의 CTA/입력/모달/푸터/로고 대비.
 - 50노드 초과, 깊이 8 초과, 200KB 초과, 미지원 type, 중복 ID, 다른 서버 ID 거부.
 - 실제 미구현 기능을 완료했다고 보고하지 않는다. 소스 점검과 실제 브라우저 시각 테스트를 구분해 보고한다.
+
+
+---
+
+# 16. Blockly / Entry·Scratch 방식 편집기와 런타임 호환성 (필수)
+
+TEND BLOCKS 편집기는 Google Blockly 엔진을 사용해 Entry·Scratch 계열의 실제 연결형 블록 편집기로 전환되었다. 봇 런타임은 편집기가 저장하는 schema_version 2 구조를 읽어야 한다. 예전 평면형 v1 배열만 읽는 구현으로 끝내지 않는다.
+
+## 16-1. 저장 JSON 계약
+
+최상위 구조:
+~~~json
+{
+  "schema_version": 2,
+  "variables": ["count"],
+  "roots": [
+    {
+      "id": "block-uuid",
+      "type": "event_message_create",
+      "fields": {},
+      "values": {},
+      "next": {
+        "id": "block-uuid",
+        "type": "control_if",
+        "fields": {},
+        "values": {
+          "CONDITION": {
+            "id": "block-uuid",
+            "type": "condition_contains",
+            "fields": {"keyword": "안녕"},
+            "values": {}
+          }
+        },
+        "children": [
+          {
+            "id": "block-uuid",
+            "type": "action_reply",
+            "fields": {"content": "안녕하세요!"},
+            "values": {}
+          }
+        ]
+      }
+    }
+  ]
+}
+~~~
+- roots는 이벤트 블록 배열이다. 이벤트가 아닌 블록을 root로 허용하지 않는다.
+- 각 statement node는 id, type, fields, values를 가진다. 다음 statement는 next 한 개로 연결된다.
+- values는 Blockly의 값 입력 소켓에 연결된 expression node를 입력 이름 기준으로 저장한다.
+- control_if / control_repeat_count는 children 배열을 가진다.
+- control_if_else는 children과 else_children 배열을 가진다.
+- 조건식은 values.CONDITION에 expression node로 저장한다.
+- 값 블록(value_text, value_number, value_variable, value_user_name, value_server_name, value_channel_name, value_current_time)은 statement가 아니며 values 안에서만 허용한다.
+- 편집기 필드 이름은 대문자 변환된 Blockly field name을 JSON fields의 키로 저장한다. 예: keyword → KEYWORD, channel_id → CHANNEL_ID, content → CONTENT. 기존 런타임의 소문자 fields 규약을 사용하려면 런타임 정규화 단계에서 대문자 키를 소문자로 변환하되, 충돌·중복 키를 거부한다.
+- 편집기에서 조건의 문장형 UI를 표현하더라도 실제 저장은 type, fields, values, children, next 구조로 저장한다.
+
+## 16-2. Blockly 타입별 런타임 의미
+- event_*: 최상위 이벤트 루트. 이벤트 종류와 일치할 때만 실행한다.
+- condition_*: Boolean expression. statement처럼 단독 실행하지 않는다. 부모 control_if의 values.CONDITION에서 평가한다.
+- control_if: CONDITION을 평가하고 true일 때 children을 순서대로 실행한다. false면 children을 건너뛰고 next로 이동한다.
+- control_if_else: true면 children, false면 else_children 중 하나만 실행한 후 next로 이동한다.
+- control_repeat_count: TIMES 필드 횟수만큼 children을 실행한다. 1~20회만 허용한다.
+- action_*: 명시된 Discord 동작만 실행한다.
+- data_*: 실행별 변수 컨텍스트만 변경한다.
+- value_*: 값 입력 위치에서만 평가한다. 허용된 문자열/숫자/변수 값만 반환한다.
+
+## 16-3. 조건식과 값식
+다음 condition_*는 Boolean을 반환한다.
+- condition_contains: fields.KEYWORD 또는 values의 연결 텍스트 값을 메시지 내용에 포함하는지 검사.
+- condition_has_role: fields.ROLE_ID의 역할을 이벤트 멤버가 보유하는지 검사.
+- condition_starts_with: fields.TEXT 또는 연결된 텍스트 값으로 시작하는지 검사.
+- condition_ends_with: fields.TEXT 또는 연결된 텍스트 값으로 끝나는지 검사.
+- condition_equals: fields.TEXT 또는 연결된 텍스트 값과 정확히 일치하는지 검사.
+- condition_channel_is: fields.CHANNEL_ID와 현재 채널 비교.
+- condition_has_attachment: fields.EXPECTED 기준 첨부파일 여부.
+- condition_is_bot: fields.EXPECTED 기준 작성자 봇 여부.
+- condition_message_length: fields.OPERATOR와 fields.LENGTH 기준 글자 수 비교.
+- condition_username_contains: fields.TEXT를 사용자 이름에서 검색.
+- 조건 필드에 값 소켓이 연결된 경우, 소켓 값이 기본 필드보다 우선한다.
+
+값 블록:
+- value_text: fields.TEXT 문자열 반환.
+- value_number: fields.NUMBER 숫자 반환.
+- value_variable: fields.VARIABLE 변수 조회. 미정의 변수는 빈 문자열.
+- value_user_name: 이벤트 사용자 표시 이름.
+- value_server_name: 서버 이름.
+- value_channel_name: 채널 이름.
+- value_current_time: 지정된 서버 시간대의 현재 시간 문자열.
+- 값 소켓에 아무 블록도 연결되지 않은 경우 해당 블록 정의의 안전한 기본값 또는 빈 문자열을 사용한다.
+
+## 16-4. 실행기 구현
+- 기존 Discord client, 기존 listener, 기존 Supabase 클라이언트를 재사용한다.
+- schema_version 2를 검증한 뒤에만 실행한다.
+- root 이벤트 매칭 → next 체인 순차 실행 → control 컨테이너의 children/else_children 재귀 실행 순서로 처리한다.
+- 재귀는 무제한 허용하지 않는다. 최대 트리 깊이 8, 전체 노드 50, 실행 노드 누적 50, repeat 최대 20회, 전체 실행 15초로 제한한다.
+- expression 평가기는 condition_*와 value_* allowlist만 처리한다. 임의 Python 실행이나 문자열 평가 금지.
+- Discord API 동작은 기존 권한·서버 소속·역할 계층 검사를 그대로 수행한다.
+- node의 type이 allowlist에 없으면 프로젝트 전체를 실행하지 말고 해당 프로젝트를 안전하게 비활성화하거나 실패 로그를 남긴다.
+- values 안에 statement type이 들어가거나 children 안에 value/condition type이 들어가는 구조 오류를 거부한다.
+- next에 event_*가 들어가는 구조 오류를 거부한다. 이벤트는 roots에서만 허용한다.
+- UUID 중복, 누락된 id, 알 수 없는 input key, 예상하지 못한 field, 잘못된 숫자 범위, 과도한 문자열을 검증한다.
+- 편집기 JSON의 fields key는 대문자일 수 있다. 런타임은 normalize_fields() 한 곳에서만 소문자 키로 변환한다. 같은 의미의 대문자/소문자 키가 중복되면 거부한다.
+
+## 16-5. 이전 프로젝트 마이그레이션
+- schema_version이 없고 blocks 배열이 있는 이전 프로젝트는 기존 v1 마이그레이션 규칙으로만 변환한다.
+- 예전 condition_*가 평면 배열에 놓인 경우 조건이 어느 범위까지 적용됐는지 확실하지 않으면 자동으로 추측하지 않는다.
+- 의미가 불명확한 기존 조건 프로젝트는 편집기에서 사용자에게 재구성이 필요하다고 안내하고, 원본 JSON을 덮어쓰지 않는다.
+- 새 저장은 schema_version 2로만 저장한다.
+
+## 16-6. 성능과 장애 격리
+- Blockly 라이브러리는 브라우저에서만 사용한다. Discord 봇에는 Blockly 라이브러리나 브라우저 런타임을 설치하지 않는다.
+- 봇은 JSON만 파싱한다. DOM, SVG, 브라우저 코드 실행 금지.
+- 서버별 캐시·동시성·실행 제한은 앞선 10절을 그대로 지킨다.
+- BLOCKS 파싱/실행 실패가 기존 TEND 명령어, 검열, 경고, 공지, 역할 관리 기능에 영향을 주면 안 된다.
+
+## 16-7. 필수 테스트
+- 이벤트 → 만약 → 조건식 → 내부 동작 → 다음 동작 순서.
+- if/else의 참·거짓 두 경로.
+- 조건 안에 조건을 넣는 중첩.
+- 숫자 반복과 20회 상한.
+- 텍스트/숫자/변수 값 소켓의 연결과 저장/재로드.
+- 연결 해제, 블록 이동, 여러 블록 묶음 이동 후 JSON 구조 유지.
+- 50노드/8단계/200KB 제한.
+- 잘못된 root, 잘못된 next, 잘못된 values/children 타입 거부.
+- 기존 v1 프로젝트 로드와 원본 보존.
