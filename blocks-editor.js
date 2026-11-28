@@ -128,7 +128,10 @@ value_text:{value:"텍스트"},value_number:{value:"0"},value_variable:{variable
  }
  function makeCard(block,def,index){
   const card=document.createElement("article");card.className="bl-workspace-block";card.draggable=true;card.dataset.id=block.id;
-  card.addEventListener("dragstart",e=>{if(e.target.closest("input,textarea,select,button")){e.preventDefault();return;}dragSource={kind:"move",id:block.id};card.classList.add("dragging");e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","block:"+block.id);});card.addEventListener("dragend",()=>card.classList.remove("dragging"));
+  card.addEventListener("dragstart",e=>{if(e.target.closest("input,textarea,select,button")){e.preventDefault();return;}dragSource={kind:"move",id:block.id};card.classList.add("dragging");e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","block:"+block.id);});
+  card.addEventListener("dragend",()=>{card.classList.remove("dragging");document.querySelectorAll(".bl-drop-before,.bl-drop-after").forEach(node=>node.classList.remove("bl-drop-before","bl-drop-after"));});
+  card.addEventListener("dragover",e=>{if(!dragSource||dragSource.kind!=="move"||dragSource.id===block.id)return;e.preventDefault();const rect=card.getBoundingClientRect(),after=e.clientY>rect.top+rect.height/2;card.classList.toggle("bl-drop-before",!after);card.classList.toggle("bl-drop-after",after);});
+  card.addEventListener("dragleave",e=>{if(!card.contains(e.relatedTarget))card.classList.remove("bl-drop-before","bl-drop-after");});
   const head=document.createElement("div");head.className="bl-block-head "+def.kind;const title=document.createElement("span");title.textContent=def.label;head.append(title);const tools=document.createElement("div");tools.className="bl-block-tools";
   [["↑",-1],["↓",1],["삭제","delete"]].forEach(([label,action])=>{const button=document.createElement("button");button.type="button";button.textContent=label;button.addEventListener("click",()=>{const current=blocks.findIndex(x=>x.id===block.id);if(current<0)return;if(action==="delete")blocks.splice(current,1);else{const next=current+Number(action);if(next<0||next>=blocks.length)return;const item=blocks.splice(current,1)[0];blocks.splice(next,0,item);}renderBlocks();markDirty();});tools.append(button);});head.append(tools);card.append(head);
   if(def.fields.length){const fields=document.createElement("div");fields.className="bl-block-fields";def.fields.forEach(field=>fields.append(fieldElement(block,field)));card.append(fields);}return card;
@@ -145,9 +148,39 @@ value_text:{value:"텍스트"},value_number:{value:"0"},value_variable:{variable
   area.addEventListener("touchmove",e=>{if(touch&&e.touches.length===2){const x=(e.touches[0].clientX+e.touches[1].clientX)/2,y=(e.touches[0].clientY+e.touches[1].clientY)/2;canvasX=touch.ox+x-touch.x;canvasY=touch.oy+y-touch.y;applyCanvasTransform();}},{passive:true});area.addEventListener("touchend",()=>{touch=null;});
  }
  function setupDrop(){
-  const area=$("#blocks-workspace");area.addEventListener("dragover",e=>{if(dragSource){e.preventDefault();e.dataTransfer.dropEffect=dragSource.kind==="move"?"move":"copy";}});
-  area.addEventListener("drop",e=>{if(!dragSource)return;const targetField=e.target.closest(".block-field-input");if(targetField&&targetField.dataset.kind==="value")return;e.preventDefault();if(dragSource.kind==="new")addBlock(dragSource.type);else if(dragSource.kind==="move"){const from=blocks.findIndex(b=>b.id===dragSource.id),target=e.target.closest(".bl-workspace-block"),to=target?blocks.findIndex(b=>b.id===target.dataset.id):blocks.length;if(from>=0){const item=blocks.splice(from,1)[0];blocks.splice(Math.max(0,to>from?to-1:to),0,item);renderBlocks();markDirty();}}});
-  document.addEventListener("dragend",()=>{dragSource=null;});document.addEventListener("drop",()=>{setTimeout(()=>{dragSource=null;},0);});
+  const area=$("#blocks-workspace");
+  area.addEventListener("dragover",e=>{if(dragSource){e.preventDefault();e.dataTransfer.dropEffect=dragSource.kind==="move"?"move":"copy";}});
+  area.addEventListener("drop",e=>{
+   if(!dragSource)return;
+   const targetField=e.target.closest(".block-field-input");
+   if(targetField&&targetField.dataset.kind==="value")return;
+   e.preventDefault();
+   if(dragSource.kind==="new"){const target=e.target.closest(".bl-workspace-block");if(!target){addBlock(dragSource.type);return;}const targetIndex=blocks.findIndex(b=>b.id===target.dataset.id);const rect=target.getBoundingClientRect();const after=e.clientY>rect.top+rect.height/2;addBlock(dragSource.type,Math.max(0,targetIndex+(after?1:0)));return;}
+   if(dragSource.kind==="move"){
+    const from=blocks.findIndex(b=>b.id===dragSource.id),target=e.target.closest(".bl-workspace-block");
+    if(from<0)return;
+    const moving=blocks[from],movingDef=byType[moving.type];
+    if(!target){if(movingDef?.kind==="event"){window.BLOCKS.notify("이벤트 블록은 다른 이벤트 스택과 함께 이동해야 해요.");return;}const stackStart=blocks.map((b,i)=>byType[b.type]?.kind==="event"?i:-1).filter(i=>i>=0).filter(i=>i<=from).pop();const stackEnd=blocks.findIndex((b,i)=>i>from&&byType[b.type]?.kind==="event");const end=stackEnd<0?blocks.length:stackEnd;if(from<stackStart||from>=end)return;const item=blocks.splice(from,1)[0];blocks.splice(end-1,0,item);renderBlocks();markDirty();return;}
+    const to=blocks.findIndex(b=>b.id===target.dataset.id);if(to<0||to===from)return;
+    const targetDef=byType[blocks[to].type];const targetIsEvent=targetDef?.kind==="event";
+    if(movingDef?.kind==="event"){
+      let sourceEnd=blocks.findIndex((b,i)=>i>from&&byType[b.type]?.kind==="event");if(sourceEnd<0)sourceEnd=blocks.length;
+      const segment=blocks.splice(from,sourceEnd-from);
+      let targetStart=blocks.findIndex(b=>b.id===target.dataset.id);
+      if(targetStart<0){blocks.push(...segment);}else if(targetIsEvent){blocks.splice(targetStart,0,...segment);}else{const targetRoot=blocks.map((b,i)=>byType[b.type]?.kind==="event"?i:-1).filter(i=>i>=0).filter(i=>i<=targetStart).pop();let targetEnd=blocks.findIndex((b,i)=>i>targetRoot&&byType[b.type]?.kind==="event");if(targetEnd<0)targetEnd=blocks.length;blocks.splice(targetEnd,0,...segment);}
+    }else{
+      let sourceRoot=blocks.map((b,i)=>byType[b.type]?.kind==="event"?i:-1).filter(i=>i>=0).filter(i=>i<=from).pop();
+      let sourceEnd=blocks.findIndex((b,i)=>i>sourceRoot&&byType[b.type]?.kind==="event");if(sourceEnd<0)sourceEnd=blocks.length;
+      if(targetIsEvent||to<sourceRoot||to>=sourceEnd){window.BLOCKS.notify("일반 블록은 같은 이벤트 스택 안에서 이동할 수 있어요.");return;}
+      const rect=target.getBoundingClientRect(),after=e.clientY>rect.top+rect.height/2;
+      const item=blocks.splice(from,1)[0];let insert=blocks.findIndex(b=>b.id===target.dataset.id);if(after)insert++;
+      blocks.splice(Math.max(sourceRoot,insert>from?insert-1:insert),0,item);
+    }
+    renderBlocks();markDirty();
+   }
+  });
+  document.addEventListener("dragend",()=>{dragSource=null;document.querySelectorAll(".bl-drop-before,.bl-drop-after").forEach(node=>node.classList.remove("bl-drop-before","bl-drop-after"));});
+  document.addEventListener("drop",()=>{setTimeout(()=>{dragSource=null;document.querySelectorAll(".bl-drop-before,.bl-drop-after").forEach(node=>node.classList.remove("bl-drop-before","bl-drop-after"));},0);});
  }
  async function save(){
   if(blocks.length>50){window.BLOCKS.notify("블록은 최대 50개까지 저장할 수 있어요.");return false;}
