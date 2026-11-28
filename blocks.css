@@ -318,3 +318,16 @@ html.theme-dark .bl-bottom-cta{background:linear-gradient(120deg,#172743 0%,#111
 html.theme-dark .bl-bottom-cta .bl-cta-inner h2{color:#f1f5fb!important}
 html.theme-dark .bl-bottom-cta .bl-cta-inner p{color:#b9c5d6!important}
 html.theme-dark .bl-bottom-cta .bl-cta-inner .bl-eyebrow{color:#b9ccff!important;background:#243655!important;border-color:#3a527c!important}
+
+
+/* Entry-like block drag and drop feedback */
+.bl-workspace-block{cursor:grab;transition:box-shadow .14s ease,opacity .14s ease,transform .14s ease}
+.bl-workspace-block:active{cursor:grabbing}
+.bl-workspace-block.dragging{opacity:.38;transform:scale(.985)}
+.bl-workspace-block.bl-drop-before:before,.bl-workspace-block.bl-drop-after:after{content:"";position:absolute;left:-5px;right:-5px;height:5px;border-radius:8px;background:#3978f6;box-shadow:0 0 0 3px #3978f626;z-index:20;pointer-events:none}
+.bl-workspace-block.bl-drop-before:before{top:-8px}
+.bl-workspace-block.bl-drop-after:after{bottom:-8px}
+html.theme-dark .bl-workspace-block.bl-drop-before:before,html.theme-dark .bl-workspace-block.bl-drop-after:after{background:#80aaff;box-shadow:0 0 0 3px #80aaff35}
+.bl-palette-block{cursor:grab}
+.bl-palette-block:active{cursor:grabbing}
+@media(prefers-reduced-motion:reduce){.bl-workspace-block{transition:none}}
